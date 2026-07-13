@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#02040a"/>
+  <!-- the pulse: what he sends out, and what comes back -->
+  <circle cx="32" cy="34" r="26" fill="none" stroke="#8fe8ff" stroke-width="1" opacity=".18"/>
+  <circle cx="32" cy="34" r="19" fill="none" stroke="#8fe8ff" stroke-width="1.4" opacity=".34"/>
+  <circle cx="32" cy="34" r="12" fill="none" stroke="#8fe8ff" stroke-width="1.8" opacity=".6"/>
+  <!-- Rocky: a carapace and five legs, no face at all -->
+  <rect x="24" y="30" width="16" height="9" rx="1" fill="#ff9a3c"/>
+  <rect x="28" y="26" width="8" height="5" rx="1" fill="#ffb96e"/>
+  <g fill="#8a4a30">
+    <rect x="20" y="39" width="3" height="7"/>
+    <rect x="26" y="39" width="3" height="9"/>
+    <rect x="32" y="39" width="3" height="9"/>
+    <rect x="38" y="39" width="3" height="7"/>
+    <rect x="43" y="35" width="3" height="8" transform="rotate(14 44 39)"/>
+  </g>
+</svg>

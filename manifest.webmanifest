@@ -1,0 +1,14 @@
+{
+  "name": "Rocky Saves the Universe",
+  "short_name": "ROCKY",
+  "description": "You are an Eridian engineer with no eyes. You hear the world, and something is wrong with the heat.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#02040a",
+  "theme_color": "#02040a",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
