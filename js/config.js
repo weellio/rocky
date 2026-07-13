@@ -282,6 +282,100 @@
           { at: 'ear', chord: '♪♪♩♩', text: 'It heard me!' },
           { at: 'all_doors', chord: '♩♩♪♩', text: 'Now they will hear me too. Question: will they believe me.' }
         ]
+      },
+
+      /* ==============================================================
+       * ACT I.3 — CONSENSUS
+       * Eridians have no government, no war, and no way to make anybody do
+       * anything. To act, the engineers must AGREE — so this door has THREE
+       * resonators on it and opens for none of them alone. You must make the
+       * same argument three times, from three places, and each one is deaf in a
+       * different way:
+       *
+       *   VOTH  is behind a grit wall. Pull it out, or bridge it with xenonite.
+       *   ARK   is at the bottom of a shaft. Sound will not turn that corner
+       *         loudly enough — so climb DOWN the shaft (SHIFT) and shout in it,
+       *         or drop something heavy down it and let the bang argue for you.
+       *   SEVEN is across a room floored with GRIT, which eats every footfall and
+       *         every echo. Get closer, or bridge the grit with xenonite, or go
+       *         over it along the girder.
+       *
+       * The point of the level is that no single trick opens it. You need the
+       * whole vocabulary at once, and that is what makes it the last level of the
+       * act rather than the first.
+       * ============================================================== */
+      {
+        id: 'consensus',
+        name: 'Consensus',
+        world: { w: 44, h: 20, d: 44 },
+        spawn: [22, 3, 36],
+        objective: 'Forty-one engineers, and not one of them can be ordered. All three must hear you.',
+        build: [
+          { op: 'fill', from: [0, 0, 0], to: [43, 19, 43], block: 1 },
+          { op: 'room', from: [14, 1, 26], to: [30, 9, 40], floor: 2 },     // the assembly floor
+
+          // the chamber behind the door, and the throat that leads to it
+          { op: 'room', from: [16, 1, 4], to: [28, 7, 12], floor: 2 },
+          { op: 'fill', from: [21, 1, 13], to: [23, 5, 25], block: 0 },
+          { op: 'fill', from: [21, 1, 13], to: [23, 5, 13], block: 8 },     // <- THE DOOR
+
+          /* --- VOTH, behind two cells of grit ---
+           * A channel at floor level, packed with grit, which costs 22 a cell. Two
+           * of them is 44, and Rocky's whole voice only carries 32. He is not
+           * quiet to Voth. He is INAUDIBLE. Pull them out. */
+          { op: 'fill', from: [6, 2, 34], to: [10, 4, 38], block: 0 },      // Voth's cell
+          { op: 'fill', from: [11, 3, 36], to: [13, 3, 36], block: 0 },     // the channel
+          { op: 'set', at: [12, 3, 36], block: 9 },
+          { op: 'set', at: [13, 3, 36], block: 9 },                         // <- TWO cells of grit
+
+          /* --- ARK, at the bottom of a shaft ---
+           * No grit at all: just geometry. He is buried five cells deep in rock and
+           * the only way sound reaches him is a long crooked crawl over the ceiling
+           * and then straight DOWN. Shouting from the floor is hopeless. Climb the
+           * wall, crawl, and walk down the shaft on your claws. */
+          { op: 'fill', from: [35, 2, 31], to: [37, 3, 33], block: 0 },     // Ark's cell
+          { op: 'fill', from: [36, 4, 32], to: [36, 13, 32], block: 0 },    // the shaft
+          { op: 'fill', from: [30, 13, 32], to: [36, 13, 32], block: 0 },   // the crawl
+          { op: 'fill', from: [30, 9, 32], to: [30, 13, 32], block: 0 },    // and the climb up to it
+
+          /* --- SEVEN, UNDER a floor of grit ---
+           * You will walk right over the top of him and he will not hear a step,
+           * because grit eats sound and there is a whole floor of it between you.
+           * Lift ONE block out and shout through the hole. Or drop xenonite into
+           * the hole, seal it, and be heard through the floor anyway. */
+          { op: 'fill', from: [27, 4, 16], to: [33, 7, 22], block: 0 },     // the annex you stand in
+          { op: 'fill', from: [27, 3, 16], to: [33, 3, 22], block: 9 },     // <- ITS FLOOR IS GRIT
+          { op: 'fill', from: [27, 2, 16], to: [33, 2, 22], block: 0 },     // the void beneath it
+          { op: 'fill', from: [24, 4, 19], to: [26, 4, 19], block: 0 },     // the way in, off the throat
+
+          // the tools: xenonite on a girder ledge you have to climb
+          { op: 'fill', from: [26, 4, 36], to: [29, 4, 39], block: 3 },
+          { op: 'set', at: [27, 5, 37], block: 7 },
+          { op: 'set', at: [28, 5, 38], block: 7 },
+          { op: 'set', at: [27, 5, 38], block: 7 },
+          { op: 'set', at: [16, 2, 39], block: 5 }
+        ],
+        sources: [
+          { at: [16, 3, 39], kind: 'vent' }
+        ],
+        gauges: [],
+        /* MEASURED, all three, and printed by the suite. From anywhere on the
+         * assembly floor every one of them is stone deaf; each opens only to a
+         * different idea, and no idea opens two of them. */
+        ears: [
+          { id: 'voth',  at: [6, 3, 36],  needs: 0.42, opens: 'council', name: 'VOTH' },
+          { id: 'ark',   at: [35, 2, 32], needs: 0.42, opens: 'council', name: 'ARK' },
+          { id: 'seven', at: [31, 2, 19], needs: 0.42, opens: 'council', name: 'SEVEN' }
+        ],
+        doors: [
+          { id: 'council', cells: [[21, 1, 13], [22, 1, 13], [23, 1, 13], [21, 2, 13], [22, 2, 13], [23, 2, 13], [21, 3, 13], [22, 3, 13], [23, 3, 13], [21, 4, 13], [22, 4, 13], [23, 4, 13], [21, 5, 13], [22, 5, 13], [23, 5, 13]] }
+        ],
+        lines: [
+          { at: 'start', chord: '♩♪♩♪', text: 'Three of them will speak for the rest. Voth, who is old. Ark, who is careful. Seven, who is right more often than anyone likes.' },
+          { at: 'start', chord: '♪♩♩', text: 'No Eridian can be made to do anything. That is not a weakness. It is why we are still here. But it does mean I must convince all three, and they are not sitting where I can reach them.' },
+          { at: 'ear', chord: '♪♪♩', text: 'One.' },
+          { at: 'all_doors', chord: '♩♪♪♩♩', text: 'Agreed. Forty-one engineers, and we agree. Now we build a ship, and none of us has ever seen the sky.' }
+        ]
       }
     ],
 

@@ -301,10 +301,22 @@
       if (!e.open && got >= e.needs) {
         e.open = true;
         cue(S, 'ear');
-        openDoor(S, e.opens);
+        tryOpen(S, e.opens);
       }
       S.heard[e.id] = 0;
     }
+  }
+
+  /* CONSENSUS.
+   * Eridians have no government and no war. To act, the engineers must AGREE —
+   * so a door opens only when EVERY resonator wired to it has heard you, not
+   * merely the first. One ear is a lock. Three ears is an argument you have to
+   * make three times, from three places, and that is the story of Act I.
+   * (No new data: the ears already say which door they answer to.) */
+  function tryOpen(S, doorId) {
+    const panel = S.ears.filter((e) => e.opens === doorId);
+    if (panel.length && !panel.every((e) => e.open)) return false;
+    return openDoor(S, doorId);
   }
 
   function openDoor(S, doorId) {
@@ -750,7 +762,7 @@
     create, step, pulse, emit, litCells, takeCues, cue, costAt, cameraFit,
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
-    takeBlock, placeBlock, facing, openDoor, settleEars,
+    takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars,
     FIXED
   };
   return api;

@@ -407,15 +407,19 @@ function frame(now) {
   el('held').textContent = hb ? `CARRYING · ${hb.name.toUpperCase()}` : '';
   el('held').style.opacity = hb ? '1' : '0';
 
-  /* THE EAR'S OWN OPINION, shown honestly: how loud the last thing it heard was,
-   * against how loud it needs. It is not a hint — it is the engine's number. */
+  /* EVERY EAR'S OWN OPINION, shown honestly: the loudest thing it has ever heard,
+   * against what it needs. Not a hint — it is the engine's own number, the same
+   * one that decides. The player is told the truth and trusted with it. */
   if (S.ears.length) {
-    const e = S.ears[0];
     el('ear').style.opacity = '1';
-    el('ear').textContent = e.open
-      ? 'RESONATOR · OPEN'
-      : `RESONATOR · heard ${(e.loudest * 100).toFixed(0)}% of ${(e.needs * 100).toFixed(0)}%`;
-    el('ear').classList.toggle('on', e.open);
+    el('ear').innerHTML = S.ears.map((e) => {
+      const name = e.name || 'RESONATOR';
+      const pct = Math.round(e.loudest * 100);
+      const need = Math.round(e.needs * 100);
+      return e.open
+        ? `<span class="on">${name} · HEARD YOU</span>`
+        : `<span>${name} · ${pct}% of ${need}%</span>`;
+    }).join('<br>');
   } else {
     el('ear').style.opacity = '0';
   }

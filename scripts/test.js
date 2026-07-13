@@ -780,6 +780,82 @@ group('THE DEEP HALL: a locked door is a routing problem', () => {
   }
 });
 
+group('CONSENSUS: no Eridian can be made to do anything', () => {
+  /* Act I.3. Eridians have no government and no war, so to act, the engineers
+   * must AGREE. Three resonators on one door, and it opens for none of them
+   * alone — you have to make the same argument three times, from three places,
+   * and each of them is deaf in a completely different way.
+   *
+   * VOTH  is behind two cells of grit. 22 a cell, 44 for the pair, and Rocky's
+   *       entire voice only carries 32 — he is not quiet to Voth, he is INAUDIBLE.
+   * ARK   has no grit at all. He is just buried, and the only way in is a crawl
+   *       over the ceiling and then straight DOWN a shaft on your claws.
+   * SEVEN is UNDER a floor of grit. You walk over the top of him and he hears
+   *       nothing. Lift one block out and shout through the hole.
+   */
+  const con = () => R.create(CFG, { seed: 1, chapter: 'consensus' });
+  const shout = (S, x, y, z) => {
+    S.player.x = x; S.player.y = y; S.player.z = z;
+    S.pulseCd = 0; R.pulse(S); steps(S, 1.6);
+  };
+  const ear = (S, id) => S.ears.find((e) => e.id === id);
+  const shut = (S) => R.isSolid(S, 22, 3, 13);
+  const pc = (e) => (e.loudest * 100).toFixed(0) + '%';
+
+  const base = con();
+  eq(base.ears.length, 3, 'three engineers');
+  eq(base.doors.length, 1, 'one door');
+  ok(base.ears.every((e) => e.opens === 'council'), 'and all three of them answer to it');
+
+  // NOBODY hears you from the assembly floor. Not one of them.
+  const A = con();
+  for (const spot of [[22, 3, 33], [15, 3, 36], [29, 3, 33], [22, 3, 20], [25, 4.5, 19.5]]) {
+    shout(A, spot[0], spot[1], spot[2]);
+  }
+  for (const e of A.ears) ok(!e.open, `${e.name} cannot hear you from the floor (${pc(e)} of ${(e.needs * 100).toFixed(0)}%)`);
+  ok(shut(A), 'and the council door does not move');
+
+  // Each argument, made properly, convinces EXACTLY ONE of them.
+  const voth = (S) => {
+    S.player.x = 14.5; S.player.y = 3.5; S.player.z = 36.5; S.player.yaw = Math.PI / 2;
+    ok(R.takeBlock(S).ok, 'the first cell of grit comes out');
+    S.held = 0;
+    ok(R.takeBlock(S).ok, 'and the second — one block at a time, he has only five arms');
+    shout(S, 14.5, 3, 36.5);
+  };
+  const ark = (S) => shout(S, 36.5, 3, 32.5);          // down the shaft, on his claws
+  const seven = (S) => {
+    S.held = 0;
+    S.player.x = 30.5; S.player.y = 4.5; S.player.z = 19.5; S.player.yaw = Math.PI;
+    const t = R.takeBlock(S);
+    ok(t.ok && t.block === 9, 'he lifts a block of the grit floor out from under his own feet');
+    shout(S, 30.5, 4.5, 20.5);
+  };
+
+  const one = (name, id, fn) => {
+    const S = con();
+    fn(S);
+    ok(ear(S, id).open, `${name} is convinced (${pc(ear(S, id))})`);
+    ok(S.ears.filter((e) => e.open).length === 1, '...and only him — no argument convinces two engineers at once');
+    ok(shut(S), '...and ONE VOICE IS NOT A CONSENSUS: the door does not move');
+  };
+  one('VOTH — pull the grit out of his channel', 'voth', voth);
+  one('ARK — climb down the shaft and shout in it', 'ark', ark);
+  one('SEVEN — lift the grit floor and shout through the hole', 'seven', seven);
+
+  // ...and all three, which is the only thing that opens it.
+  const S = con();
+  voth(S); ark(S); seven(S);
+  ok(S.ears.every((e) => e.open), 'all three engineers have heard him');
+  ok(!shut(S), 'AND THE COUNCIL OPENS — forty-one Eridians, and they agree');
+  ok(S.flags.all_doors, 'the chapter turns');
+
+  // the machines cannot do it for you: this one you argue yourself
+  const M = con();
+  steps(M, 45);
+  ok(M.ears.every((e) => !e.open), 'the vents shout for forty-five seconds and convince nobody');
+});
+
 group('doors', () => {
   const S = deep();
   ok(R.isSolid(S, 20, 3, 17), 'a shut door is solid');
