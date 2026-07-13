@@ -402,7 +402,7 @@
     },
 
     how: [
-      { marker: 'walk',     title: 'Move',        body: 'WASD moves Rocky. Five legs, no hurry, and he never trips.' },
+      { marker: 'walk',     title: 'Move',        body: 'WASD or the ARROW KEYS move Rocky — they do the same thing, so use whichever hand you like. Five legs, no hurry, and he never trips.' },
       { marker: 'climb',    title: 'Climb',       body: 'Walk into a wall and hold forward. Eridians climb, and five legs do not let go — stop pressing and Rocky simply holds on. Hold SHIFT to walk back down.' },
       { marker: 'jump',     title: 'Jump',        body: 'SPACE. Erid pulls twice as hard as Earth, so Rocky jumps badly. Climb instead.' },
       { marker: 'pulse',    title: 'Pulse',       body: 'Rocky has no eyes. Press E to pulse, and listen to what comes back. A ring leaves him at the speed of sound — watch it go.' },

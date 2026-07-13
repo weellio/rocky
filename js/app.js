@@ -200,6 +200,19 @@ const keys = Object.create(null);
 let yaw = 0, pitch = 0.22, locked = false;
 const input = { fwd: 0, right: 0, jump: false, down: false, yaw: 0 };
 
+/* The arrows do exactly what WASD does — they do not TURN, they strafe, because
+ * the mouse is what steers and a key that means one thing on one hand and another
+ * thing on the other hand is just a bug you have to remember. */
+const MOVE = {
+  fwd:   ['KeyW', 'ArrowUp'],
+  back:  ['KeyS', 'ArrowDown'],
+  left:  ['KeyA', 'ArrowLeft'],
+  right: ['KeyD', 'ArrowRight']
+};
+const held = (list) => list.some((k) => keys[k]);
+const EATEN = ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
+  .concat(MOVE.fwd, MOVE.back, MOVE.left, MOVE.right);
+
 addEventListener('keydown', (e) => {
   keys[e.code] = true;
   if (e.code === 'KeyE') doPulse();
@@ -207,7 +220,7 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyQ') doTake();
   if (e.code === 'KeyR') doPlace();
   if (e.code === 'Escape') document.exitPointerLock();
-  if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'].includes(e.code)) e.preventDefault();
+  if (EATEN.includes(e.code)) e.preventDefault();   // arrows must not scroll the page
 });
 addEventListener('keyup', (e) => { keys[e.code] = false; });
 canvas.addEventListener('click', () => { if (!locked) canvas.requestPointerLock(); else doPulse(); });
@@ -302,8 +315,8 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
 
-  input.fwd = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0);
-  input.right = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
+  input.fwd = (held(MOVE.fwd) ? 1 : 0) - (held(MOVE.back) ? 1 : 0);
+  input.right = (held(MOVE.right) ? 1 : 0) - (held(MOVE.left) ? 1 : 0);
   input.jump = !!keys.Space;
   input.down = !!(keys.ShiftLeft || keys.ShiftRight);
   input.yaw = yaw;

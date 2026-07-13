@@ -960,6 +960,14 @@ group('the renderer is a window, not a witness', () => {
     }
   }
 
+  /* BOTH HANDS. The arrows must move Rocky exactly as WASD does — and they must
+   * be swallowed, or holding Down scrolls the page out from under the game. */
+  for (const k of ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'])
+    ok(SRC.app.includes(k), `${k} moves Rocky`);
+  ok(/EATEN\.includes\(e\.code\)/.test(SRC.app) && /ArrowDown/.test(SRC.app),
+    'and the arrow keys are swallowed, so holding one does not scroll the page away');
+  ok(/ARROWS/.test(SRC.html), 'and the key list on screen says so');
+
   // config is DATA. if a function ever lands in it, the whole "config-driven" claim is a lie.
   ok(!/=>|function\s*\(/.test(SRC.cfg.split('return {')[1].split('\n};')[0] || ''),
     'config.js is pure data: no functions hiding in the tables');
