@@ -237,7 +237,18 @@
           if (a > cur) {
             if (S.amp[j] <= 0) { S.active[S.nActive++] = j; }
             S.amp[j] = a;
-            S.arrive[j] = S.t + dd / son.speed;
+
+            /* THE ROUND TRIP.
+             * A wall does not appear when the sound TOUCHES it. It appears when
+             * the echo gets BACK TO ROCKY, because Rocky is the one listening —
+             * he is not a camera hanging in the room watching sound arrive at
+             * other objects. So the time is out AND back: `dd` to the surface,
+             * then the flight home to his ears.
+             * (For his own pulse that is simply 2*dd. For a vent across the
+             * warren it is the vent's throw plus the walk home, which is why a
+             * far machine's echo lands on you late and from nowhere.) */
+            const home = Math.hypot(sx + 0.5 - S.player.x, sy + 0.5 - S.player.y, sz + 0.5 - S.player.z);
+            S.arrive[j] = S.t + (dd + home) / son.speed;
             S.src[j] = srcId;
             touched++;
           }
@@ -454,10 +465,14 @@
       cue(S, 'jump');
     }
 
+    const son = S.cfg.sonar;
     const hitY = moveAxis(S, 'y', p.vy * dt);
     if (hitY) {
       if (p.vy < 0) {
-        if (!p.onGround && p.vy < -8) cue(S, 'land');
+        if (!p.onGround && p.vy < -8) {
+          cue(S, 'land');
+          emit(S, p.x, p.y, p.z, son.landAmp, 0, son.landRange);  // a landing is a LOUD footfall
+        }
         p.onGround = true;
       }
       p.vy = 0;
@@ -465,7 +480,19 @@
       p.onGround = false;
     }
 
-    p.dist += Math.hypot(p.vx, p.vz) * dt;
+    /* FIVE LEGS ON STONE ARE FIVE SMALL SOUNDS.
+     * Every stride, Rocky's own feet pulse the floor beneath him. He cannot help
+     * it and he would not want to: it means he always knows the ground he is
+     * standing on. Walk and the floor answers. Stand still in a dead corridor
+     * and it does not, and you are as blind as he ever gets. */
+    const moved = Math.hypot(p.vx, p.vz) * dt + (p.climbing ? Math.abs(p.vy) * dt : 0);
+    p.dist += moved;
+    p.strideAcc += moved;
+    if (p.strideAcc >= son.stride) {
+      p.strideAcc = 0;
+      emit(S, p.x, p.y, p.z, son.footAmp, 0, son.footRange);
+      cue(S, 'step');
+    }
   }
 
   /* ---------- cues: the engine says what happened; app.js decides how it sounds ---------- */
@@ -543,7 +570,8 @@
       absorbOf: cfg.blocks.map((b) => b.absorb),
       player: {
         x: chapter.spawn[0] + 0.5, y: chapter.spawn[1] + 0.5, z: chapter.spawn[2] + 0.5,
-        vx: 0, vy: 0, vz: 0, yaw: 0, onGround: false, onWall: false, climbing: false, dist: 0
+        vx: 0, vy: 0, vz: 0, yaw: 0, onGround: false, onWall: false, climbing: false,
+        dist: 0, strideAcc: 0
       },
       pulseCd: 0,
       pulses: 0,

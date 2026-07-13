@@ -16,17 +16,21 @@
      * Rocky has no eyes. Every material returns a different echo, and the
      * colour you see IS that echo. Learn the colours, learn the world.
      * ------------------------------------------------------------- */
+    /* Every material rings differently, and its ECHO has a shape as well as a
+     * colour: `tex` is the grain you hear when the wave comes off it. Rocky is
+     * not seeing a texture, he is resolving a surface — coarse basalt scatters,
+     * a machined plate returns a hard grid, grit returns almost nothing. */
     blocks: [
-      { id: 0, key: 'air',      name: 'Air',            solid: false, color: '#000000', absorb: 0.0 },
-      { id: 1, key: 'rock',     name: 'Erid basalt',    solid: true,  color: '#4a5a6e', absorb: 0.35 },
-      { id: 2, key: 'plate',    name: 'Floor plate',    solid: true,  color: '#6f7f93', absorb: 0.22 },
-      { id: 3, key: 'girder',   name: 'Girder',         solid: true,  color: '#c88a3a', absorb: 0.10 },
-      { id: 4, key: 'pipe',     name: 'Ammonia pipe',   solid: true,  color: '#3fd3c0', absorb: 0.08 },
-      { id: 5, key: 'vent',     name: 'Heat vent',      solid: true,  color: '#ff6a2b', absorb: 0.05 },
-      { id: 6, key: 'gauge',    name: 'Heat gauge',     solid: true,  color: '#ffd23c', absorb: 0.04 },
-      { id: 7, key: 'xenonite', name: 'Xenonite',       solid: true,  color: '#b46bff', absorb: 0.02 },
-      { id: 8, key: 'door',     name: 'Warren door',    solid: true,  color: '#8fe36b', absorb: 0.30 },
-      { id: 9, key: 'sand',     name: 'Grit',           solid: true,  color: '#2f3743', absorb: 0.72 }
+      { id: 0, key: 'air',      name: 'Air',            solid: false, color: '#000000', absorb: 0.0,  tex: 'none' },
+      { id: 1, key: 'rock',     name: 'Erid basalt',    solid: true,  color: '#4a5a6e', absorb: 0.35, tex: 'mottle' },
+      { id: 2, key: 'plate',    name: 'Floor plate',    solid: true,  color: '#6f7f93', absorb: 0.22, tex: 'plate' },
+      { id: 3, key: 'girder',   name: 'Girder',         solid: true,  color: '#c88a3a', absorb: 0.10, tex: 'stripe' },
+      { id: 4, key: 'pipe',     name: 'Ammonia pipe',   solid: true,  color: '#3fd3c0', absorb: 0.08, tex: 'rings' },
+      { id: 5, key: 'vent',     name: 'Heat vent',      solid: true,  color: '#ff6a2b', absorb: 0.05, tex: 'grille' },
+      { id: 6, key: 'gauge',    name: 'Heat gauge',     solid: true,  color: '#ffd23c', absorb: 0.04, tex: 'dial' },
+      { id: 7, key: 'xenonite', name: 'Xenonite',       solid: true,  color: '#b46bff', absorb: 0.02, tex: 'facet' },
+      { id: 8, key: 'door',     name: 'Warren door',    solid: true,  color: '#8fe36b', absorb: 0.30, tex: 'panel' },
+      { id: 9, key: 'sand',     name: 'Grit',           solid: true,  color: '#2f3743', absorb: 0.72, tex: 'grain' }
     ],
 
     /* Rocky is small, five-legged, and strong. Erid pulls about twice as hard
@@ -72,7 +76,20 @@
       minHeat: 0.02,
       pulseAmp: 1.0,
       cooldown: 0.55,
-      lit: 6000
+      lit: 6000,
+
+      /* FOOTFALL.
+       * Five legs on stone are five small sounds. Rocky cannot help hearing the
+       * ground he is standing on, so he is never a body floating in the dark —
+       * the floor beneath him keeps answering as he walks. Move and you can see
+       * where you are. Stand perfectly still in a dead corridor and you cannot.
+       * It costs nothing and it is the difference between the game being
+       * playable and the game being a black screen with an orange crab in it. */
+      footAmp: 0.42,
+      footRange: 7,
+      stride: 0.85,
+      landAmp: 0.75,
+      landRange: 11
     },
 
     /* Things that make noise on their own. The warren is never fully silent:
@@ -171,6 +188,8 @@
       'move:climb':   'how:climb',
       'move:jump':    'how:jump',
       'sense:pulse':  'how:pulse',
+      'sense:return': 'how:return',
+      'sense:footfall': 'how:footfall',
       'sense:decay':  'how:decay',
       'sense:through': 'how:through',
       'sense:material': 'how:material',
@@ -183,7 +202,9 @@
       { marker: 'walk',     title: 'Move',        body: 'WASD moves Rocky. Five legs, no hurry, and he never trips.' },
       { marker: 'climb',    title: 'Climb',       body: 'Walk into a wall and hold forward. Eridians climb, and five legs do not let go — stop pressing and Rocky simply holds on. Hold SHIFT to walk back down.' },
       { marker: 'jump',     title: 'Jump',        body: 'SPACE. Erid pulls twice as hard as Earth, so Rocky jumps badly. Climb instead.' },
-      { marker: 'pulse',    title: 'Pulse',       body: 'Rocky has no eyes. Press E to pulse, and listen to what comes back. The wave leaves him at the speed of sound: far things arrive late.' },
+      { marker: 'pulse',    title: 'Pulse',       body: 'Rocky has no eyes. Press E to pulse, and listen to what comes back. A ring leaves him at the speed of sound — watch it go.' },
+      { marker: 'return',   title: 'Out, and back', body: 'A wall does not appear when the sound reaches it. It appears when the echo gets back to ROCKY. Out and home again — so the far wall answers late, and that delay IS the distance. It is the only ruler he has.' },
+      { marker: 'footfall', title: 'Five legs',   body: 'Five legs on stone are five small sounds. Rocky cannot help hearing the floor he walks on, so while you move you can always see where you are standing. Stand perfectly still in a dead corridor and you cannot.' },
       { marker: 'decay',    title: 'Memory',      body: 'An echo fades. What you saw a moment ago is memory, and memory dims. Pulse again.' },
       { marker: 'through',  title: 'Through walls', body: 'Sound crosses rock — poorly, but it crosses. A machine humming behind a wall shows up as a faint ghost. That is not a bug in his hearing. That is a doorway.' },
       { marker: 'material', title: 'Materials',   body: 'Every material rings differently, and the colour you see IS that ring. Basalt is dull blue. Girder is orange. Xenonite sings violet. Grit swallows sound and shows almost nothing.' },

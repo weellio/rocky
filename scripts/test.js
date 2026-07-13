@@ -96,18 +96,21 @@ group('sonar', () => {
   R.updateHeat(S, 0);
   eq(R.litCells(S, []).length, 0, 'the instant you pulse, nothing has come back yet');
 
-  /* the nearest wall of this room is 14 cells away, and sound covers 19 cells a
-   * second, so the first echo cannot possibly arrive before ~0.74s. It doesn't. */
-  steps(S, 0.5);
-  eq(R.litCells(S, []).length, 0, 'half a second in, the wave is still in flight — the room is 14 cells wide');
+  /* The wall is 14 cells away and sound covers 19 cells a second — but the echo
+   * has to come HOME, so it cannot land on Rocky before 28/19 = 1.47s.
+   * (We watch one nominated wall rather than counting lit cells, because Rocky
+   * is falling through this test and his own landing makes a noise of its own —
+   * which is exactly the point of the footfalls, and would pollute a count.) */
+  const wall = R.idx(S, 29, 15, 15);
+  steps(S, 1.2);
+  eq(S.heat[wall], 0, 'over a second in and that wall has told Rocky NOTHING — his shout is still out there');
 
   steps(S, 0.45);
+  ok(S.heat[wall] > 0, 'and then it comes home');
   const early = R.litCells(S, []).length;
-  ok(early > 0, 'just under a second, and the near walls answer');
 
-  steps(S, 0.8);
-  const late = R.litCells(S, []).length;
-  ok(late > early, 'and the far walls answer later still — the wavefront expands at the speed of sound');
+  steps(S, 1.0);
+  ok(R.litCells(S, []).length > early, 'and the farther walls after it — the room arrives in the order of its distances');
 });
 
 group('THE WAVEFRONT IS A SPHERE', () => {
@@ -138,15 +141,26 @@ group('THE WAVEFRONT IS A SPHERE', () => {
   eq(checked, 7, 'seven directions probed, including the diagonals where a taxicab grid falls apart');
   ok(worst < 0.12, `the worst direction is only ${(worst * 100).toFixed(1)}% off a true sphere`);
 
-  /* A WALL BOUNCES SOUND. IT DOES NOT SWALLOW IT FIRST.
-   * The reflector is 14 cells from Rocky, so its echo must be timed at 14 —
-   * not at 14 plus the price of penetrating the very surface it is bouncing
-   * off. Bill it that way (I did) and every wall in the game comes back a
-   * quarter-second late and a third too quiet, and it still looks like sonar. */
+  /* THE ROUND TRIP.
+   * PLAYTEST: "I would think the pulsing would be from Rocky and go outwards,
+   * then return with the echo."  Exactly right, and it was not doing that. A
+   * wall was lighting up when the sound TOUCHED it — which is what a camera
+   * hanging in the room would see, not what the creature doing the listening
+   * hears. Rocky perceives a wall when the echo gets BACK TO HIM. Out AND home:
+   * the wall 14 cells away answers at 28 cells of flight, and that delay is the
+   * only ruler he owns.
+   *
+   * A WALL ALSO BOUNCES SOUND, IT DOES NOT SWALLOW IT FIRST. The trip out is 14,
+   * not 14 plus the price of drilling into the very surface it bounces off. Bill
+   * it that way (I did) and every wall comes back late and quiet, and it still
+   * looks like sonar. */
   const B = openWorld(30);
   R.emit(B, 15.5, 15.5, 15.5, 1, 0);
   const iw = R.idx(B, 29, 15, 15);
-  near(B.arrive[iw], 14 / CFG.sonar.speed, 0.06, 'the wall 14 cells away answers at 14 cells, not at 14 + the cost of drilling into it');
+  near(B.arrive[iw], 28 / CFG.sonar.speed, 0.12,
+    'the wall 14 cells away answers after 28 cells of flight: out to it, and home to his ears');
+  ok(B.arrive[iw] > 14 / CFG.sonar.speed * 1.7,
+    'and NOT when the sound merely touches it — Rocky is the one listening, not the wall');
 
   /* THE STRIKE. A surface is brightest at the instant the wave lands, then it
    * settles. Without this the room does not get swept — it switches on, like a
@@ -154,7 +168,7 @@ group('THE WAVEFRONT IS A SPHERE', () => {
   const W = openWorld(30);
   R.pulse(W);
   const i = R.idx(W, 29, 15, 15);
-  steps(W, 0.78);                          // the wall is 14 away: the wave lands about here
+  steps(W, 1.50);                          // 28 cells of flight at 19 cells/sec
   const atLanding = W.heat[i];
   steps(W, 0.40);                          // a heartbeat later
   const settled = W.heat[i];
@@ -221,10 +235,12 @@ group('sound bends and bleeds', () => {
   ok(behind > openSame * 1.7,
     `and it is DEAR: ${behind.toFixed(1)} through the wall vs ${openSame.toFixed(1)} for the same distance in open air`);
 
-  // the far room is audible, but only as a ghost — much quieter than the near one
-  steps(W, 1.6);
-  const near1 = W.heat[R.idx(W, 9, 2, 5)];      // the near face of the wall
-  const far1 = W.heat[R.idx(W, 10, 2, 5)];      // the far face, heard THROUGH it
+  /* The far room is audible, but only as a ghost.
+   * Compare AMPLITUDE, not heat: heat also carries the arrival strike and the
+   * fade, so sampling it at one instant asks "how bright is this right now",
+   * when the question is "how loud did this come back". */
+  const near1 = W.amp[R.idx(W, 9, 2, 5)];       // the near face of the wall
+  const far1 = W.amp[R.idx(W, 10, 2, 5)];       // the far face, heard THROUGH it
   ok(near1 > 0, 'the near face of the wall is loud');
   ok(far1 > 0, 'the far face is audible at all — that is the doorway');
   ok(near1 > far1 * 2, `and the ghost is faint: ${near1.toFixed(3)} against ${far1.toFixed(3)}`);
@@ -266,12 +282,27 @@ group('materials have voices', () => {
   const blocks = CFG.blocks.filter((b) => b.id !== 0);
   for (const b of blocks) ok(/^#[0-9a-f]{6}$/i.test(b.color), b.name + ' has an echo colour');
   ok(new Set(blocks.map((b) => b.color)).size === blocks.length, 'no two materials return the same colour (or you could not tell them apart)');
+
+  /* AND A GRAIN.
+   * PLAYTEST: "since nothing has a texture I can't really tell." Flat colour on
+   * a cube gives the eye nothing to hold — no scale, no orientation, no surface.
+   * Every material returns its own grain, drawn on a canvas at boot (so the game
+   * still installs offline in under a megabyte and there is not one art asset in
+   * the repository). */
+  for (const b of blocks) {
+    ok(b.tex && b.tex !== 'none', b.name + ' has a grain');
+    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
+  }
+  ok(new Set(blocks.map((b) => b.tex)).size === blocks.length, 'no two materials share a grain either');
+  for (const b of blocks) ok(new RegExp("'" + b.tex + "'").test(SRC.app), `app.js knows how to draw "${b.tex}"`);
+  ok(/CanvasTexture/.test(SRC.app), 'the textures are drawn at boot, not downloaded');
+  ok(/NearestFilter/.test(SRC.app), 'and they are crisp, not smeared — this is a blocky world');
 });
 
 group('memory fades', () => {
   const S = openWorld();
   R.pulse(S);
-  steps(S, 1.0);
+  steps(S, 1.7);
   const first = R.litCells(S, [])[0];
   ok(first, 'a wall answered');
   const i = first.i;
@@ -306,7 +337,7 @@ group('a loud echo cannot be stolen in flight', () => {
   const S = openWorld(30);
   R.pulse(S);                                  // loud: amp 1.0
   steps(S, 0.2);                               // still in flight — nothing has landed
-  const i = R.idx(S, 29, 15, 15);              // a wall cell 14 away
+  const i = R.idx(S, 29, 15, 15);              // a wall cell 14 away: home again at 1.47s
   const loud = S.amp[i];
   ok(loud > 0, 'the loud echo is on its way');
   eq(S.heat[i], 0, 'and has not arrived yet, so it is worth nothing on screen');
@@ -317,8 +348,51 @@ group('a loud echo cannot be stolen in flight', () => {
   R.emit(S, 15.5, 15.5, 15.5, 1.0, 3);         // a genuinely louder one may
   ok(S.amp[i] >= loud, 'but a louder one may take it');
 
-  steps(S, 1.2);
+  steps(S, 1.6);                               // out and back
   ok(S.heat[i] > 0.1, 'and the wall lands loud, the way it was sent');
+});
+
+group('you always know the ground you stand on', () => {
+  /* PLAYTEST: "sometimes it isn't showing where Rocky is located."
+   * He was a body floating in a void — the far room lit up and the floor under
+   * his own feet did not, because nothing under his feet had made a sound in
+   * seconds. Five legs on stone are five small sounds. He cannot help hearing
+   * the ground he walks on, and now he doesn't have to. */
+  const S = mk();
+  const p = S.player;
+
+  steps(S, 12);                          // stand perfectly still, deep in the workshop
+  const beneath = () => {
+    const i = R.idx(S, Math.floor(p.x), Math.floor(p.y) - 1, Math.floor(p.z));
+    return S.heat[i];
+  };
+  const still = beneath();
+
+  eq(S.pulses, 0, 'he has not pulsed');
+  steps(S, 2.0, { fwd: 1, yaw: 0 });     // now walk
+  steps(S, 0.35);                        // and let the last footfall come home (it is a round trip too)
+  ok(S.player.dist > 1, 'he walked');
+  ok(beneath() > 0, `the floor under his feet answers as he walks (${beneath().toFixed(2)})`);
+  ok(beneath() > still, 'and it is brighter than when he was standing still');
+  eq(S.pulses, 0, 'and he still has not spent a single pulse doing it');
+
+  // a footfall is a WHISPER, not a pulse: it must not light the room
+  const F = mk();
+  steps(F, 4.0, { fwd: 1, yaw: 0 });
+  const near1 = R.litCells(F, []).filter((c) => Math.hypot(c.x - F.player.x, c.y - F.player.y, c.z - F.player.z) < 8).length;
+  const far1 = R.litCells(F, []).filter((c) => Math.hypot(c.x - F.player.x, c.y - F.player.y, c.z - F.player.z) > 16).length;
+  ok(near1 > 20, `walking lights the ground around him (${near1} blocks within 8 cells)`);
+  ok(CFG.sonar.footRange < CFG.sonar.maxDist / 3,
+    `a footfall carries ${CFG.sonar.footRange} cells against a pulse's ${CFG.sonar.maxDist} — it is a whisper, not a shout`);
+  ok(CFG.sonar.footAmp < CFG.sonar.pulseAmp, 'and it is quieter than one');
+
+  // and a LANDING is loud. drop into a dark room and you hear the whole floor.
+  const L = mk();
+  L.player.y = 7;
+  steps(L, 2.5);                          // fall
+  ok(L.player.onGround, 'he landed');
+  ok(R.litCells(L, []).length > 40, 'and the crash lit the room he landed in');
+  ok(CFG.sonar.landAmp > CFG.sonar.footAmp, 'a landing is louder than a footstep');
 });
 
 group('a pulse costs something', () => {
@@ -558,8 +632,9 @@ group('curriculum', () => {
   ok(/ROCKY_CFG\.how/.test(SRC.html), 'the how-to cards are generated FROM the config, not retyped into the HTML');
 
   // every mechanic the engine actually enforces has an entry
-  const MECHANICS = ['move:walk', 'move:climb', 'move:jump', 'sense:pulse', 'sense:decay',
-    'sense:through', 'sense:material', 'world:sources', 'read:base6', 'act:gauge'];
+  const MECHANICS = ['move:walk', 'move:climb', 'move:jump', 'sense:pulse', 'sense:return',
+    'sense:footfall', 'sense:decay', 'sense:through', 'sense:material', 'world:sources',
+    'read:base6', 'act:gauge'];
   for (const m of MECHANICS) ok(CFG.teach[m], 'mechanic "' + m + '" is on the curriculum');
   eq(Object.keys(CFG.teach).length, MECHANICS.length, 'and there are no orphan lessons teaching rules that do not exist');
 
@@ -610,6 +685,25 @@ group('the renderer is a window, not a witness', () => {
   for (const name of ['litCells', 'pulse', 'step', 'emit', 'readGauge', 'nearestGauge']) {
     const shadow = new RegExp('(?:const|let|var|function)\\s+' + name + '\\b');
     ok(!shadow.test(SRC.app), `nothing in app.js takes the name of the engine's ${name}()`);
+  }
+
+  /* EVERY NAME app.js USES, app.js DECLARES.
+   * A renderer refactor left `blocks.count` behind after `blocks` had been split
+   * into one mesh per material. node --check parses it happily; it throws the
+   * instant the code runs. The engine can be unit-tested, but the renderer's
+   * only real test is running it — so at least make the suite catch a name that
+   * does not exist. */
+  {
+    const declared = new Set();
+    const re = /(?:const|let|var|function|class)\s+([A-Za-z_$][\w$]*)/g;
+    let m;
+    while ((m = re.exec(SRC.app))) declared.add(m[1]);
+    for (const p of SRC.app.matchAll(/(?:^|[^\w.$'"])([A-Za-z_$][\w$]*)\s*\.\s*(?:count|visible|position|material)\b/g)) {
+      const name = p[1];
+      const known = declared.has(name) ||
+        ['S', 'CFG', 'Sim', 'THREE', 'window', 'document', 'camera', 'scene', 'renderer', 'c', 'm', 'r', 'p', 'g', 'b', 'this'].includes(name);
+      ok(known, `app.js refers to "${name}" and something actually declares it`);
+    }
   }
 
   // config is DATA. if a function ever lands in it, the whole "config-driven" claim is a lie.
