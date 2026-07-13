@@ -20,17 +20,26 @@
      * colour: `tex` is the grain you hear when the wave comes off it. Rocky is
      * not seeing a texture, he is resolving a surface — coarse basalt scatters,
      * a machined plate returns a hard grid, grit returns almost nothing. */
+    /* `absorb` is what a material does to the echo that BOUNCES off it — its
+     * colour and its loudness, what Rocky "sees".
+     * `cost` is what it charges sound to pass THROUGH it, against 1 for a cell of
+     * air. That second number is the whole puzzle game. Grit is nearly
+     * soundproof. Xenonite is nearly free — it does not scatter sound, it CARRIES
+     * it, which is why Eridians build ships out of the stuff and why you can run
+     * a noise through a wall if you bring the right block with you.
+     * `carry` says whether Rocky can pick it up and put it somewhere better. */
     blocks: [
-      { id: 0, key: 'air',      name: 'Air',            solid: false, color: '#000000', absorb: 0.0,  tex: 'none' },
-      { id: 1, key: 'rock',     name: 'Erid basalt',    solid: true,  color: '#4a5a6e', absorb: 0.35, tex: 'mottle' },
-      { id: 2, key: 'plate',    name: 'Floor plate',    solid: true,  color: '#6f7f93', absorb: 0.22, tex: 'plate' },
-      { id: 3, key: 'girder',   name: 'Girder',         solid: true,  color: '#c88a3a', absorb: 0.10, tex: 'stripe' },
-      { id: 4, key: 'pipe',     name: 'Ammonia pipe',   solid: true,  color: '#3fd3c0', absorb: 0.08, tex: 'rings' },
-      { id: 5, key: 'vent',     name: 'Heat vent',      solid: true,  color: '#ff6a2b', absorb: 0.05, tex: 'grille' },
-      { id: 6, key: 'gauge',    name: 'Heat gauge',     solid: true,  color: '#ffd23c', absorb: 0.04, tex: 'dial' },
-      { id: 7, key: 'xenonite', name: 'Xenonite',       solid: true,  color: '#b46bff', absorb: 0.02, tex: 'facet' },
-      { id: 8, key: 'door',     name: 'Warren door',    solid: true,  color: '#8fe36b', absorb: 0.30, tex: 'panel' },
-      { id: 9, key: 'sand',     name: 'Grit',           solid: true,  color: '#2f3743', absorb: 0.72, tex: 'grain' }
+      { id: 0,  key: 'air',      name: 'Air',            solid: false, color: '#000000', absorb: 0.0,  cost: 1.0,  tex: 'none',   carry: false },
+      { id: 1,  key: 'rock',     name: 'Erid basalt',    solid: true,  color: '#4a5a6e', absorb: 0.35, cost: 6.5,  tex: 'mottle', carry: false },
+      { id: 2,  key: 'plate',    name: 'Floor plate',    solid: true,  color: '#6f7f93', absorb: 0.22, cost: 6.0,  tex: 'plate',  carry: false },
+      { id: 3,  key: 'girder',   name: 'Girder',         solid: true,  color: '#c88a3a', absorb: 0.10, cost: 4.0,  tex: 'stripe', carry: false },
+      { id: 4,  key: 'pipe',     name: 'Ammonia pipe',   solid: true,  color: '#3fd3c0', absorb: 0.08, cost: 3.0,  tex: 'rings',  carry: false },
+      { id: 5,  key: 'vent',     name: 'Heat vent',      solid: true,  color: '#ff6a2b', absorb: 0.05, cost: 3.0,  tex: 'grille', carry: false },
+      { id: 6,  key: 'gauge',    name: 'Heat gauge',     solid: true,  color: '#ffd23c', absorb: 0.04, cost: 3.0,  tex: 'dial',   carry: false },
+      { id: 7,  key: 'xenonite', name: 'Xenonite',       solid: true,  color: '#b46bff', absorb: 0.02, cost: 1.4,  tex: 'facet',  carry: true  },
+      { id: 8,  key: 'door',     name: 'Warren door',    solid: true,  color: '#8fe36b', absorb: 0.30, cost: 9.0,  tex: 'panel',  carry: false },
+      { id: 9,  key: 'sand',     name: 'Grit',           solid: true,  color: '#2f3743', absorb: 0.72, cost: 22.0, tex: 'grain',  carry: true  },
+      { id: 10, key: 'ear',      name: 'Resonator',      solid: true,  color: '#ff4fa3', absorb: 0.01, cost: 5.0,  tex: 'ear',    carry: false }
     ],
 
     /* Rocky is small, five-legged, and strong. Erid pulls about twice as hard
@@ -77,6 +86,11 @@
       pulseAmp: 1.0,
       cooldown: 0.55,
       lit: 6000,
+
+      /* A dropped block lands with a bang, and a bang is a sound like any other —
+       * which means you can THROW your voice by throwing something else. */
+      placeAmp: 0.9,
+      placeRange: 16,
 
       /* FOOTFALL.
        * Five legs on stone are five small sounds. Rocky cannot help hearing the
@@ -176,6 +190,98 @@
           { at: 'gauge', chord: '♪♪♩',  text: 'Cold. Again. Three halls, three gauges, and every one has fallen.' },
           { at: 'all_gauges', chord: '♩♪♪♩', text: 'It is not my vents that are failing. It is the sky.' }
         ]
+      },
+
+      /* ==============================================================
+       * ACT I.2 — THE DEEP HALL
+       * The first real puzzle, and the one that states the law the rest of the
+       * game is played under: A LOCKED DOOR IS A ROUTING PROBLEM.
+       *
+       * A resonator sits in an alcove behind a grit plug. Grit costs 22 to cross
+       * — it is a wall to sound — so no matter how hard Rocky shouts from the
+       * hall, the ear hears nothing. There is no key. There are, deliberately,
+       * several answers:
+       *   1. LIFT THE GRIT OUT. It is carryable. The hole becomes air (cost 1) and
+       *      your pulse walks straight in.
+       *   2. BRIDGE IT WITH XENONITE. There is a block of it on the ledge. Xenonite
+       *      costs 1.4 — very nearly a wire. Plug the channel with it instead and
+       *      the sound conducts through.
+       *   3. DROP THE GRIT ITSELF into the near alcove and let the BANG do it —
+       *      a landing block is a loud noise, and it is loud right next to the ear.
+       *   4. Climb the shaft and shout from the top, where the rock is thin.
+       * All four work. None of them is special-cased anywhere in the code: they
+       * are all just sound arriving at a listener.
+       * ============================================================== */
+      {
+        id: 'deep',
+        name: 'The Deep Hall',
+        world: { w: 40, h: 20, d: 40 },
+        spawn: [20, 3, 33],
+        objective: 'The council is behind that door. Get a sound to the resonator — any way you can.',
+        build: [
+          { op: 'fill', from: [0, 0, 0], to: [39, 19, 39], block: 1 },
+          { op: 'room', from: [12, 1, 24], to: [28, 9, 38], floor: 2 },   // the hall you start in
+          { op: 'room', from: [14, 1, 6], to: [26, 7, 16], floor: 2 },    // the council chamber, sealed
+          { op: 'fill', from: [19, 1, 17], to: [21, 5, 23], block: 0 },   // the throat between them
+          { op: 'fill', from: [19, 1, 17], to: [21, 5, 17], block: 8 },   // <- THE DOOR
+
+          /* THE RESONATOR sits in an alcove buried in five cells of rock, so no
+           * amount of shouting from the hall will ever reach it through the stone.
+           * There are exactly two ways sound can get in, and both are honest: */
+
+          // the alcove, and the ear at the back of it
+          { op: 'fill', from: [4, 2, 29], to: [6, 4, 31], block: 0 },
+
+          // CHANNEL A, low, at floor level — and its mouth is PACKED WITH GRIT,
+          // which costs 22 to cross and is therefore stone deaf. Pull the plug and
+          // the channel is air. Or seal it back up with xenonite, which costs 1.4,
+          // and be heard straight through a solid wall.
+          { op: 'fill', from: [7, 3, 30], to: [11, 3, 30], block: 0 },
+          { op: 'set', at: [11, 3, 30], block: 9 },                       // <- THE GRIT PLUG
+
+          // CHANNEL B, high, wide open, and a long way round — its mouth is eight
+          // blocks up the hall's west wall. From the floor it is far too far and
+          // too crooked for a shout to survive. CLIMB to it and shout down it, and
+          // the ear hears you perfectly well. (Or drop something heavy in.)
+          { op: 'fill', from: [5, 8, 30], to: [11, 8, 30], block: 0 },
+          { op: 'fill', from: [5, 5, 30], to: [5, 7, 30], block: 0 },
+
+          // a block of xenonite on a ledge, and a girder to reach it
+          { op: 'fill', from: [24, 4, 33], to: [27, 4, 36], block: 3 },
+          { op: 'set', at: [25, 5, 34], block: 7 },
+          { op: 'set', at: [26, 5, 35], block: 7 },
+
+          { op: 'fill', from: [16, 1, 36], to: [17, 3, 36], block: 4 },
+          { op: 'set', at: [24, 2, 37], block: 5 }
+        ],
+        sources: [
+          { at: [24, 3, 37], kind: 'vent' },
+          { at: [16, 2, 36], kind: 'pipe' }
+        ],
+        gauges: [],
+        /* `needs` is tuned against MEASURED numbers, not guessed ones. The suite
+         * plays every route and prints what the ear actually heard:
+         *     shout from the hall floor .............. 20%   (nothing happens)
+         *     shout with your nose against the wall .. 38%   (still nothing)
+         *     drop a block at the wall ............... 41%   (still nothing)
+         *   --------------------------------------------- needs 45%
+         *     CLIMB to channel B and shout down it ... 53%   OPEN
+         *     seal channel A with xenonite ........... 66%   OPEN
+         *     pull the grit plug out of channel A .... 67%   OPEN
+         * Set it at 35 and a player solves it by accident, standing near a wall,
+         * having understood nothing. The threshold is where the puzzle lives. */
+        ears: [
+          { id: 'e1', at: [4, 3, 30], needs: 0.45, opens: 'd1' }
+        ],
+        doors: [
+          { id: 'd1', cells: [[19, 1, 17], [20, 1, 17], [21, 1, 17], [19, 2, 17], [20, 2, 17], [21, 2, 17], [19, 3, 17], [20, 3, 17], [21, 3, 17], [19, 4, 17], [20, 4, 17], [21, 4, 17], [19, 5, 17], [20, 5, 17], [21, 5, 17]] }
+        ],
+        lines: [
+          { at: 'start', chord: '♩♪♪', text: 'The council will not meet me. Forty-one engineers, and every one of them wants to hear it from the gauges, not from me.' },
+          { at: 'start', chord: '♪♩♩♪', text: 'Their door listens. It always has. But somebody has packed the listening-channel with grit, and grit is DEAF. Amusing. Somebody did not want to be disturbed.' },
+          { at: 'ear', chord: '♪♪♩♩', text: 'It heard me!' },
+          { at: 'all_doors', chord: '♩♩♪♩', text: 'Now they will hear me too. Question: will they believe me.' }
+        ]
       }
     ],
 
@@ -195,7 +301,10 @@
       'sense:material': 'how:material',
       'world:sources': 'how:sources',
       'read:base6':   'how:base6',
-      'act:gauge':    'how:gauge'
+      'act:gauge':    'how:gauge',
+      'act:carry':    'how:carry',
+      'world:conduct': 'how:conduct',
+      'world:ear':    'how:ear'
     },
 
     how: [
@@ -210,7 +319,10 @@
       { marker: 'material', title: 'Materials',   body: 'Every material rings differently, and the colour you see IS that ring. Basalt is dull blue. Girder is orange. Xenonite sings violet. Grit swallows sound and shows almost nothing.' },
       { marker: 'sources',  title: 'The warren breathes', body: 'Machines make their own noise on their own rhythm. Near a vent you are never blind. In a dead corridor you are.' },
       { marker: 'base6',    title: 'Six',         body: 'Eridians count in sixes, because they have five arms and think of the hand itself as the sixth thing. Every number here is base six.' },
-      { marker: 'gauge',    title: 'Gauges',      body: 'Stand at a gauge and press F to read it. It gives you a temperature, and what that temperature is supposed to be.' }
+      { marker: 'gauge',    title: 'Gauges',      body: 'Stand at a gauge and press F to read it. It gives you a temperature, and what that temperature is supposed to be.' },
+      { marker: 'carry',    title: 'Carry',       body: 'Q lifts the block you are facing, R puts it down. Rocky has five arms and no respect whatsoever for the idea that a wall must stay where somebody left it. He can lift xenonite and grit. A block dropped lands with a BANG — and a bang is a sound like any other.' },
+      { marker: 'conduct',  title: 'What sound costs', body: 'Every material charges the sound a different price to pass through it. Air is free. Basalt is dear. GRIT is very nearly soundproof — pack a channel with grit and it goes deaf. XENONITE is very nearly free: it does not scatter sound, it CARRIES it, which is why Eridians build ships out of it. Bring the right block and you can run a noise through a wall.' },
+      { marker: 'ear',      title: 'Resonators',  body: 'A resonator is a listener, and it opens a door when enough sound REACHES it. So a locked door is never a key hunt — it is a routing problem. Walk over and shout. Clear the grit. Bridge the gap with xenonite. Drop something heavy beside it. Open a vent and let a machine do it for you. Every one of those is a real answer.' }
     ],
 
     lessons: [

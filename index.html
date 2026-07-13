@@ -24,6 +24,10 @@
   #objective{font-size:13px;color:#9fb6cc;margin-top:5px;max-width:52ch;line-height:1.5}
   #gbox{text-align:right;font-size:12px;color:var(--dim);letter-spacing:.14em}
   #gcount{display:block;font-size:26px;color:#ffd23c;letter-spacing:.06em;margin-top:2px}
+  #ear{display:block;font-size:11px;color:#ff4fa3;letter-spacing:.14em;margin-top:8px;opacity:0;transition:opacity .3s}
+  #ear.on{color:#8fe36b}
+  #held{left:50%;transform:translateX(-50%);bottom:44px;font-size:11px;letter-spacing:.2em;
+    color:#b46bff;opacity:0;transition:opacity .3s}
 
   #hud2{bottom:12px;left:18px;font-size:11px;color:#4c5f77;letter-spacing:.1em}
   #keys{bottom:12px;right:18px;font-size:11px;color:#4c5f77;letter-spacing:.08em;text-align:right;line-height:1.7}
@@ -72,6 +76,11 @@
     border-radius:3px;text-align:left}
   .card h3{font-size:11px;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase;font-weight:400;margin-bottom:4px}
   .card p{font-size:12px;line-height:1.55;color:#8fa6be}
+  #chapters{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .chap{background:transparent;border:1px solid rgba(143,232,255,.28);color:#8fa6be;font:inherit;
+    font-size:12px;letter-spacing:.14em;padding:8px 16px;border-radius:2px;cursor:pointer;transition:.18s}
+  .chap:hover{border-color:var(--cyan);color:var(--cyan)}
+  .chap.sel{border-color:var(--amber);color:var(--amber);background:rgba(255,154,60,.08)}
   #go{background:transparent;border:1px solid var(--amber);color:var(--amber);
     font:inherit;font-size:15px;letter-spacing:.24em;padding:13px 40px;border-radius:2px;cursor:pointer;
     text-transform:uppercase;transition:.2s}
@@ -87,8 +96,9 @@
     <div id="chapname">Chapter One</div>
     <div id="objective"></div>
   </div>
-  <div id="gbox">GAUGES READ<span id="gcount">0 / 3</span></div>
+  <div id="gbox"><span id="glabel">GAUGES READ</span><span id="gcount">0 / 3</span><span id="ear"></span></div>
 </div>
+<div class="hud" id="held"></div>
 
 <div class="hud" id="talk"><div id="chord">♪♩♪</div><div id="speech"></div></div>
 <div class="hud" id="flash"></div>
@@ -96,8 +106,8 @@
 <div class="hud" id="banner"></div>
 <div class="hud" id="hud2"></div>
 <div class="hud" id="keys">
-  <b>WASD</b> move · <b>into a wall</b> climb · <b>SHIFT</b> down<br>
-  <b>SPACE</b> jump · <b>E / click</b> pulse · <b>F</b> read
+  <b>WASD</b> move · <b>into a wall</b> climb · <b>SHIFT</b> down · <b>SPACE</b> jump<br>
+  <b>E / click</b> pulse · <b>F</b> read · <b>Q</b> lift · <b>R</b> place
 </div>
 
 <div id="gate">
@@ -112,6 +122,7 @@
     machines humming behind a wall will show you where the wall ends.<br><br>
     Something is wrong with the heat.
   </p>
+  <div id="chapters"></div>
   <button id="go">Listen</button>
   <div class="fold">— the whole briefing, below —</div>
   <div id="how"></div>
@@ -129,10 +140,26 @@
     document.getElementById('how').innerHTML = how.map(function (h) {
       return '<div class="card" data-marker="' + h.marker + '"><h3>' + h.title + '</h3><p>' + h.body + '</p></div>';
     }).join('');
+    // the chapter list comes from config too. adding a level is a data change.
+    const chaps = window.ROCKY_CFG.chapters;
+    window.ROCKY_START = chaps[0].id;
+    document.getElementById('chapters').innerHTML = chaps.map(function (c, i) {
+      return '<button class="chap' + (i === 0 ? ' sel' : '') + '" data-id="' + c.id + '">' +
+        (i + 1) + '. ' + c.name + '</button>';
+    }).join('');
+    document.getElementById('chapters').addEventListener('click', function (e) {
+      const b = e.target.closest('.chap');
+      if (!b) return;
+      window.ROCKY_START = b.dataset.id;
+      [].forEach.call(document.querySelectorAll('.chap'), function (x) { x.classList.remove('sel'); });
+      b.classList.add('sel');
+    });
+
     const gate = document.getElementById('gate');
     document.getElementById('go').addEventListener('click', function () {
       gate.classList.add('gone');
       if (window.RockyAudio) window.RockyAudio.start();
+      if (window.__rocky) window.__rocky.load(window.ROCKY_START);
       const c = document.getElementById('view');
       c.requestPointerLock && c.requestPointerLock();
     });

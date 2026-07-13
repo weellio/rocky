@@ -231,6 +231,16 @@
            * (Compare against the STEADY value, not the displayed one: a cell
            * mid-strike is briefly inflated, and that is a lighting effect, not a
            * claim about how loud it is.) */
+          /* A RESONATOR IS A LISTENER.
+           * It opens a door when enough sound REACHES it — and "enough sound" is
+           * the very same number the screen is about to draw on that block. The
+           * rule and the picture are one object. Route a noise to it any way you
+           * can find: walk over and shout, bridge the gap with xenonite (which
+           * conducts), clear the grit (which does not), drop something heavy,
+           * open a vent and let the machine do it for you. All legal. */
+          const ear = S.earAt[j];
+          if (ear !== undefined && a > (S.heard[ear] || 0)) S.heard[ear] = a;
+
           const age = S.t - S.arrive[j];
           const cur = S.amp[j] <= 0 ? 0
             : (age < 0 ? S.amp[j] : S.amp[j] * Math.exp(-age / son.tau));
@@ -266,7 +276,7 @@
         const nx = x + NB[n][0], ny = y + NB[n][1], nz = z + NB[n][2];
         if (!inside(S, nx, ny, nz)) continue;
         const j = idx(S, nx, ny, nz);
-        const enter = (S.solidOf[S.vox[j]] ? solidCost : 1) * NB[n][3];
+        const enter = S.costOf[S.vox[j]] * NB[n][3];   // <- the material decides, not "is it solid"
         const nd = d + enter;
         if (nd > maxD) continue;
         if (S.seen[j] !== stamp || nd < S.cost[j]) {
@@ -277,7 +287,99 @@
       }
     }
     S.emits++;
+    settleEars(S);
     return touched;
+  }
+
+  /* Did anything the wave just did satisfy a listener? Asked once per emission,
+   * against the loudest thing that reached each ear. */
+  function settleEars(S) {
+    for (const e of S.ears) {
+      const got = S.heard[e.id] || 0;
+      e.loudest = Math.max(e.loudest, got);
+      e.lit = got;
+      if (!e.open && got >= e.needs) {
+        e.open = true;
+        cue(S, 'ear');
+        openDoor(S, e.opens);
+      }
+      S.heard[e.id] = 0;
+    }
+  }
+
+  function openDoor(S, doorId) {
+    const d = S.doors.find((x) => x.id === doorId);
+    if (!d || d.open) return false;
+    d.open = true;
+    for (const c of d.cells) setBlock(S, c[0], c[1], c[2], 0);
+    rebuildSurface(S);
+    cue(S, 'door');
+    if (S.doors.every((x) => x.open)) { S.flags.all_doors = true; cue(S, 'chapter'); }
+    return true;
+  }
+
+  /* ---------- carrying ----------
+   * Rocky has five arms and a species-wide contempt for the idea that a wall has
+   * to stay where somebody left it. He can lift the blocks config says he can
+   * lift: xenonite, which conducts sound, and grit, which kills it. That is the
+   * entire inventory, and it is enough to solve everything. */
+  function facing(S, reach) {
+    const p = S.player;
+    const R = reach == null ? 2.4 : reach;
+    const dx = -Math.sin(p.yaw), dz = -Math.cos(p.yaw);
+    for (let t = 0.6; t <= R; t += 0.2) {
+      const x = Math.floor(p.x + dx * t), y = Math.floor(p.y), z = Math.floor(p.z + dz * t);
+      if (isSolid(S, x, y, z)) return [x, y, z];
+    }
+    // nothing at eye level? try the block he is about to trip over
+    for (let t = 0.6; t <= R; t += 0.2) {
+      const x = Math.floor(p.x + dx * t), y = Math.floor(p.y) - 1, z = Math.floor(p.z + dz * t);
+      if (isSolid(S, x, y, z) && !isSolid(S, x, y + 1, z)) return [x, y + 1, z];
+    }
+    return null;
+  }
+
+  function takeBlock(S) {
+    if (S.held) return { ok: false, why: 'hands full' };
+    const p = S.player;
+    const dx = -Math.sin(p.yaw), dz = -Math.cos(p.yaw);
+    for (let t = 0.6; t <= 2.4; t += 0.2) {
+      for (const dy of [0, -1, 1]) {
+        const x = Math.floor(p.x + dx * t), y = Math.floor(p.y) + dy, z = Math.floor(p.z + dz * t);
+        const b = blockAt(S, x, y, z);
+        if (!S.carryOf[b]) continue;
+        setBlock(S, x, y, z, 0);
+        rebuildSurface(S);
+        S.held = b;
+        cue(S, 'take');
+        return { ok: true, block: b, at: [x, y, z] };
+      }
+    }
+    return { ok: false, why: 'nothing to lift' };
+  }
+
+  function placeBlock(S) {
+    if (!S.held) return { ok: false, why: 'empty handed' };
+    const p = S.player;
+    const dx = -Math.sin(p.yaw), dz = -Math.cos(p.yaw);
+    for (let t = 0.8; t <= 2.6; t += 0.2) {
+      for (const dy of [0, -1, 1]) {
+        const x = Math.floor(p.x + dx * t), y = Math.floor(p.y) + dy, z = Math.floor(p.z + dz * t);
+        if (!inside(S, x, y, z) || isSolid(S, x, y, z)) continue;
+        // never brick yourself into the wall
+        const pb = [Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)];
+        if (x === pb[0] && z === pb[2] && (y === pb[1] || y === pb[1] - 1)) continue;
+        const b = S.held;
+        setBlock(S, x, y, z, b);
+        rebuildSurface(S);
+        S.held = 0;
+        cue(S, 'place');
+        // it lands with a bang, and the bang is a sound like any other
+        emit(S, x + 0.5, y + 0.5, z + 0.5, S.cfg.sonar.placeAmp, 0, S.cfg.sonar.placeRange);
+        return { ok: true, block: b, at: [x, y, z] };
+      }
+    }
+    return { ok: false, why: 'no room' };
   }
 
   /* What did the last wavefront cost to get here?
@@ -568,6 +670,11 @@
       dirty: true,
       solidOf: cfg.blocks.map((b) => b.solid),
       absorbOf: cfg.blocks.map((b) => b.absorb),
+      /* WHAT EACH MATERIAL CHARGES SOUND TO CROSS IT.
+       * The single most important table in the game. Grit costs 22 and is a wall
+       * to sound; xenonite costs 1.4 and is very nearly a wire. Every locked door
+       * in this game is a routing problem posed against this column. */
+      costOf: cfg.blocks.map((b) => (b.cost == null ? (b.solid ? cfg.sonar.solidCost : 1) : b.cost)),
       player: {
         x: chapter.spawn[0] + 0.5, y: chapter.spawn[1] + 0.5, z: chapter.spawn[2] + 0.5,
         vx: 0, vy: 0, vz: 0, yaw: 0, onGround: false, onWall: false, climbing: false,
@@ -579,6 +686,12 @@
       readCount: 0,
       sources: (chapter.sources || []).map((s) => ({ at: s.at, kind: s.kind, cd: cfg.sourceKinds[s.kind].period * 0.3 })),
       gauges: (chapter.gauges || []).map((g) => Object.assign({ read: false }, g)),
+      ears: (chapter.ears || []).map((e) => Object.assign({ open: false, lit: 0, loudest: 0 }, e)),
+      doors: (chapter.doors || []).map((d) => Object.assign({ open: false }, d)),
+      earAt: {},
+      heard: {},
+      held: 0,
+      carryOf: cfg.blocks.map((b) => !!b.carry),
       flags: {},
       cueQ: [],
       lines: []
@@ -586,6 +699,11 @@
 
     for (const op of chapter.build) applyOp(S, op);
     for (const g of S.gauges) setBlock(S, g.at[0], g.at[1], g.at[2], 6);
+    for (const e of S.ears) {
+      setBlock(S, e.at[0], e.at[1], e.at[2], 10);
+      S.earAt[idx(S, e.at[0], e.at[1], e.at[2])] = e.id;
+    }
+    for (const d of S.doors) for (const c of d.cells) setBlock(S, c[0], c[1], c[2], 8);
     rebuildSurface(S);
     return S;
   }
@@ -632,6 +750,7 @@
     create, step, pulse, emit, litCells, takeCues, cue, costAt, cameraFit,
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
+    takeBlock, placeBlock, facing, openDoor, settleEars,
     FIXED
   };
   return api;

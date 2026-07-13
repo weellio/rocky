@@ -67,6 +67,17 @@
       ping(880, 0.09, 'sine', 0.2);
       setTimeout(function () { ping(1320, 0.12, 'sine', 0.16); }, 100);
     },
+    take: function () { ping(300, 0.07, 'triangle', 0.16, 460); },
+    place: function () { noise(0.2, 340, 0.3); ping(140, 0.16, 'sine', 0.2, 90); },
+    /* the resonator hears you: a bell finding its own note */
+    ear: function () {
+      ping(1320, 0.5, 'sine', 0.22);
+      setTimeout(function () { ping(1980, 0.6, 'sine', 0.14); }, 60);
+    },
+    door: function () {
+      noise(0.6, 200, 0.3);
+      [220, 165, 110].forEach(function (f, i) { setTimeout(function () { ping(f, 0.35, 'sawtooth', 0.1); }, i * 90); });
+    },
     chapter: function () {
       [523, 659, 784, 1046].forEach(function (f, i) {
         setTimeout(function () { ping(f, 0.5, 'sine', 0.16); }, i * 150);

@@ -291,7 +291,7 @@ group('materials have voices', () => {
    * the repository). */
   for (const b of blocks) {
     ok(b.tex && b.tex !== 'none', b.name + ' has a grain');
-    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
+    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
   }
   ok(new Set(blocks.map((b) => b.tex)).size === blocks.length, 'no two materials share a grain either');
   for (const b of blocks) ok(new RegExp("'" + b.tex + "'").test(SRC.app), `app.js knows how to draw "${b.tex}"`);
@@ -619,6 +619,184 @@ group('the gauges', () => {
 });
 
 /* =====================================================================
+ * THE PUZZLE: sound is the substrate
+ * =================================================================== */
+const deep = () => R.create(CFG, { seed: 1, chapter: 'deep' });
+
+group('what a material charges sound to cross it', () => {
+  /* THIS TABLE IS THE PUZZLE GAME. Grit is a wall to sound. Xenonite is very
+   * nearly a wire. Everything else lies between, and every locked door in this
+   * game is a routing problem posed against this one column of numbers. */
+  const by = {};
+  for (const b of CFG.blocks) by[b.key] = b;
+  eq(by.air.cost, 1.0, 'air is free');
+  ok(by.grit === undefined || true, '');
+  ok(by.sand.cost > by.rock.cost * 3, `grit (${by.sand.cost}) is far deafer than basalt (${by.rock.cost}) — it is a wall to sound`);
+  ok(by.xenonite.cost < by.rock.cost / 3, `xenonite (${by.xenonite.cost}) is far clearer than basalt — it CARRIES sound`);
+  ok(by.xenonite.cost > by.air.cost, 'but it is not free — it is a solid, not a hole');
+  for (const b of CFG.blocks) ok(typeof b.cost === 'number' && b.cost > 0, b.name + ' has a price');
+
+  /* And the engine must actually USE the table rather than "is it solid". */
+  ok(/costOf\[S\.vox\[j\]\]/.test(SRC.sim), 'the wavefront asks the MATERIAL what it costs, not merely whether it is solid');
+
+  // measured, not asserted: the same wall, in three materials
+  const wall = (block) => {
+    const cfg = JSON.parse(JSON.stringify(CFG));
+    cfg.chapters = [{
+      id: 'lab', name: 'lab', world: { w: 24, h: 8, d: 12 }, spawn: [3, 2, 5], objective: '',
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [23, 7, 11], block: 1 },
+        { op: 'fill', from: [1, 1, 1], to: [8, 5, 10], block: 0 },
+        { op: 'fill', from: [11, 1, 1], to: [22, 5, 10], block: 0 },
+        { op: 'fill', from: [9, 1, 4], to: [10, 5, 6], block: block }   // a plug of `block` in the wall
+      ],
+      sources: [], gauges: [], ears: [], doors: [], lines: []
+    }];
+    const W = R.create(cfg, { seed: 1, chapter: 'lab' });
+    R.emit(W, 3.5, 2.5, 5.5, 1, 0);
+    return R.costAt(W, 12, 2, 5);
+  };
+  const thruXeno = wall(7), thruRock = wall(1), thruGrit = wall(9);
+  ok(thruXeno < thruRock, `sound crosses a xenonite plug (${thruXeno.toFixed(1)}) far more cheaply than basalt (${thruRock.toFixed(1)})`);
+  ok(thruGrit > thruRock, `and a grit plug (${thruGrit.toFixed(1)}) is dearer than either — it is very nearly deaf`);
+});
+
+group('carrying', () => {
+  const S = deep();
+  eq(S.held, 0, 'empty handed');
+  eq(R.takeBlock(S).ok, false, 'and nothing in reach to lift');
+
+  // stand at the xenonite on its ledge and take it
+  S.player.x = 25.5; S.player.y = 5.5; S.player.z = 35.4;
+  S.player.yaw = 0;                                    // facing -z, toward [25,5,34]
+  const t = R.takeBlock(S);
+  ok(t.ok, 'he lifts the xenonite');
+  eq(S.held, 7, 'and it is in his arms');
+  eq(R.blockAt(S, 25, 5, 34), 0, 'and it is gone from the world — a block is a THING, not a decoration');
+  eq(R.takeBlock(S).ok, false, 'he has five arms and can still only carry one block');
+
+  const p = R.placeBlock(S);
+  ok(p.ok, 'he puts it down');
+  eq(S.held, 0, 'his arms are empty');
+  ok(R.isSolid(S, p.at[0], p.at[1], p.at[2]), 'and it is solid where he put it');
+
+  // ...and only what config says he may lift
+  const C = deep();
+  C.player.x = 20.5; C.player.y = 2.5; C.player.z = 30.5;
+  for (let i = 0; i < 20; i++) { C.player.yaw = i * 0.31; R.takeBlock(C); }
+  ok(C.held === 0 || CFG.blocks[C.held].carry, 'he never ends up holding a block config says he cannot lift');
+  for (const b of CFG.blocks) if (b.carry) ok(b.solid, b.name + ' is liftable and solid');
+
+  // a dropped block BANGS, and a bang is a sound like any other
+  const D = deep();
+  D.player.x = 25.5; D.player.y = 5.5; D.player.z = 35.4; D.player.yaw = 0;
+  R.takeBlock(D);
+  const before = D.emits;
+  R.placeBlock(D);
+  ok(D.emits > before, 'a block dropped makes a NOISE — you can throw your voice by throwing something else');
+});
+
+group('THE DEEP HALL: a locked door is a routing problem', () => {
+  /* The level states the law the whole game is played under. There is no key.
+   * The resonator is buried in five cells of rock; two channels reach it; and the
+   * code special-cases NOTHING. Every route below is just sound arriving at a
+   * listener, and every number printed is the number the ear actually heard.
+   *
+   * THE THRESHOLD IS WHERE THE PUZZLE LIVES. Set `needs` too low and the player
+   * solves it by standing near a wall and shouting, having understood nothing at
+   * all — so the near-misses are asserted just as hard as the solutions. */
+  const shout = (S, x, y, z) => {
+    S.player.x = x; S.player.y = y; S.player.z = z;
+    S.pulseCd = 0; R.pulse(S); steps(S, 1.4);
+    return S.ears[0].loudest;
+  };
+  const pct = (v) => (v * 100).toFixed(0) + '%';
+  const NEEDS = CFG.chapters[1].ears[0].needs;
+
+  // --- THE NEAR MISSES. These must all fail, or there is no puzzle. ---
+  const miss = (name, fn) => {
+    const S = deep();
+    const got = fn(S);
+    ok(!S.ears[0].open, `${name}: heard ${pct(got)}, needs ${pct(NEEDS)} — NOT enough`);
+    ok(R.isSolid(S, 20, 3, 17), '...and the council door stays shut');
+  };
+  miss('shout from the middle of the hall', (S) => shout(S, 20.5, 3, 31));
+  miss('shout from the far corner', (S) => shout(S, 27, 3, 37));
+  miss('shout with your nose against the wall', (S) => shout(S, 12.5, 3, 30.5));
+  miss('let the machines shout for you', (S) => { steps(S, 40); return S.ears[0].loudest; });
+  miss('drop a block at the foot of the wall', (S) => {
+    S.player.x = 12.5; S.player.y = 3.5; S.player.z = 30.5; S.player.yaw = Math.PI / 2;
+    R.takeBlock(S); R.placeBlock(S);           // pull the plug, shove it straight back
+    steps(S, 1.4);
+    return S.ears[0].loudest;
+  });
+
+  // --- THE SOLUTIONS. Four of them, none scripted, none special-cased. ---
+  const solve = (name, fn) => {
+    const S = deep();
+    const got = fn(S);
+    ok(S.ears[0].open, `SOLUTION — ${name}: heard ${pct(got)} of ${pct(NEEDS)}`);
+    ok(!R.isSolid(S, 20, 3, 17), '...the council door opens');
+    ok(S.flags.all_doors, '...and the chapter turns');
+  };
+
+  // 1. Pull the grit plug. The channel becomes air, and air is free.
+  solve('pull the grit plug out of channel A', (S) => {
+    S.player.x = 12.5; S.player.y = 3.5; S.player.z = 30.5; S.player.yaw = Math.PI / 2;
+    const t = R.takeBlock(S);
+    ok(t.ok && t.block === 9, 'he pulls the grit out of the channel mouth');
+    return shout(S, 12.5, 3, 30.5);
+  });
+
+  // 2. CLIMB. No carrying at all — just get your mouth closer to the opening.
+  solve('climb the wall to channel B and shout down it', (S) => shout(S, 12.5, 8.5, 30.5));
+
+  // 3. THE A/B THAT PROVES THE MECHANIC: seal the channel back up — with the
+  //    RIGHT STUFF — and be heard straight through a solid wall.
+  solve('seal channel A with xenonite and be heard through it', (S) => {
+    S.player.x = 12.5; S.player.y = 3.5; S.player.z = 30.5; S.player.yaw = Math.PI / 2;
+    R.takeBlock(S);                            // grit out
+    S.held = 7;                                // xenonite in (he fetched it from the ledge)
+    const p = R.placeBlock(S);
+    ok(p.ok && p.at[0] === 11, 'the xenonite goes into the channel mouth');
+    ok(R.isSolid(S, 11, 3, 30), 'the channel is SEALED — solid, not a hole');
+    return shout(S, 12.5, 3, 30.5);
+  });
+
+  /* And the control, which is the whole argument: the SAME sealed hole, packed
+   * with grit instead, is deaf. Same geometry. Different material. */
+  {
+    const S = deep();
+    S.player.x = 12.5; S.player.y = 3.5; S.player.z = 30.5; S.player.yaw = Math.PI / 2;
+    R.takeBlock(S); R.placeBlock(S);          // grit straight back where it was
+    const withGrit = shout(S, 12.5, 3, 30.5);
+    const T = deep();
+    T.player.x = 12.5; T.player.y = 3.5; T.player.z = 30.5; T.player.yaw = Math.PI / 2;
+    R.takeBlock(T); T.held = 7; R.placeBlock(T);
+    const withXeno = shout(T, 12.5, 3, 30.5);
+    ok(withXeno > withGrit * 1.5,
+      `THE SAME HOLE, two materials: xenonite ${pct(withXeno)} against grit ${pct(withGrit)} — this is the whole game`);
+    ok(!S.ears[0].open && T.ears[0].open, 'one of them opens the door and one of them does not');
+  }
+});
+
+group('doors', () => {
+  const S = deep();
+  ok(R.isSolid(S, 20, 3, 17), 'a shut door is solid');
+  const before = R.costAt(S, 20, 3, 16);
+  R.openDoor(S, 'd1');
+  ok(!R.isSolid(S, 20, 3, 17), 'an open door is a hole');
+  eq(R.openDoor(S, 'd1'), false, 'and opening it twice does nothing');
+  eq(R.openDoor(S, 'nope'), false, 'and a door that does not exist cannot be opened');
+
+  // an OPEN door lets sound through — the world must actually change
+  R.emit(S, 20.5, 3.5, 30.5, 1, 0);
+  const after = R.costAt(S, 20, 3, 16);
+  ok(after < CFG.sonar.maxDist, 'and sound now walks through the doorway into the chamber');
+  ok(!S.dirty, 'the surface map was rebuilt when the world changed (or the echoes would still bounce off a door that is not there)');
+});
+
+/* =====================================================================
  * THE CURRICULUM — a mechanic that is not taught cannot ship
  * =================================================================== */
 group('curriculum', () => {
@@ -634,7 +812,7 @@ group('curriculum', () => {
   // every mechanic the engine actually enforces has an entry
   const MECHANICS = ['move:walk', 'move:climb', 'move:jump', 'sense:pulse', 'sense:return',
     'sense:footfall', 'sense:decay', 'sense:through', 'sense:material', 'world:sources',
-    'read:base6', 'act:gauge'];
+    'read:base6', 'act:gauge', 'act:carry', 'world:conduct', 'world:ear'];
   for (const m of MECHANICS) ok(CFG.teach[m], 'mechanic "' + m + '" is on the curriculum');
   eq(Object.keys(CFG.teach).length, MECHANICS.length, 'and there are no orphan lessons teaching rules that do not exist');
 

@@ -108,6 +108,10 @@ function tile(kind) {
     g.fillStyle = ink(0.4); g.fillRect(2, 2, N - 4, N - 4);
     g.fillStyle = lit(0.35); g.fillRect(5, 5, N - 10, N - 10);
     g.fillStyle = ink(0.45); g.fillRect(N / 2 - 1, 5, 2, N - 10);
+  } else if (kind === 'ear') {                   // resonator: a listening membrane
+    g.strokeStyle = ink(0.5); g.lineWidth = 2;
+    for (let r = 4; r <= 14; r += 5) { g.beginPath(); g.arc(N / 2, N / 2, r, 0, Math.PI * 2); g.stroke(); }
+    g.fillStyle = ink(0.6); g.fillRect(N / 2 - 2, N / 2 - 2, 4, 4);
   } else if (kind === 'grain') {                 // grit: dense, dead, swallows the wave
     for (let i = 0; i < 700; i++) {
       g.fillStyle = ink(0.1 + rnd() * 0.5);
@@ -200,6 +204,8 @@ addEventListener('keydown', (e) => {
   keys[e.code] = true;
   if (e.code === 'KeyE') doPulse();
   if (e.code === 'KeyF') doRead();
+  if (e.code === 'KeyQ') doTake();
+  if (e.code === 'KeyR') doPlace();
   if (e.code === 'Escape') document.exitPointerLock();
   if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space'].includes(e.code)) e.preventDefault();
 });
@@ -230,6 +236,19 @@ function doRead() {
     setTimeout(() => say(line.chord, line.text), 2200);
     setTimeout(() => banner('IT IS NOT MY VENTS THAT ARE FAILING. IT IS THE SKY.'), 4600);
   }
+}
+
+function doTake() {
+  const r = Sim.takeBlock(S);
+  if (!r.ok) { flash(r.why); return; }
+  const b = CFG.blocks[r.block];
+  say('♪♩', `${b.name}. ${b.key === 'xenonite' ? 'It carries sound almost for free.' : 'It kills sound stone dead.'}`);
+}
+
+function doPlace() {
+  const r = Sim.placeBlock(S);
+  if (!r.ok) { flash(r.why); return; }
+  ringFrom({ x: r.at[0] + 0.5, y: r.at[1] + 0.5, z: r.at[2] + 0.5 });   // the bang is a sound like any other
 }
 
 /* ---------- HUD ---------- */
@@ -293,6 +312,15 @@ function frame(now) {
 
   for (const id of Sim.takeCues(S)) {
     if (window.RockyAudio) window.RockyAudio.cue(id);
+    if (id === 'ear') {
+      const line = S.chapter.lines.find((l) => l.at === 'ear');
+      if (line) say(line.chord, line.text);
+      banner('IT HEARD ME');
+    }
+    if (id === 'chapter' && S.flags.all_doors) {
+      const line = S.chapter.lines.find((l) => l.at === 'all_doors');
+      if (line) setTimeout(() => say(line.chord, line.text), 1800);
+    }
   }
 
   /* THE ECHO FIELD. This is the whole render. */
@@ -373,6 +401,25 @@ function frame(now) {
   if (fpsT > 0.5) { fps = Math.round(frames / fpsT); frames = 0; fpsT = 0; }
   el('hud2').textContent =
     `echoes ${n}  ·  ${fps} fps  ·  pulse ${S.pulseCd > 0 ? 'recharging' : 'READY'}`;
+
+  // what is in his arms
+  const hb = S.held ? CFG.blocks[S.held] : null;
+  el('held').textContent = hb ? `CARRYING · ${hb.name.toUpperCase()}` : '';
+  el('held').style.opacity = hb ? '1' : '0';
+
+  /* THE EAR'S OWN OPINION, shown honestly: how loud the last thing it heard was,
+   * against how loud it needs. It is not a hint — it is the engine's number. */
+  if (S.ears.length) {
+    const e = S.ears[0];
+    el('ear').style.opacity = '1';
+    el('ear').textContent = e.open
+      ? 'RESONATOR · OPEN'
+      : `RESONATOR · heard ${(e.loudest * 100).toFixed(0)}% of ${(e.needs * 100).toFixed(0)}%`;
+    el('ear').classList.toggle('on', e.open);
+  } else {
+    el('ear').style.opacity = '0';
+  }
+
   const g = Sim.nearestGauge(S);
   el('prompt').style.opacity = g && !g.read ? '1' : '0';
 
@@ -380,17 +427,32 @@ function frame(now) {
 }
 
 /* ---------- open ---------- */
-el('chapname').textContent = CFG.story.subtitle;
-el('objective').textContent = S.chapter.objective;
-refreshGauges();
-const open = S.chapter.lines.filter((l) => l.at === 'start');
-say(open[0].chord, open[0].text);
-setTimeout(() => say(open[1].chord, open[1].text), 5200);
+function load(id) {
+  S = Sim.create(CFG, { seed: 1, chapter: id });
+  camDist = 5.4;
+  const n = CFG.chapters.findIndex((c) => c.id === S.chapter.id) + 1;
+  el('chapname').textContent = `Chapter ${n} — ${S.chapter.name}`;
+  el('objective').textContent = S.chapter.objective;
+  // the box holds the gauge count AND the resonator readout: hide it only when a
+  // chapter has neither, or the ear goes invisible in every chapter without gauges.
+  el('gbox').style.display = (S.gauges.length || S.ears.length) ? '' : 'none';
+  el('glabel').style.display = S.gauges.length ? '' : 'none';
+  el('gcount').style.display = S.gauges.length ? '' : 'none';
+  refreshGauges();
+  const open = S.chapter.lines.filter((l) => l.at === 'start');
+  if (open[0]) say(open[0].chord, open[0].text);
+  if (open[1]) setTimeout(() => say(open[1].chord, open[1].text), 5600);
+}
+load(CFG.chapters[0].id);
 requestAnimationFrame(frame);
 
 /* ---------- test hooks (the browser must be able to answer questions) ---------- */
 window.__rocky = {
   S: () => S,
+  load,
+  take: doTake,
+  place: doPlace,
+  ears: () => S.ears.map((e) => ({ id: e.id, open: e.open, loudest: +e.loudest.toFixed(3), needs: e.needs })),
   state: () => ({
     t: +S.t.toFixed(2),
     pos: [+S.player.x.toFixed(2), +S.player.y.toFixed(2), +S.player.z.toFixed(2)],
