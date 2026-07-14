@@ -84,8 +84,12 @@
   /* the button must never be below the fold: you should be able to press
      Listen on a laptop without hunting for it. The briefing sits underneath. */
   #gate{position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at 50% 30%,#0a1424,#01030700 70%),#01030a;
-    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:18px;
-    padding:min(6vh,44px) 28px 40px;text-align:center;transition:opacity .6s;overflow-y:auto}
+    display:flex;flex-direction:column;align-items:center;gap:18px;
+    /* `safe` centre: middle of the screen when it fits, top of the screen when it
+       does not — a plain centre would push the title up off the top and take the
+       LISTEN button with it. */
+    justify-content:safe center;
+    padding:min(5vh,36px) 28px 32px;text-align:center;transition:opacity .6s;overflow-y:auto}
   #gate.gone{opacity:0;pointer-events:none}
   #gate h1{font-size:clamp(26px,5.4vw,52px);letter-spacing:.14em;color:#fff;font-weight:400;
     text-shadow:0 0 30px rgba(255,154,60,.55)}
@@ -95,12 +99,25 @@
   #gate .blurb b{color:var(--cyan);font-weight:400}
   /* THE PROLOGUE — his voice, and the words that carry a RULE are the ones in bold,
      so the thing you must learn and the thing you want to read are one sentence. */
-  #prologue{max-width:60ch;text-align:left;display:flex;flex-direction:column;gap:14px}
-  #prologue p{color:#93aac1;font-size:15px;line-height:1.75}
-  #prologue p:last-child{color:var(--amber);font-size:17px;letter-spacing:.02em;text-align:center;
-    margin-top:2px}
+  /* Two columns. It was a tall narrow ribbon of prose down the middle of a wide
+     screen with half the page empty on either side of it — so it reads across the
+     width now, and the whole door fits without scrolling. His last line runs the
+     full span underneath, because it is the one that lands. */
+  #prologue{width:min(1180px,94vw);text-align:left;
+    columns:2;column-gap:52px;column-rule:1px solid rgba(93,112,138,.14)}
+  #prologue p{color:#93aac1;font-size:15px;line-height:1.72;margin-bottom:14px;
+    break-inside:avoid}
+  #prologue p:last-child{column-span:all;color:var(--amber);font-size:19px;letter-spacing:.03em;
+    text-align:center;margin:10px 0 0;padding-top:14px;
+    border-top:1px solid rgba(255,154,60,.18)}
   #prologue b{color:var(--cyan);font-weight:400;text-shadow:0 0 14px rgba(143,232,255,.35)}
   #prologue em{color:#c7d8e8;font-style:italic}
+  @media (max-width:900px){
+    #prologue{columns:1;column-rule:none;width:min(62ch,92vw)}
+    #prologue p{font-size:13.5px;line-height:1.62;margin-bottom:11px}
+    #prologue p:last-child{font-size:16px;padding-top:11px}
+    #gate{gap:13px}
+  }
 
   /* THE CODEX — the manual, one key away, and generated from the same table the
      suite checks. It is not on the front door any more. */
