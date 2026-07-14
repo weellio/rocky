@@ -1158,6 +1158,86 @@
 ,
 
       /* ==============================================================
+       * ACT II.4 — THE VOLUNTEERS
+       *
+       * Twenty-three Eridians are going to Tau Ceti. Every one of them will die there.
+       *
+       * And an Eridian cannot be ORDERED. No government, no war, no way to make anybody
+       * do anything — so there is no draft, no lottery, no speech, and no hero. There is
+       * only this: you go to each of them, in a room, and you SHOW THEM THE THING THAT
+       * WILL KILL THEM, and you let them decide.
+       *
+       * So the mechanic is the ugliest one in the game and it is the honest one. Each of
+       * them is TUNED TO ASTROPHAGE — 55Hz, a note you feel in your legs rather than hear.
+       * You cannot talk them into it. You cannot shout them into it. You pick the sample
+       * up, you carry the murderer of your star across the room to somebody you have known
+       * for twenty years, and you put it down in front of them.
+       *
+       * And it eats your voice while you carry it. You do this at 55% of yourself,
+       * quietly, five times.
+       * ============================================================== */
+      {
+        id: 'volunteers',
+        name: 'The Volunteers',
+        world: { w: 40, h: 16, d: 34 },
+        spawn: [20, 3, 28],
+        objective: 'They cannot be ordered. Show them what it is, and let them decide.',
+        exit: [20, 2, 4],
+        build: [
+          { op: 'fill', from: [0, 0, 0], to: [39, 15, 33], block: 1 },
+          { op: 'room', from: [4, 1, 8], to: [35, 9, 30], floor: 2 },
+          { op: 'roughen', from: [2, 1, 4], to: [37, 11, 32], amount: 0.24, passes: 1 },
+          { op: 'spikes', from: [4, 5, 6], to: [35, 11, 31], amount: 0.08 },
+          { op: 'rubble', from: [5, 2, 9], to: [34, 6, 29], amount: 0.06 },
+
+          // the case it came in, on a plinth in the middle of the floor
+          { op: 'fill', from: [19, 2, 20], to: [21, 2, 22], block: 13 },
+          { op: 'set', at: [20, 3, 21], block: 14 },
+
+          { op: 'set', at: [7, 2, 10], block: 5 },
+          { op: 'fill', from: [20, 2, 6], to: [20, 4, 6], block: 8 },
+          { op: 'room', from: [17, 1, 2], to: [23, 6, 6], floor: 2 }
+        ],
+        sources: [
+          { at: [7, 3, 10], kind: 'vent' }
+        ],
+        gauges: [],
+        labels: [
+          { at: [20, 3, 21], block: 14, text: 'ASTROPHAGE — show it to them (Q, then R)' }
+        ],
+        /* Each of them is TUNED TO ASTROPHAGE. You cannot argue with them and you cannot
+         * shout at them. You can only show them. */
+        folk: [
+          { at: [8, 3, 14], name: 'VOTH', chord: '♩♪♩',
+            line: 'You have brought it with you. Of course you have. Show me the thing, Rocky, and stop looking at me like that — I am four hundred years old and I have been bored for two of them.' },
+          { at: [31, 3, 14], name: 'ARK', chord: '♪♩♩♪',
+            line: 'I have three children. I want you to say that out loud, and then I want you to show me the sample, and then I want you to write my name down. In that order. I am not being brave. I am being CAREFUL.' },
+          { at: [8, 3, 26], name: 'SEVEN', chord: '♪♪♩',
+            line: 'I am right more often than anybody likes, and I am right about this: it does not matter whether we come back. Put it down. I am watching.' },
+          { at: [31, 3, 26], name: 'BRIDGE', chord: '♩♩♪♩',
+            line: 'I built the hull you are going to die in. I would like to be inside it when it happens, if that is all the same to you.' },
+          { at: [20, 3, 11], name: 'QUIET', chord: '♪♩',
+            line: '...' }
+        ],
+        ears: [
+          { id: 'voth',   at: [7, 3, 14],  needs: 0.30, tuned: 55, name: 'VOTH',   opens: 'go', keepOut: 3 },
+          { id: 'ark',    at: [32, 3, 14], needs: 0.30, tuned: 55, name: 'ARK',    opens: 'go', keepOut: 3 },
+          { id: 'seven',  at: [7, 3, 26],  needs: 0.30, tuned: 55, name: 'SEVEN',  opens: 'go', keepOut: 3 },
+          { id: 'bridge', at: [32, 3, 26], needs: 0.30, tuned: 55, name: 'BRIDGE', opens: 'go', keepOut: 3 },
+          { id: 'quiet',  at: [20, 3, 10], needs: 0.30, tuned: 55, name: 'QUIET',  opens: 'go', keepOut: 3 }
+        ],
+        doors: [
+          { id: 'go', cells: [[20, 2, 6], [20, 3, 6], [20, 4, 6]] }
+        ],
+        lines: [
+          { at: 'start', chord: '♪♩♪♩', text: 'Twenty-three of us are going. All of us will die there. Nobody has been told to go, because nobody can be told anything — so I have to go round this room, one at a time, and show each of them what it is.' },
+          { at: 'start', chord: '♩♪♩♩', text: 'It eats my voice while I carry it. That is fitting. I do not think this should be easy to say.' },
+          { at: 'ear', chord: '♪♩', text: 'Yes. All right. Yes.' },
+          { at: 'all_doors', chord: '♩♪♪♩♩', text: 'Twenty-three. Nobody argued. Not one of them argued, and I think I would have felt better if somebody had.' }
+        ]
+      },
+
+      /* ==============================================================
        * THE LONG DARK — a warren nobody has mapped.
        *
        * Every other chapter in this game is measured to the cell, because every other

@@ -1992,6 +1992,77 @@ group('THE PALETTE MEANS SOMETHING', () => {
   ok(!/#8fe8ff|#b46bff|#7cf7ff|#ff4fa3/.test(SRC.html), 'and the HUD has no cyan, violet or hot pink left in it');
 });
 
+group('THE VOLUNTEERS: you cannot order an Eridian to die', () => {
+  /* Act II.4. Twenty-three of them are going to Tau Ceti. Every one of them will die
+   * there. And an Eridian cannot be ORDERED — no government, no war, no way to make
+   * anybody do anything — so there is no draft, no lottery, no speech, and no hero.
+   *
+   * There is only this: you go to each of them, in a room, and you SHOW THEM THE THING
+   * THAT WILL KILL THEM, and you let them decide. Every one of them is tuned to
+   * astrophage — 55Hz, a note you feel in your legs rather than hear — so you cannot
+   * talk them into it and you cannot shout them into it. You pick the sample up, you
+   * carry the murderer of your star across the room to somebody you have known for
+   * twenty years, and you put it down in front of them.
+   *
+   * And it eats your voice while you carry it. You do the whole thing at 55% of
+   * yourself, quietly, five times. */
+  const vol = () => R.create(CFG, { seed: 1, chapter: 'volunteers' });
+  const shut = (S) => R.isSolid(S, 20, 3, 6);
+
+  const B = vol();
+  eq(B.ears.length, 5, 'five of them in the room');
+  eq(B.folk.length, 5, 'and every one of them is a person with a name and something to say');
+  ok(B.ears.every((e) => e.tuned === CFG.blocks[14].note), 'every one of them is deaf to everything except ASTROPHAGE');
+  ok(B.ears.every((e) => e.opens === 'go'), 'and the ship does not leave until all five have said yes');
+  for (const f of B.folk) ok(B.ears.some((e) => e.name === f.name), `${f.name} is both a person and a decision`);
+
+  /* SHOUT AT THEM. BEG. ARGUE. It does nothing, because it cannot. */
+  const A = vol();
+  for (const spot of [[8, 15], [31, 15], [20, 12], [20, 20], [20, 26]]) {
+    for (let i = 0; i < 3; i++) {
+      A.player.x = spot[0]; A.player.y = 2.34; A.player.z = spot[1];
+      A.pulseCd = 0; R.pulse(A); steps(A, 1.1);
+    }
+  }
+  for (const e of A.ears) ok(!e.open, `${e.name} does not volunteer because you shouted at him`);
+  ok(shut(A), 'you cannot talk somebody into dying');
+
+  /* CARRY IT ROUND THE ROOM. */
+  const S = vol();
+  S.player.x = 21.6; S.player.y = 2.34; S.player.z = 21.5; S.player.yaw = Math.PI / 2;
+  const t = R.takeBlock(S);
+  ok(t.ok && t.block === 14, 'he lifts the astrophage off its plinth');
+  near(R.voice(S, 1), CFG.astro.muffle, 0.001, `and does the whole chapter at ${(CFG.astro.muffle * 100).toFixed(0)}% of his own voice, which is fitting`);
+
+  const show = (name, at, yaw) => {
+    S.player.x = at[0]; S.player.y = 2.34; S.player.z = at[1]; S.player.yaw = yaw;
+    ok(R.placeBlock(S).ok, `he puts it down in front of ${name}`);
+    steps(S, 2.2);
+    const e = S.ears.find((x) => x.name === name);
+    ok(e.open, `${name} says yes (he heard it at ${(e.lit * 100).toFixed(0)}%)`);
+    ok(R.takeBlock(S).ok, '...and he picks it back up, to carry it to the next one');
+  };
+  show('VOTH', [8.5, 14.5], Math.PI / 2);
+  ok(shut(S), 'one is not five');
+  show('ARK', [30.6, 14.5], -Math.PI / 2);
+  show('SEVEN', [8.5, 26.5], Math.PI / 2);
+  show('BRIDGE', [30.6, 26.5], -Math.PI / 2);
+  ok(shut(S), 'four is not five either');
+  show('QUIET', [20.5, 11.6], 0);
+
+  ok(S.ears.every((e) => e.open), 'ALL FIVE HAVE VOLUNTEERED');
+  ok(!shut(S), 'and the ship can go');
+  ok(S.flags.all_doors, 'the chapter turns');
+
+  // and a girder will not do it. There is only one thing that answers this question.
+  const W = vol();
+  R.setHeld(W, 3);
+  W.player.x = 8.5; W.player.y = 2.34; W.player.z = 14.5; W.player.yaw = Math.PI / 2;
+  R.placeBlock(W);
+  steps(W, 2.2);
+  ok(!W.ears[0].open, 'you cannot show a man a GIRDER and have him agree to die');
+});
+
 group('doors', () => {
   const S = deep();
   ok(R.isSolid(S, 20, 3, 17), 'a shut door is solid');

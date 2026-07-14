@@ -665,7 +665,12 @@ function frame(now) {
     if (id === 'ear') {
       const line = S.chapter.lines.find((l) => l.at === 'ear');
       if (line) say(line.chord, line.text);
-      banner('IT HEARD ME');
+      /* When the thing that just heard you is a PERSON, do not say "it heard me". Say
+       * what actually happened, which is that somebody you have known for twenty years
+       * has agreed to die. */
+      const just = S.ears.filter((e) => e.open).map((e) => e.name).pop();
+      const who = S.folk.find((f) => f.name === just);
+      banner(who ? `${who.name} SAYS YES` : 'IT HEARD ME');
     }
     if (id === 'chapter' && S.flags.all_doors) {
       const line = S.chapter.lines.find((l) => l.at === 'all_doors');
