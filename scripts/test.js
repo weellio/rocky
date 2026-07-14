@@ -1370,9 +1370,35 @@ group('on a wall, the wall is the floor', () => {
   steps(S, 3);
   eq(p.wallN, null, 'off the wall, down is down again');
 
-  ok(/p\.wallN/.test(SRC.app), 'the renderer ASKS the engine which way the rock faces');
-  ok(/setFromUnitVectors\(UP_AXIS, wallUp\)/.test(SRC.app), 'and turns his own up to match it');
-  ok(/slerp/.test(SRC.app), 'rolling onto the wall, not snapping — a creature does not snap');
+  /* ...AND HE MUST NOT SPIN.
+   * PLAYTEST: "now he is spinning like a top." My first attempt slerped his CURRENT
+   * orientation toward the wall and then multiplied his heading INTO it, so the
+   * heading compounded frame after frame. An orientation is a fact about where he is
+   * NOW; it is not a thing you accumulate. It is built fresh, from a basis, every
+   * frame, and only the EASING is carried over. */
+  ok(/basis\.makeBasis\(bodyFwd, bodyUp, bodySide\)/.test(SRC.app),
+    'the renderer builds his axes fresh every frame out of the wall\'s normal');
+  ok(/qTarget\.setFromRotationMatrix\(basis\)/.test(SRC.app), 'and turns his own UP to match the rock');
+  ok(/rocky\.quaternion\.slerp\(qTarget/.test(SRC.app), 'easing toward that, not compounding onto it — a creature does not spin like a top');
+  ok(!/rocky\.quaternion\.multiply|rocky\.rotateZ/.test(SRC.app), 'nothing multiplies into his live orientation, which is how the spinning happened');
+
+  /* AND "ON THE GROUND" IS A FACT YOU CHECK, NOT A FLAG YOU REMEMBER.
+   * It used to be set on landing and cleared on leaving a wall — so a creature who
+   * walked to a wall and climbed it was still, as far as the engine knew, standing on
+   * the floor thirty feet below. The renderer believed it, and refused to lay him on
+   * the wall at all. */
+  ok(/p\.onGround = collides\(S, p\.x, p\.y - 0\.04, p\.z\)/.test(SRC.sim),
+    'the engine asks the ground whether he is on it');
+
+  const C = openWorld(30);
+  const q = C.player;
+  q.x = 2.0; q.y = 2.0; q.z = 15.5; q.vx = q.vy = q.vz = 0;
+  steps(C, 0.6, {});                                  // standing beside the wall, doing nothing
+  ok(q.onGround, 'standing next to a wall, he is on the floor');
+  steps(C, 1.5, { fwd: 1, yaw: Math.PI / 2 });        // now press into it — he goes straight up
+  ok(q.y > 4, 'he climbs it');
+  ok(!q.onGround, 'and he is NOT still standing on the floor, four blocks below him');
+  ok(q.onWall && q.wallN, 'he is on the wall, and the engine knows which way it faces');
 });
 
 group('doors', () => {

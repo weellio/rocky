@@ -591,9 +591,13 @@ let faceYaw = 0;
 const UP_AXIS = new THREE.Vector3(0, 1, 0);
 const qStep = new THREE.Quaternion();
 const qLift = new THREE.Quaternion();
-const qWall = new THREE.Quaternion();
-const qFace = new THREE.Quaternion();
-const wallUp = new THREE.Vector3();
+const qTarget = new THREE.Quaternion();
+const qRoll = new THREE.Quaternion();
+const bodyUp = new THREE.Vector3();
+const bodyFwd = new THREE.Vector3();
+const bodySide = new THREE.Vector3();
+const basis = new THREE.Matrix4();
+const FWD_AXIS = new THREE.Vector3(1, 0, 0);
 
 function resize() {
   const w = innerWidth, h = innerHeight;
@@ -713,30 +717,40 @@ function frame(now) {
     faceYaw += dyaw * Math.min(1, dt * 9);
   }
   /* ON A WALL, THE WALL IS THE FLOOR.
-   * PLAYTEST: "when climbing walls can his body rotate to make it look like his legs
-   * are touching the wall — re-orient his 'down' to that of the wall?"  Yes: an
-   * Eridian on a cliff face has his feet ON the cliff. The ENGINE reports which way
-   * the rock is facing (p.wallN — that is a fact about the world, not a drawing
-   * decision); we turn his own UP to match it and lean him into the stone. He rolls
-   * onto the wall and rolls off it again, because a creature does not snap. */
+   * An Eridian on a cliff face has his feet ON the cliff. The ENGINE reports which
+   * way the rock faces (p.wallN — a fact about the world, not a drawing decision) and
+   * we build him an entire new set of axes out of it: his UP is the wall's normal,
+   * and his FORWARD is straight up the wall, because that is the way he is going.
+   *
+   * BUILT FRESH EVERY FRAME, from nothing. My first attempt slerped his CURRENT
+   * orientation toward the wall and then multiplied his heading into it — so the
+   * heading compounded, frame after frame, and he span like a top. An orientation is
+   * a fact about where he is now, not a thing you accumulate. Work out where he
+   * should be, and ease toward THAT. */
   const onWall = (p.onWall || p.climbing) && p.wallN && !p.onGround;
   if (onWall) {
-    wallUp.set(p.wallN[0], p.wallN[1], p.wallN[2]);
-    qWall.setFromUnitVectors(UP_AXIS, wallUp);
+    bodyUp.set(p.wallN[0], p.wallN[1], p.wallN[2]).normalize();
+    // straight up the wall: world-up with the wall's normal taken out of it
+    bodyFwd.set(0, 1, 0).addScaledVector(bodyUp, -bodyUp.y);
+    if (bodyFwd.lengthSq() < 1e-4) bodyFwd.set(1, 0, 0);   // a ceiling: any direction will do
+    bodyFwd.normalize();
   } else {
-    qWall.identity();
+    bodyUp.set(0, 1, 0);
+    // the sculpt faces down its +x axis, and he walks the way he is going
+    bodyFwd.set(Math.sin(faceYaw + Math.PI / 2), 0, Math.cos(faceYaw + Math.PI / 2)).normalize();
   }
-  rocky.quaternion.slerp(qWall, Math.min(1, dt * 7));
+  bodySide.crossVectors(bodyFwd, bodyUp);
+  basis.makeBasis(bodyFwd, bodyUp, bodySide);
+  qTarget.setFromRotationMatrix(basis);
 
-  // his heading, applied inside whatever "up" he is currently living under
-  qFace.setFromAxisAngle(UP_AXIS, faceYaw + Math.PI / 2);
-  rocky.quaternion.multiply(qFace);
-
-  // the body rides on the legs. Barely: he has five of them, so there is never a
-  // moment when nothing is holding him up, and a five-legged creature does not bounce.
-  if (!onWall) {
-    rocky.rotateZ(moving ? Math.sin(gaitT * 0.5) * 0.02 : 0);
+  // roll on the stride — a five-legged creature sways, it does not bounce
+  if (moving && !onWall) {
+    qRoll.setFromAxisAngle(UP_AXIS, 0);
+    qTarget.multiply(qRoll.setFromAxisAngle(FWD_AXIS, Math.sin(gaitT * 0.5) * 0.03));
   }
+
+  // ease toward it. A creature turns onto a wall; it does not snap onto one.
+  rocky.quaternion.slerp(qTarget, Math.min(1, dt * (onWall ? 9 : 12)));
   rocky.position.y = p.y - (moving && !onWall ? Math.abs(Math.sin(gaitT * 1.25)) * 0.012 : 0);
 
   /* the labels: they turn to face you, and fade in when you are close enough to read */
@@ -963,6 +977,14 @@ load(CFG.chapters[0].id);
 requestAnimationFrame(frame);
 
 /* ---------- test hooks (the browser must be able to answer questions) ---------- */
+/* the suite cannot see a spinning creature, so the browser is asked directly:
+ * which way is he standing, and is his heading actually settling? */
+window.__rockyBody = () => {
+  const up = new THREE.Vector3(0, 1, 0).applyQuaternion(rocky.quaternion);
+  const e = new THREE.Euler().setFromQuaternion(rocky.quaternion, 'YXZ');
+  return { up: [+up.x.toFixed(2), +up.y.toFixed(2), +up.z.toFixed(2)], yaw: +e.y.toFixed(3) };
+};
+
 window.__rocky = {
   S: () => S,
   load,

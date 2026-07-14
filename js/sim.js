@@ -728,19 +728,23 @@
     }
 
     const son = S.cfg.sonar;
+    const wasGround = p.onGround;
     const hitY = moveAxis(S, 'y', p.vy * dt);
     if (hitY) {
-      if (p.vy < 0) {
-        if (!p.onGround && p.vy < -8) {
-          cue(S, 'land');
-          emit(S, p.x, p.y, p.z, voice(S, son.landAmp), 0, son.landRange);  // a landing is a LOUD footfall
-        }
-        p.onGround = true;
+      if (p.vy < 0 && !wasGround && p.vy < -8) {
+        cue(S, 'land');
+        emit(S, p.x, p.y, p.z, voice(S, son.landAmp), 0, son.landRange);  // a landing is a LOUD footfall
       }
       p.vy = 0;
-    } else if (!wall) {
-      p.onGround = false;
     }
+
+    /* IS HE ON THE GROUND? ASK THE GROUND.
+     * This used to be a flag: set when he landed, cleared when he stepped off a wall.
+     * Which meant that a creature who walked to a wall and CLIMBED it was still, as
+     * far as the engine was concerned, standing on the floor — thirty feet below him.
+     * (The renderer believed it, and refused to lay him onto the wall.)
+     * A fact you can check is not a flag you should remember. */
+    p.onGround = collides(S, p.x, p.y - 0.04, p.z);
 
     /* FIVE LEGS ON STONE ARE FIVE SMALL SOUNDS.
      * Every stride, Rocky's own feet pulse the floor beneath him. He cannot help
