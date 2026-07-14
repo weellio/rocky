@@ -39,7 +39,12 @@
       { id: 7,  key: 'xenonite', name: 'Xenonite',       solid: true,  color: '#b46bff', absorb: 0.02, cost: 1.4,  tex: 'facet',  carry: true  },
       { id: 8,  key: 'door',     name: 'Warren door',    solid: true,  color: '#8fe36b', absorb: 0.30, cost: 9.0,  tex: 'panel',  carry: false },
       { id: 9,  key: 'sand',     name: 'Grit',           solid: true,  color: '#2f3743', absorb: 0.72, cost: 22.0, tex: 'grain',  carry: true  },
-      { id: 10, key: 'ear',      name: 'Resonator',      solid: true,  color: '#ff4fa3', absorb: 0.01, cost: 5.0,  tex: 'ear',    carry: false }
+      { id: 10, key: 'ear',      name: 'Resonator',      solid: true,  color: '#ff4fa3', absorb: 0.01, cost: 5.0,  tex: 'ear',    carry: false },
+      /* A BELL is a resonator that SHOUTS BACK. Ring it and it answers, loudly,
+       * from where it stands — so a chain of them carries a sound clean across a
+       * warren far too big to shout across. It is also how you find a blockage:
+       * fire the chain and watch where it stops. */
+      { id: 11, key: 'bell',     name: 'Relay bell',     solid: true,  color: '#7cf7ff', absorb: 0.01, cost: 5.0,  tex: 'bell',   carry: false }
     ],
 
     /* Rocky is small, five-legged, and strong. Erid pulls about twice as hard
@@ -376,6 +381,91 @@
           { at: 'ear', chord: '♪♪♩', text: 'One.' },
           { at: 'all_doors', chord: '♩♪♪♩♩', text: 'Agreed. Forty-one engineers, and we agree. Now we build a ship, and none of us has ever seen the sky.' }
         ]
+      },
+
+      /* ==============================================================
+       * ACT I.4 — THE ASTRONOMERS
+       *
+       * A species that has never seen its star has to measure it anyway. The
+       * sensor is at the bottom of the deep bore, where the rock is warm. The
+       * instrument that reads it is right across the warren — and the warren is
+       * ninety cells wide, while Rocky's entire voice carries thirty-two.
+       *
+       * So you do not shout. You RING. A bell is a resonator that shouts back, and
+       * a line of them carries the reading the whole way. Fire the chain and it
+       * runs: bell, bell, bell, instrument.
+       *
+       * Except it does not, the first time. Somebody packed the third bell's
+       * gallery with grit years ago, and the chain dies there — and THAT is the
+       * mechanic. You do not hunt for a switch. You fire the chain, watch exactly
+       * where it stops, and go and fix that.
+       * ============================================================== */
+      {
+        id: 'astronomers',
+        name: 'The Astronomers',
+        world: { w: 60, h: 18, d: 30 },
+        spawn: [5, 3, 15],
+        objective: 'The bore is warm and the instrument is a long way off. Ring the chain — and find where it dies.',
+        /* A ROOM IS ONLY SEALED IF THE ROCK IS THICK.
+         * Rock costs 6.5 a cell against a bell's 30-cell voice, so sound walks
+         * through three or four cells of it without much trouble. A one-cell plug
+         * in a one-cell corridor is not a barrier at all — the wave simply goes
+         * AROUND it, through the wall, and I watched it do exactly that. Every
+         * chamber here is separated by SEVEN cells of rock, and the grit plug is
+         * four cells deep, so there is no way round: through, or nothing. */
+        build: [
+          { op: 'fill', from: [0, 0, 0], to: [59, 17, 29], block: 1 },
+
+          { op: 'room', from: [2, 1, 8], to: [10, 6, 16], floor: 2 },     // the bore head
+          { op: 'room', from: [15, 1, 8], to: [23, 6, 16], floor: 2 },    // BELL I
+          { op: 'room', from: [29, 1, 8], to: [37, 6, 16], floor: 2 },    // BELL II
+          { op: 'room', from: [43, 1, 8], to: [51, 6, 16], floor: 2 },    // BELL III
+          { op: 'room', from: [54, 1, 9], to: [58, 6, 15], floor: 2 },    // THE INSTRUMENT, sealed
+
+          // the crawls between them: one cell square, two above the floor, so you
+          // climb the wall and go in on your claws
+          { op: 'fill', from: [11, 3, 12], to: [14, 3, 12], block: 0 },
+          { op: 'fill', from: [24, 3, 12], to: [28, 3, 12], block: 0 },
+          { op: 'fill', from: [38, 3, 12], to: [42, 3, 12], block: 0 },
+
+          // <- THE BLOCKAGE. Four cells of grit, packed into the third crawl years
+          //    ago by somebody who wanted a quiet gallery. 22 a cell, 88 for the
+          //    lot, and a bell's whole voice carries 30. The chain dies HERE.
+          { op: 'fill', from: [39, 3, 12], to: [42, 3, 12], block: 9 },
+
+          /* And the instrument's chamber has no door at all — only a XENONITE
+           * WINDOW, three cells of it, solid as the rock around it and very nearly
+           * transparent to sound. You cannot walk to your own instrument. You can
+           * only be heard by it. (The door it opens is underneath, and it is the
+           * instrument that decides to let you in.) */
+          { op: 'fill', from: [52, 4, 12], to: [53, 4, 12], block: 7 },
+          { op: 'fill', from: [52, 2, 12], to: [53, 2, 12], block: 8 },   // <- the door it opens
+          { op: 'fill', from: [52, 3, 12], to: [53, 3, 12], block: 1 },
+
+          { op: 'set', at: [4, 2, 10], block: 5 }
+        ],
+        sources: [
+          { at: [4, 3, 10], kind: 'vent' }
+        ],
+        gauges: [],
+        /* MEASURED. A bell's shout carries 30 cells: far enough to reach the next
+         * bell down the line and nowhere near far enough to skip one. Rocky's own
+         * voice reaches BELL I from the bore head and gets nothing else. */
+        ears: [
+          { id: 'b1',   at: [22, 3, 12], needs: 0.30, name: 'BELL I',   rings: { amp: 1.0, range: 30 }, rearm: 2.5 },
+          { id: 'b2',   at: [36, 3, 12], needs: 0.30, name: 'BELL II',  rings: { amp: 1.0, range: 30 }, rearm: 2.5 },
+          { id: 'b3',   at: [50, 3, 12], needs: 0.30, name: 'BELL III', rings: { amp: 1.0, range: 30 }, rearm: 2.5 },
+          { id: 'inst', at: [57, 3, 12], needs: 0.30, name: 'THE INSTRUMENT', opens: 'vault' }
+        ],
+        doors: [
+          { id: 'vault', cells: [[52, 2, 12], [53, 2, 12]] }
+        ],
+        lines: [
+          { at: 'start', chord: '♪♩♪♩♪', text: 'The bore is warm. Warmer than the rock above it, and colder than it was when I was young. That is the whole of the evidence, and it is not enough. I have to MEASURE it.' },
+          { at: 'start', chord: '♩♩♪♪', text: 'The instrument is at the far end of the warren. My voice will not carry a third of the way. So I will not carry it. The bells will.' },
+          { at: 'bell', chord: '♪♩', text: 'Ring.' },
+          { at: 'all_doors', chord: '♩♪♪♩', text: 'The instrument agrees with me, and the instrument cannot be frightened, and cannot be polite. The star is going out.' }
+        ]
       }
     ],
 
@@ -398,7 +488,8 @@
       'act:gauge':    'how:gauge',
       'act:carry':    'how:carry',
       'world:conduct': 'how:conduct',
-      'world:ear':    'how:ear'
+      'world:ear':    'how:ear',
+      'world:bell':   'how:bell'
     },
 
     how: [
@@ -416,7 +507,8 @@
       { marker: 'gauge',    title: 'Gauges',      body: 'Stand at a gauge and press F to read it. It gives you a temperature, and what that temperature is supposed to be.' },
       { marker: 'carry',    title: 'Carry',       body: 'Q lifts the block you are facing, R puts it down. Rocky has five arms and no respect whatsoever for the idea that a wall must stay where somebody left it. He can lift xenonite and grit. A block dropped lands with a BANG — and a bang is a sound like any other.' },
       { marker: 'conduct',  title: 'What sound costs', body: 'Every material charges the sound a different price to pass through it. Air is free. Basalt is dear. GRIT is very nearly soundproof — pack a channel with grit and it goes deaf. XENONITE is very nearly free: it does not scatter sound, it CARRIES it, which is why Eridians build ships out of it. Bring the right block and you can run a noise through a wall.' },
-      { marker: 'ear',      title: 'Resonators',  body: 'A resonator is a listener, and it opens a door when enough sound REACHES it. So a locked door is never a key hunt — it is a routing problem. Walk over and shout. Clear the grit. Bridge the gap with xenonite. Drop something heavy beside it. Open a vent and let a machine do it for you. Every one of those is a real answer.' }
+      { marker: 'ear',      title: 'Resonators',  body: 'A resonator is a listener, and it opens a door when enough sound REACHES it. So a locked door is never a key hunt — it is a routing problem. Walk over and shout. Clear the grit. Bridge the gap with xenonite. Drop something heavy beside it. Open a vent and let a machine do it for you. Every one of those is a real answer.' },
+      { marker: 'bell',     title: 'Bells',       body: 'A BELL is a resonator that shouts back. Ring it and it answers, loudly, from where it stands — so a line of bells carries a sound clean across a warren far too big for one voice. And when a chain of them dies halfway, the bell it died at is telling you exactly where the blockage is. Do not go hunting for a switch. Fire the chain, and watch.' }
     ],
 
     lessons: [

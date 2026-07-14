@@ -164,7 +164,7 @@
   const FACES = 6;
 
   /* Emit a wavefront from a world position. `srcId` tints the echo (0 = Rocky). */
-  function emit(S, wx, wy, wz, amp0, srcId, range) {
+  function emit(S, wx, wy, wz, amp0, srcId, range, from) {
     if (S.dirty) rebuildSurface(S);
     const son = S.cfg.sonar;
     const reach = range || son.maxDist;
@@ -238,8 +238,18 @@
            * can find: walk over and shout, bridge the gap with xenonite (which
            * conducts), clear the grit (which does not), drop something heavy,
            * open a vent and let the machine do it for you. All legal. */
+          /* A LISTENER HEARS WHEN THE SOUND GETS THERE.
+           * Not when the wavefront is COMPUTED — the whole flood is worked out in
+           * one tick, so settling the ears inside it makes sound teleport: a chain
+           * of bells strung across ninety cells of warren fires in a twentieth of
+           * a second, all at once, and the best thing about the mechanic (hearing
+           * the chain RUN, bell after bell, into the dark) never happens.
+           * Queue it at its arrival time — one way, because an ear is a listener,
+           * not an echo coming home to Rocky. */
           const ear = S.earAt[j];
-          if (ear !== undefined && a > (S.heard[ear] || 0)) S.heard[ear] = a;
+          if (ear !== undefined && ear !== from) {
+            S.pending.push({ id: ear, amp: a, at: S.t + dd / son.speed });
+          }
 
           const age = S.t - S.arrive[j];
           const cur = S.amp[j] <= 0 ? 0
@@ -287,23 +297,64 @@
       }
     }
     S.emits++;
-    settleEars(S);
     return touched;
   }
 
-  /* Did anything the wave just did satisfy a listener? Asked once per emission,
-   * against the loudest thing that reached each ear. */
+  /* Which listeners has the sound actually REACHED by now? Sounds that landed
+   * this tick are settled; sounds still in flight are left alone. */
   function settleEars(S) {
+    if (!S.pending.length) return;
+    const heard = {};
+    const still = [];
+    for (const p of S.pending) {
+      if (p.at > S.t) { still.push(p); continue; }
+      if (p.amp > (heard[p.id] || 0)) heard[p.id] = p.amp;
+    }
+    S.pending = still;
+
     for (const e of S.ears) {
-      const got = S.heard[e.id] || 0;
+      const got = heard[e.id];
+      if (got === undefined) continue;
       e.loudest = Math.max(e.loudest, got);
       e.lit = got;
-      if (!e.open && got >= e.needs) {
+      if (got < e.needs) continue;
+
+      /* A BELL SHOUTS BACK.
+       * It answers from where it stands, so a chain of them carries a sound clean
+       * across a warren far too big for one voice — and when a chain dies, the
+       * bell it died at is the one that tells you where the blockage is.
+       *
+       * The ring is QUEUED, never emitted from inside the wave that triggered it:
+       * emit() -> settleEars() -> emit() is an infinite recursion, and a pair of
+       * bells within earshot of each other would ring the game to death. It goes
+       * on a queue, and each bell has a cooldown, so the chain runs forward and
+       * cannot ring itself back up its own path. */
+      if (e.rings) {
+        if (e.cd > 0) continue;
+        e.cd = e.rearm == null ? 2.5 : e.rearm;
+        e.rang++;
+        S.ringQ.push(e);
+        continue;
+      }
+
+      if (!e.open) {
         e.open = true;
         cue(S, 'ear');
         tryOpen(S, e.opens);
       }
-      S.heard[e.id] = 0;
+    }
+  }
+
+  function stepBells(S, dt) {
+    for (const e of S.ears) if (e.cd > 0) e.cd -= dt;
+    settleEars(S);
+    if (!S.ringQ.length) return;
+    const q = S.ringQ;
+    S.ringQ = [];
+    for (const e of q) {
+      cue(S, 'bell');
+      // `e.id` last: a bell does not ring itself up by hearing its own voice.
+      emit(S, e.at[0] + 0.5, e.at[1] + 0.5, e.at[2] + 0.5, e.rings.amp, 0, e.rings.range, e.id);
     }
   }
 
@@ -698,10 +749,11 @@
       readCount: 0,
       sources: (chapter.sources || []).map((s) => ({ at: s.at, kind: s.kind, cd: cfg.sourceKinds[s.kind].period * 0.3 })),
       gauges: (chapter.gauges || []).map((g) => Object.assign({ read: false }, g)),
-      ears: (chapter.ears || []).map((e) => Object.assign({ open: false, lit: 0, loudest: 0 }, e)),
+      ears: (chapter.ears || []).map((e) => Object.assign({ open: false, lit: 0, loudest: 0, cd: 0, rang: 0 }, e)),
+      ringQ: [],
       doors: (chapter.doors || []).map((d) => Object.assign({ open: false }, d)),
       earAt: {},
-      heard: {},
+      pending: [],
       held: 0,
       carryOf: cfg.blocks.map((b) => !!b.carry),
       flags: {},
@@ -712,7 +764,7 @@
     for (const op of chapter.build) applyOp(S, op);
     for (const g of S.gauges) setBlock(S, g.at[0], g.at[1], g.at[2], 6);
     for (const e of S.ears) {
-      setBlock(S, e.at[0], e.at[1], e.at[2], 10);
+      setBlock(S, e.at[0], e.at[1], e.at[2], e.rings ? 11 : 10);
       S.earAt[idx(S, e.at[0], e.at[1], e.at[2])] = e.id;
     }
     for (const d of S.doors) for (const c of d.cells) setBlock(S, c[0], c[1], c[2], 8);
@@ -731,6 +783,7 @@
       if (S.pulseCd > 0) S.pulseCd -= FIXED;
       stepPlayer(S, FIXED, input);
       stepSources(S, FIXED);
+      stepBells(S, FIXED);
       updateHeat(S, FIXED);
     }
     return S;
@@ -762,7 +815,7 @@
     create, step, pulse, emit, litCells, takeCues, cue, costAt, cameraFit,
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
-    takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars,
+    takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
     FIXED
   };
   return api;

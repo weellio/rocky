@@ -74,6 +74,12 @@
       ping(1320, 0.5, 'sine', 0.22);
       setTimeout(function () { ping(1980, 0.6, 'sine', 0.14); }, 60);
     },
+    /* a bell shouting back: struck, and then it rings on */
+    bell: function () {
+      ping(784, 0.9, 'sine', 0.24);
+      ping(1176, 0.7, 'sine', 0.12);
+      setTimeout(function () { ping(1568, 0.5, 'sine', 0.07); }, 40);
+    },
     door: function () {
       noise(0.6, 200, 0.3);
       [220, 165, 110].forEach(function (f, i) { setTimeout(function () { ping(f, 0.35, 'sawtooth', 0.1); }, i * 90); });

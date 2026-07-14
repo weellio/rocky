@@ -291,7 +291,7 @@ group('materials have voices', () => {
    * the repository). */
   for (const b of blocks) {
     ok(b.tex && b.tex !== 'none', b.name + ' has a grain');
-    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
+    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear|bell)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
   }
   ok(new Set(blocks.map((b) => b.tex)).size === blocks.length, 'no two materials share a grain either');
   for (const b of blocks) ok(new RegExp("'" + b.tex + "'").test(SRC.app), `app.js knows how to draw "${b.tex}"`);
@@ -856,6 +856,83 @@ group('CONSENSUS: no Eridian can be made to do anything', () => {
   ok(M.ears.every((e) => !e.open), 'the vents shout for forty-five seconds and convince nobody');
 });
 
+group('THE ASTRONOMERS: a bell is a resonator that shouts back', () => {
+  /* Act I.4. The warren is ninety cells wide and Rocky's whole voice carries
+   * thirty-two. So he does not shout — he RINGS, and a line of bells carries the
+   * reading the whole way. And when the chain dies, the bell it died at tells you
+   * where the blockage is. You do not hunt for a switch. You fire the chain and
+   * WATCH. */
+  const ast = () => R.create(CFG, { seed: 1, chapter: 'astronomers' });
+  const bells = (S) => S.ears.filter((e) => e.rings);
+  const fire = (S, secs) => {
+    S.player.x = 8; S.player.y = 3; S.player.z = 12;
+    S.pulseCd = 0; R.pulse(S);
+    steps(S, secs == null ? 7 : secs);
+  };
+  const shut = (S) => R.isSolid(S, 52, 2, 12);
+
+  const B = ast();
+  eq(bells(B).length, 3, 'three bells and an instrument');
+  eq(R.blockAt(B, 22, 3, 12), 11, 'a bell is its own kind of block, so you can SEE which resonators answer back');
+  eq(R.blockAt(B, 57, 3, 12), 10, 'and the instrument is not one of them');
+
+  /* SOUND MUST NOT TELEPORT.
+   * The whole flood is computed in a single tick, so settling the ears inside the
+   * emission fires the entire chain in a twentieth of a second, all at once (it
+   * did) — and the best thing about the mechanic, hearing it RUN, bell after bell,
+   * away into the dark, simply never happens. A listener hears when the sound
+   * GETS there. */
+  const T = ast();
+  fire(T, 0.4);
+  ok(bells(T)[0].rang === 0, 'a fifth of a second after he shouts, not even the first bell has heard him');
+  steps(T, 0.5);
+  ok(bells(T)[0].rang === 1, 'BELL I rings about three quarters of a second out — that is eleven cells of flight');
+  ok(bells(T)[1].rang === 0, '...and the second bell has not, because sound takes TIME to get there');
+  steps(T, 0.8);
+  ok(bells(T)[1].rang === 1, 'and now BELL II rings. You can hear the chain running away from you.');
+
+  // AS FOUND: the chain dies at the grit.
+  const A = ast();
+  fire(A);
+  ok(bells(A)[0].rang > 0, 'BELL I rings');
+  ok(bells(A)[1].rang > 0, 'BELL II rings');
+  eq(bells(A)[2].rang, 0, 'and BELL III never does — THE CHAIN DIES AT THE GRIT, and tells you exactly where');
+  ok(shut(A), 'the instrument hears nothing and the vault stays shut');
+
+  // DIG IT OUT: four cells of grit, one at a time, and fire again.
+  const S = ast();
+  let dug = 0;
+  for (let k = 0; k < 6; k++) {
+    S.player.x = 38.4 + k * 0.6; S.player.y = 3.5; S.player.z = 12.5; S.player.yaw = -Math.PI / 2;
+    const t = R.takeBlock(S);
+    if (t.ok) { dug++; ok(t.block === 9, 'a cell of grit comes out of the crawl'); S.held = 0; }
+  }
+  eq(dug, 4, 'four cells of grit, dug out one at a time — he has five arms and can still carry only one');
+  fire(S);
+  ok(bells(S).every((e) => e.rang > 0), 'now ALL THREE bells ring, one after another, down ninety cells of warren');
+  ok(S.ears.find((e) => e.id === 'inst').open, 'and the instrument hears it');
+  ok(!shut(S), 'THE VAULT OPENS');
+  ok(S.flags.all_doors, 'the chapter turns');
+
+  /* A BELL MUST NOT RING ITSELF.
+   * Its own voice comes off the wall beside it at nearly full strength, so a bell
+   * that listens to its own emission hears itself shouting, deafeningly, forever.
+   * And two bells in earshot would ring each other back and forth until the heat
+   * death of the universe. */
+  const L = ast();
+  fire(L, 20);
+  for (const b of bells(L)) ok(b.rang <= 2, `${b.name} rang ${b.rang} time(s) — a bell does not ring itself up by hearing its own voice`);
+  ok(L.ringQ.length === 0, 'and nothing is left ringing');
+
+  // and the emission is queued, never fired from inside the wave that triggered it
+  ok(/S\.ringQ\.push/.test(SRC.sim), 'a bell\'s ring is QUEUED');
+  ok(!/emit\(S[^)]*\)\s*;[\s\S]{0,40}settleEars/.test(SRC.sim), 'emit() never settles ears inside itself (that is an infinite recursion waiting to happen)');
+
+  // the instrument cannot be reached on foot: there is only a xenonite window
+  eq(R.blockAt(S, 52, 4, 12), 7, 'the instrument\'s chamber has a XENONITE window, not a door');
+  ok(R.isSolid(S, 52, 3, 12), 'and solid rock beside it');
+});
+
 group('doors', () => {
   const S = deep();
   ok(R.isSolid(S, 20, 3, 17), 'a shut door is solid');
@@ -888,7 +965,7 @@ group('curriculum', () => {
   // every mechanic the engine actually enforces has an entry
   const MECHANICS = ['move:walk', 'move:climb', 'move:jump', 'sense:pulse', 'sense:return',
     'sense:footfall', 'sense:decay', 'sense:through', 'sense:material', 'world:sources',
-    'read:base6', 'act:gauge', 'act:carry', 'world:conduct', 'world:ear'];
+    'read:base6', 'act:gauge', 'act:carry', 'world:conduct', 'world:ear', 'world:bell'];
   for (const m of MECHANICS) ok(CFG.teach[m], 'mechanic "' + m + '" is on the curriculum');
   eq(Object.keys(CFG.teach).length, MECHANICS.length, 'and there are no orphan lessons teaching rules that do not exist');
 

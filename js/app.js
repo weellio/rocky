@@ -112,6 +112,17 @@ function tile(kind) {
     g.strokeStyle = ink(0.5); g.lineWidth = 2;
     for (let r = 4; r <= 14; r += 5) { g.beginPath(); g.arc(N / 2, N / 2, r, 0, Math.PI * 2); g.stroke(); }
     g.fillStyle = ink(0.6); g.fillRect(N / 2 - 2, N / 2 - 2, 4, 4);
+  } else if (kind === 'bell') {                  // a resonator that shouts back
+    g.strokeStyle = ink(0.45); g.lineWidth = 2;
+    g.beginPath(); g.arc(N / 2, N / 2, 12, 0, Math.PI * 2); g.stroke();
+    for (let a = 0; a < 8; a++) {                // struck, and ringing outward
+      const th = (a / 8) * Math.PI * 2;
+      g.beginPath();
+      g.moveTo(N / 2 + Math.cos(th) * 4, N / 2 + Math.sin(th) * 4);
+      g.lineTo(N / 2 + Math.cos(th) * 15, N / 2 + Math.sin(th) * 15);
+      g.stroke();
+    }
+    g.fillStyle = ink(0.55); g.beginPath(); g.arc(N / 2, N / 2, 3, 0, Math.PI * 2); g.fill();
   } else if (kind === 'grain') {                 // grit: dense, dead, swallows the wave
     for (let i = 0; i < 700; i++) {
       g.fillStyle = ink(0.1 + rnd() * 0.5);
@@ -429,6 +440,12 @@ function frame(now) {
       const name = e.name || 'RESONATOR';
       const pct = Math.round(e.loudest * 100);
       const need = Math.round(e.needs * 100);
+      if (e.rings) {
+        // a bell that has just answered is RINGING — that is the chain, running
+        return e.cd > 0
+          ? `<span class="ring">${name} · ♪ RANG</span>`
+          : `<span>${name} · ${e.rang ? 'rang ×' + e.rang : pct + '% of ' + need + '%'}</span>`;
+      }
       return e.open
         ? `<span class="on">${name} · HEARD YOU</span>`
         : `<span>${name} · ${pct}% of ${need}%</span>`;
