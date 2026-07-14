@@ -164,7 +164,13 @@
   const FACES = 6;
 
   /* Emit a wavefront from a world position. `srcId` tints the echo (0 = Rocky). */
-  function emit(S, wx, wy, wz, amp0, srcId, range, from) {
+  /* `note` is WHAT THE SOUND IS MADE OF. A block dropped on the deck bangs in its own
+   * voice — a girder rings at 311, xenonite at 659, astrophage at a 55Hz thud you feel
+   * in your legs. Rocky's own pulse is a CLICK: broadband, no note, note = 0.
+   *
+   * Which matters because a TUNED resonator is deaf to everything except one pitch. You
+   * cannot shout one of those open. You have to go and fetch the right material. */
+  function emit(S, wx, wy, wz, amp0, srcId, range, from, note) {
     if (S.dirty) rebuildSurface(S);
     const son = S.cfg.sonar;
     const reach = range || son.maxDist;
@@ -248,7 +254,7 @@
            * not an echo coming home to Rocky. */
           const ear = S.earAt[j];
           if (ear !== undefined && ear !== from) {
-            S.pending.push({ id: ear, amp: a, at: S.t + dd / son.speed });
+            S.pending.push({ id: ear, amp: a, at: S.t + dd / son.speed, note: note || 0 });
           }
 
           const age = S.t - S.arrive[j];
@@ -308,6 +314,15 @@
     const still = [];
     for (const p of S.pending) {
       if (p.at > S.t) { still.push(p); continue; }
+      /* A TUNED EAR IS DEAF TO EVERYTHING BUT ONE NOTE.
+       * Not quieter — DEAF. It does not matter how loud you shout at it, because your
+       * voice is a click and a click is not a pitch. Bring it the material it wants and
+       * drop that on the floor beside it. */
+      const e = S.ears.find((x) => x.id === p.id);
+      if (e && e.tuned) {
+        if (!p.note) continue;                                  // a click is not a note
+        if (Math.abs(p.note - e.tuned) > e.tuned * 0.02) continue;   // and it is not THAT note
+      }
       if (p.amp > (heard[p.id] || 0)) heard[p.id] = p.amp;
     }
     S.pending = still;
@@ -354,7 +369,7 @@
     for (const e of q) {
       cue(S, 'bell');
       // `e.id` last: a bell does not ring itself up by hearing its own voice.
-      emit(S, e.at[0] + 0.5, e.at[1] + 0.5, e.at[2] + 0.5, e.rings.amp, 0, e.rings.range, e.id);
+      emit(S, e.at[0] + 0.5, e.at[1] + 0.5, e.at[2] + 0.5, e.rings.amp, 0, e.rings.range, e.id, S.cfg.blocks[11].note);
     }
   }
 
@@ -508,7 +523,9 @@
         if (b === 11) addBell(S, x, y, z);      // set a bell down and it starts listening
         cue(S, 'place');
         // it lands with a bang, and the bang is a sound like any other
-        emit(S, x + 0.5, y + 0.5, z + 0.5, S.cfg.sonar.placeAmp, 0, S.cfg.sonar.placeRange);   // the block bangs on its own; the astrophage in his vest cannot muffle THAT
+        // the block bangs on its own, IN ITS OWN VOICE — and the astrophage in his vest
+        // cannot muffle a noise he did not make with his mouth
+        emit(S, x + 0.5, y + 0.5, z + 0.5, S.cfg.sonar.placeAmp, 0, S.cfg.sonar.placeRange, null, S.cfg.blocks[b].note);
         return { ok: true, block: b, at: [x, y, z] };
       }
     }

@@ -1006,6 +1006,95 @@
           { at: 'pressure', chord: '♪♪♩♩♪', text: 'AIR. The room came back. Twenty-nine atmospheres of it, all at once, and I have never been so pleased to be shouted at by a wall.' },
           { at: 'all_doors', chord: '♩♪♪♩', text: 'We have no word for what was in that room. We will need one. I am going to have to go OUT there, and so is everyone I know.' }
         ]
+      },
+
+      /* ==============================================================
+       * ACT II.3 — THE DRIVE
+       *
+       * Astrophage is eating your star. So you are going to ride it.
+       *
+       * THE NEW IDEA: A TUNED RESONATOR IS DEAF TO EVERYTHING BUT ONE NOTE. Not
+       * quieter — DEAF. You can stand in front of one and shout until your carapace
+       * cracks and it will not hear you, because your voice is a CLICK and a click is
+       * not a pitch. Every material, though, has a voice of its own: a girder rings at
+       * 311, xenonite sings at 659, astrophage answers with a 55Hz thud you feel in
+       * your legs rather than hear. And a block dropped on the deck bangs IN ITS OWN
+       * VOICE.
+       *
+       * So the drive's three intakes are not locks. They are QUESTIONS, and each one
+       * has exactly one right answer, and the answer is a material you have to go and
+       * fetch and put down in the right place.
+       *
+       * And the last of them wants astrophage — which, in your vest, eats your own
+       * voice. You will carry the murderer of your sun across your own ship, going
+       * quietly deafer with every step, to feed it to the engine that will take you to
+       * the thing it is murdering.
+       * ============================================================== */
+      {
+        id: 'drive',
+        name: 'The Drive',
+        world: { w: 48, h: 18, d: 30 },
+        spawn: [6, 3, 15],
+        objective: 'Three intakes. Each is deaf to everything but one material. Shouting will not do it.',
+        exit: [44, 3, 15],
+        build: [
+          { op: 'fill', from: [0, 0, 0], to: [47, 17, 29], block: 1 },
+
+          // the drive room: one long hall, the core at the far end
+          { op: 'room', from: [3, 1, 8], to: [40, 10, 22], floor: 2 },
+
+          // THE THREE INTAKES, each tuned to one material and deaf to the rest
+          { op: 'fill', from: [12, 2, 8], to: [12, 4, 8], block: 0 },
+          { op: 'fill', from: [24, 2, 8], to: [24, 4, 8], block: 0 },
+          { op: 'fill', from: [36, 2, 8], to: [36, 4, 8], block: 0 },
+
+          // the stock: a girder, xenonite, and the grit to make more of it
+          { op: 'set', at: [6, 2, 12], block: 12 },
+          { op: 'set', at: [6, 2, 11], block: 5 },
+          { op: 'fill', from: [8, 2, 18], to: [10, 2, 18], block: 9 },
+          { op: 'fill', from: [8, 2, 20], to: [10, 2, 20], block: 9 },
+          { op: 'set', at: [14, 2, 20], block: 3 },
+          { op: 'set', at: [18, 2, 20], block: 7 },
+
+          // and the astrophage, in its own cell, behind cast xenonite so it cannot eat
+          // the rest of the ship's hearing
+          { op: 'fill', from: [28, 2, 18], to: [30, 4, 20], block: 0 },
+          { op: 'set', at: [29, 2, 19], block: 14 },
+
+          // the door the drive opens, and the way out beyond it
+          { op: 'fill', from: [41, 2, 15], to: [41, 4, 15], block: 8 },
+          { op: 'room', from: [42, 1, 12], to: [46, 7, 18], floor: 2 }
+        ],
+        sources: [
+          { at: [6, 3, 11], kind: 'vent' }
+        ],
+        gauges: [],
+        forges: [{ at: [6, 2, 12] }],
+        labels: [
+          { at: [6, 2, 12], block: 12, text: 'THE FORGE' },
+          { at: [14, 2, 20], block: 3, text: 'GIRDER' },
+          { at: [18, 2, 20], block: 7, text: 'XENONITE' },
+          { at: [29, 2, 19], block: 14, text: 'ASTROPHAGE — it will eat your voice' },
+          { at: [12, 3, 9], block: 0, text: 'INTAKE I — it hears only GIRDER', color: '#c88a3a' },
+          { at: [24, 3, 9], block: 0, text: 'INTAKE II — it hears only XENONITE', color: '#b46bff' },
+          { at: [36, 3, 9], block: 0, text: 'INTAKE III — it hears only ASTROPHAGE', color: '#ff4fa3' }
+        ],
+        /* Each intake is DEAF to everything but its own note. Shout at them all day.
+         * The only thing that will do it is the right block, dropped on the deck. */
+        ears: [
+          { id: 'i1', at: [12, 3, 8], needs: 0.30, tuned: 311, name: 'INTAKE I · girder',    opens: 'burn' },
+          { id: 'i2', at: [24, 3, 8], needs: 0.30, tuned: 659, name: 'INTAKE II · xenonite', opens: 'burn' },
+          { id: 'i3', at: [36, 3, 8], needs: 0.30, tuned: 55,  name: 'INTAKE III · astrophage', opens: 'burn' }
+        ],
+        doors: [
+          { id: 'burn', cells: [[41, 2, 15], [41, 3, 15], [41, 4, 15]] }
+        ],
+        lines: [
+          { at: 'start', chord: '♪♩♪♩', text: 'The drive will not take fuel from a stranger. Three intakes, and each one is deaf to everything in the universe except one single note. I could shout at them until my carapace split.' },
+          { at: 'start', chord: '♩♪♩♩', text: 'But everything HAS a note. A girder rings. Xenonite sings. And astrophage answers with a thud so low you feel it in your legs and never hear it at all. So I do not shout. I go and get the answer, and I put it down where the question is.' },
+          { at: 'ear', chord: '♪♩', text: 'It took it.' },
+          { at: 'all_doors', chord: '♩♩♪♪♩♩', text: 'Fed. On the thing that is killing my star. We are going to ride the murderer to the scene of the crime, and I have never in my life been so pleased with a piece of engineering, or so frightened of one.' }
+        ]
       }
     ],
 
@@ -1033,7 +1122,8 @@
       'act:forge':    'how:forge',
       'act:build':    'how:build',
       'world:astro':  'how:astro',
-      'world:vacuum': 'how:vacuum'
+      'world:vacuum': 'how:vacuum',
+      'world:tuned':  'how:tuned'
     },
 
     how: [
@@ -1056,6 +1146,7 @@
       { marker: 'build', group: 'Making',    title: 'Making things', body: 'GRIT x3 makes XENONITE: the deafest stuff on Erid becomes the loudest, which nobody has ever explained to Rocky\'s satisfaction. XENONITE x2 and a GIRDER make a RELAY BELL — and a bell you build is a bell like any other. Stand it anywhere and it listens, and when it hears you it shouts back, further than you can shout yourself. That is the whole trade: you make the thing that was not there.' },
       { marker: 'vacuum',   group: 'Hearing',    title: 'Vacuum',      body: 'SOUND NEEDS SOMETHING TO BE SOUND IN. Erid is twenty-nine atmospheres of hot ammonia and no Eridian has ever been anywhere that was not, so we have no word for this. Where there is no air you are not quiet — you are DEAF. You can still WALK through it. You just cannot hear across it: all you can hear is what you are TOUCHING, because the sound still runs out of your feet into the hull and the hull still rings. And pressure is not a switch. Any space that can reach the hole has already emptied out. Close the hole and the air comes back, all of it, at once.' },
       { marker: 'astro', group: 'Hearing',    title: 'Astrophage',  body: 'It eats light. Of course it eats sound — it eats everything that arrives, which is what it is FOR. So it gives NOTHING back, and Rocky cannot hear it. He can only hear the HOLE where it is: pulse, and a patch of the wall simply does not come home. That is how you find the thing that is killing your star — you look for the part of the room that is not there. And a sample in your vest eats your own voice too: carry three and you are down to a sixth of yourself, whispering in the dark, and you will need to build something that can shout for you.' },
+      { marker: 'tuned',    group: 'Making',     title: 'Tuned resonators', body: 'Some resonators are DEAF to everything but one note. Not quieter — deaf. You can stand in front of one and shout until your carapace splits and it will not hear you, because your voice is a CLICK and a click is not a pitch. But every material has a voice: a girder rings at 311, xenonite sings at 659, astrophage answers with a 55Hz thud you feel in your legs rather than hear. And a block DROPPED on the deck bangs in its own voice. So a tuned resonator is not a lock — it is a question, and the answer is a material. Go and fetch it, and put it down where the question is.' },
       { marker: 'bell', group: 'Making',     title: 'Bells',       body: 'A BELL is a resonator that shouts back. Ring it and it answers, loudly, from where it stands — so a line of bells carries a sound clean across a warren far too big for one voice. And when a chain of them dies halfway, the bell it died at is telling you exactly where the blockage is. Do not go hunting for a switch. Fire the chain, and watch.' }
     ],
 

@@ -1727,6 +1727,80 @@ group('THE HULL: sound needs something to be sound in', () => {
   ok(!/vacuum = true|isPressurised/.test(SRC.sim), 'and there is no flag anywhere claiming to know');
 });
 
+group('THE DRIVE: a tuned resonator is a question, not a lock', () => {
+  /* Act II.3. Astrophage is eating your star, so you are going to ride it.
+   *
+   * A TUNED RESONATOR IS DEAF TO EVERYTHING BUT ONE NOTE. Not quieter — DEAF. You can
+   * stand in front of one and shout until your carapace splits and it will not hear
+   * you, because your voice is a CLICK and a click is not a pitch. But every material
+   * has a voice, and a block DROPPED on the deck bangs in its own. So an intake is not
+   * a lock: it is a question, with exactly one right answer, and the answer is a
+   * material you have to go and fetch. */
+  const drv = () => R.create(CFG, { seed: 1, chapter: 'drive' });
+  const shut = (S) => R.isSolid(S, 41, 3, 15);
+  const put = (S, block, at) => {
+    R.setHeld(S, block);
+    S.player.x = at[0]; S.player.y = 3.34; S.player.z = at[1]; S.player.yaw = 0;
+    const r = R.placeBlock(S);
+    steps(S, 2.2);
+    return r;
+  };
+
+  const B = drv();
+  eq(B.ears.length, 3, 'three intakes');
+  eq(B.ears[0].tuned, CFG.blocks[3].note, 'the first is tuned to the note a GIRDER rings at');
+  eq(B.ears[1].tuned, CFG.blocks[7].note, 'the second to XENONITE');
+  eq(B.ears[2].tuned, CFG.blocks[14].note, 'the third to ASTROPHAGE');
+  ok(B.ears.every((e) => e.opens === 'burn'), 'and the drive will not light until all three are fed');
+
+  /* SHOUTING DOES NOTHING. Not from far away, not with your nose against it. */
+  const A = drv();
+  for (const spot of [[12, 10], [24, 10], [36, 10], [20, 12], [12, 9]]) {
+    for (let i = 0; i < 3; i++) {
+      A.player.x = spot[0]; A.player.y = 3; A.player.z = spot[1];
+      A.pulseCd = 0; R.pulse(A); steps(A, 1.2);
+    }
+  }
+  for (const e of A.ears) ok(!e.open, `${e.name} does not hear him shout — his voice is a click, and a click is not a pitch`);
+  ok(shut(A), 'and the drive does not light');
+
+  /* AND THE WRONG BLOCK DOES NOTHING EITHER, which is what makes it a question rather
+   * than a lock. Drop xenonite in the girder intake and it just lies there. */
+  const W = drv();
+  put(W, 7, [12.5, 9.6]);                       // xenonite into the GIRDER intake
+  ok(!W.ears[0].open, 'xenonite dropped into the girder intake: it does not answer');
+  put(W, 9, [12.5, 9.6]);                       // grit, for good measure
+  ok(!W.ears[0].open, 'nor grit');
+  put(W, 3, [24.5, 9.6]);                       // a girder into the XENONITE intake
+  ok(!W.ears[1].open, 'a girder in the xenonite intake: nothing');
+  ok(shut(W), 'the drive is not fooled');
+
+  /* THE RIGHT BLOCK, THOUGH. */
+  const S = drv();
+  put(S, 3, [12.5, 9.6]);
+  ok(S.ears[0].open, `INTAKE I takes the girder (${(S.ears[0].loudest * 100).toFixed(0)}%)`);
+  ok(shut(S), '...but one is not three');
+  put(S, 7, [24.5, 9.6]);
+  ok(S.ears[1].open, 'INTAKE II takes the xenonite');
+  ok(shut(S), '...nor is two');
+
+  /* And the last one wants ASTROPHAGE — the thing that is killing his star — which
+   * eats his own voice all the way across the ship. */
+  S.belt = [14, 0, 0, 0, 0, 0]; S.slot = 0;
+  ok(R.voice(S, 1) < 0.6, `with it in his vest he is down to ${(R.voice(S, 1) * 100).toFixed(0)}% of himself`);
+  put(S, 14, [36.5, 9.6]);
+  ok(S.ears[2].open, 'INTAKE III takes the astrophage');
+  ok(!shut(S), 'AND THE DRIVE LIGHTS');
+  ok(S.flags.all_doors, 'the chapter turns');
+
+  // a BELL rings at its own note too, and it is not one of these three
+  ok(!CFG.chapters.find((c) => c.id === 'drive').ears.some((e) => e.tuned === CFG.blocks[11].note),
+    'and nothing here is tuned to a bell, so you cannot ring your way out of fetching things');
+
+  ok(/if \(!p\.note\) continue;/.test(SRC.sim), 'a click carries no note, so it can never satisfy a tuned ear');
+  ok(/blocks\[b\]\.note/.test(SRC.sim), 'and a dropped block bangs in its OWN voice');
+});
+
 group('doors', () => {
   const S = deep();
   ok(R.isSolid(S, 20, 3, 17), 'a shut door is solid');
@@ -1792,7 +1866,7 @@ group('curriculum', () => {
   const MECHANICS = ['move:walk', 'move:climb', 'move:jump', 'sense:pulse', 'sense:return',
     'sense:footfall', 'sense:decay', 'sense:through', 'sense:material', 'world:sources',
     'read:base6', 'act:gauge', 'act:carry', 'world:conduct', 'world:ear', 'world:bell',
-    'act:forge', 'act:build', 'world:astro', 'world:vacuum'];
+    'act:forge', 'act:build', 'world:astro', 'world:vacuum', 'world:tuned'];
   for (const m of MECHANICS) ok(CFG.teach[m], 'mechanic "' + m + '" is on the curriculum');
   eq(Object.keys(CFG.teach).length, MECHANICS.length, 'and there are no orphan lessons teaching rules that do not exist');
 
