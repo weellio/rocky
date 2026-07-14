@@ -167,28 +167,82 @@ for (const b of CFG.blocks) {
 const BLOCK_COL = CFG.blocks.map((b) => new THREE.Color(b.color));
 
 /* ---------- Rocky ----------
- * Five legs, a carapace like a rock, and no face at all. He is the one thing
- * you always know the position of, so he is the one thing always drawn. */
+ * Five legs, a carapace like a rock, and no face at all — he has nothing to look
+ * at you with. He is the one thing you always know the position of, so he is the
+ * one thing always drawn.
+ *
+ * And he is WEARING something: a leather harness across the carapace, buckled, a
+ * satchel slung under it, and strap-bands on two of the arms. He is never not
+ * pulling something out of it. That is not decoration — it is where the six
+ * pockets are, and the pouch on his flank fills up as you fill them. */
 const rocky = new THREE.Group();
+const pouches = [];
 {
-  const shellMat = new THREE.MeshBasicMaterial({ color: 0xd8734a, vertexColors: true, fog: false });
-  const legMat = new THREE.MeshBasicMaterial({ color: 0x8a4a30, vertexColors: true, fog: false });
-  const body = new THREE.Mesh(bakedBox(1), shellMat);
-  body.scale.set(0.62, 0.34, 0.62);
-  body.position.y = 0.04;
-  rocky.add(body);
-  const hump = new THREE.Mesh(bakedBox(1), shellMat);
-  hump.scale.set(0.38, 0.2, 0.38);
-  hump.position.y = 0.24;
-  rocky.add(hump);
-  for (let i = 0; i < 5; i++) {
-    const a = (i / 5) * Math.PI * 2;
-    const leg = new THREE.Mesh(bakedBox(1), legMat);
-    leg.scale.set(0.12, 0.3, 0.12);
-    leg.position.set(Math.cos(a) * 0.34, -0.18, Math.sin(a) * 0.34);
-    leg.userData.a = a;
-    rocky.add(leg);
+  const strapMat = new THREE.MeshBasicMaterial({ color: 0x53381f, vertexColors: true, fog: false });
+  const buckleMat = new THREE.MeshBasicMaterial({ color: 0xb9a05a, vertexColors: true, fog: false });
+  const bagMat = new THREE.MeshBasicMaterial({ color: 0x6b4726, vertexColors: true, fog: false });
+
+  /* HIS BODY IS A VOXEL MODEL, baked from a reference sculpt.
+   * scripts/voxelize.js rasterises the STL once, offline, and what ships is a few
+   * thousand cubes — his silhouette, in the only shape this game knows how to
+   * draw. The mesh itself (821k triangles, 41MB) is not in the repository and is
+   * never touched at runtime. */
+  const M = window.ROCKY_MODEL;
+  if (M) {
+    const [MW, MH, MD] = M.dim;
+    const n = M.cells.length / 3;
+    const span = Math.max(MW, MH, MD);
+    const s = 1.15 / span;                      // he stands about a block and a bit wide
+    const mat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false });
+    const mesh = new THREE.InstancedMesh(bakedBox(0.96), mat, n);
+    const d = new THREE.Object3D();
+    const col = new THREE.Color();
+    // he sits ON the floor: find how low he goes and drop him onto it
+    let minY = Infinity;
+    for (let i = 1; i < M.cells.length; i += 3) minY = Math.min(minY, M.cells[i]);
+    for (let i = 0, k = 0; i < M.cells.length; i += 3, k++) {
+      const x = M.cells[i], y = M.cells[i + 1], z = M.cells[i + 2];
+      d.position.set((x - MW / 2) * s, (y - minY) * s - 0.36, (z - MD / 2) * s);
+      d.scale.setScalar(s);
+      d.updateMatrix();
+      mesh.setMatrixAt(k, d.matrix);
+      // a carapace: burnt orange on top, dark underneath, mottled like something
+      // that grew rather than something that was made
+      const up = (y - minY) / MH;
+      const grain = ((x * 7 + y * 13 + z * 5) % 5) / 5;
+      col.setRGB(
+        0.34 + up * 0.34 + grain * 0.06,
+        0.14 + up * 0.15 + grain * 0.03,
+        0.09 + up * 0.08 + grain * 0.02
+      );
+      mesh.setColorAt(k, col);
+    }
+    mesh.frustumCulled = false;
+    rocky.add(mesh);
+    rocky.userData.model = mesh;
   }
+
+  /* THE HARNESS. He wears a leather rig with a satchel on it and is never not
+   * pulling something out of it — which is where the six pockets are. */
+  const strapA = new THREE.Mesh(bakedBox(1), strapMat);
+  strapA.scale.set(0.58, 0.08, 0.13);
+  strapA.position.set(0, 0.14, 0.02);
+  rocky.add(strapA);
+  const buckle = new THREE.Mesh(bakedBox(1), buckleMat);
+  buckle.scale.set(0.1, 0.06, 0.1);
+  buckle.position.set(-0.06, 0.19, 0.02);
+  rocky.add(buckle);
+
+  // the satchel on his flank. it swells as the pockets fill.
+  const bag = new THREE.Mesh(bakedBox(1), bagMat);
+  bag.scale.set(0.18, 0.2, 0.26);
+  bag.position.set(0.3, 0.02, -0.04);
+  rocky.add(bag);
+  pouches.push(bag);
+  const flap = new THREE.Mesh(bakedBox(1), strapMat);
+  flap.scale.set(0.2, 0.05, 0.28);
+  flap.position.set(0.3, 0.13, -0.04);
+  rocky.add(flap);
 }
 scene.add(rocky);
 
@@ -244,8 +298,15 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyQ') doTake();
   if (e.code === 'KeyR') doPlace();
   if (e.code === 'Escape') document.exitPointerLock();
+  const n = e.code.match(/^Digit([1-9])$/);         // 1..6 — a pocket each
+  if (n) Sim.selectSlot(S, +n[1] - 1);
   if (EATEN.includes(e.code)) e.preventDefault();   // arrows must not scroll the page
 });
+addEventListener('wheel', (e) => {
+  if (!locked) return;
+  const n = S.belt.length;
+  Sim.selectSlot(S, (S.slot + (e.deltaY > 0 ? 1 : n - 1)) % n);
+}, { passive: true });
 addEventListener('keyup', (e) => { keys[e.code] = false; });
 canvas.addEventListener('click', () => { if (!locked) canvas.requestPointerLock(); else doPulse(); });
 document.addEventListener('pointerlockchange', () => { locked = document.pointerLockElement === canvas; });
@@ -294,7 +355,11 @@ function doTake() {
   const r = Sim.takeBlock(S);
   if (!r.ok) { flash(r.why); return; }
   const b = CFG.blocks[r.block];
-  say('♪♩', `${b.name}. ${b.key === 'xenonite' ? 'It carries sound almost for free.' : 'It kills sound stone dead.'}`);
+  const note = b.key === 'xenonite' ? 'It carries sound almost for free.'
+    : b.key === 'sand' ? 'It kills sound stone dead.'
+    : b.key === 'bell' ? 'It will answer when it hears you. Stand it somewhere useful.'
+    : 'Into the vest with it.';
+  say('♪♩', `${b.name}. ${note}`);
 }
 
 function doPlace() {
@@ -416,16 +481,33 @@ function frame(now) {
   // Rocky, and the camera that trails him
   const p = S.player;
   rocky.position.set(p.x, p.y, p.z);
-  rocky.rotation.y = p.yaw;
-  const gait = p.dist * 3.4;
-  for (const c of rocky.children) {
-    if (c.userData.a == null) continue;
-    c.position.y = -0.18 + Math.sin(gait + c.userData.a * 2) * 0.06;
-  }
+  // the sculpt faces down its +x axis; the game's forward is -z. Turn him a quarter.
+  rocky.rotation.y = p.yaw + Math.PI / 2;
+  /* HE WALKS. Five legs and no hurry: the body rocks and dips on the stride rather
+   * than bobbing like a biped, because there is never a moment when he is not
+   * touching the ground with something. */
+  const gait = p.dist * 3.2;
+  const moving = Math.hypot(p.vx, p.vz) > 0.4;
+  const sway = moving ? Math.sin(gait) * 0.05 : 0;
+  const dip = moving ? Math.abs(Math.sin(gait * 2)) * 0.035 : 0;
+  rocky.rotation.z = sway;
+  rocky.rotation.x = moving ? Math.sin(gait * 2 + 1.2) * 0.03 : 0;
+  rocky.position.y = p.y - dip;
+  if (p.climbing) rocky.rotation.x = -0.35;      // nose into the wall as he goes up it
+
+  // the satchel swells as the pockets fill: you can see how loaded he is
+  const carried = S.belt.filter(Boolean).length;
+  const fill = 0.62 + 0.38 * (carried / S.belt.length);
+  pouches[0].scale.set(0.18 * fill, 0.2 * fill, 0.26 * fill);
   // he flashes when he shouts. you are never in any doubt about who made the sound.
+  /* He flashes when he shouts: you are never in any doubt about who made the sound.
+   * The carapace colours live in instanceColor, so the material's colour is a plain
+   * MULTIPLIER over the whole body — white is his own colour, brighter is him
+   * shouting. Set an actual colour here and you would be repainting him. */
   flare = Math.max(0, flare - dt * 4.2);
-  const glow = 1 + flare * 1.5;
-  rocky.children[0].material.color.setRGB(0.85 * glow, 0.45 * glow, 0.29 * glow);
+  const glow = 1 + flare * 1.6;
+  const body = rocky.userData.model;
+  if (body) body.material.color.setRGB(glow, glow, glow);
 
   /* NOTHING MAY COME BETWEEN THE CAMERA AND ROCKY.
    * Back into a wall and the camera would otherwise slide out through the stone
@@ -454,10 +536,26 @@ function frame(now) {
   el('hud2').textContent =
     `echoes ${n}  ·  ${fps} fps  ·  pulse ${S.pulseCd > 0 ? 'recharging' : 'READY'}`;
 
-  // what is in his arms
-  const hb = S.held ? CFG.blocks[S.held] : null;
-  el('held').textContent = hb ? `CARRYING · ${hb.name.toUpperCase()}` : '';
-  el('held').style.opacity = hb ? '1' : '0';
+  /* THE TOOL BELT. Six pockets, because Eridians count in six. The one he has
+   * selected is the one his hands are on — and there is no separate "held" value
+   * anywhere, in here or in the engine: it IS the selected pocket. */
+  const belt = el('belt');
+  if (!belt.dataset.n || +belt.dataset.n !== S.belt.length) {
+    belt.dataset.n = S.belt.length;
+    belt.innerHTML = S.belt.map((_, i) => `<div class="p"><b>${i + 1}</b><span></span></div>`).join('');
+  }
+  for (let i = 0; i < S.belt.length; i++) {
+    const cell = belt.children[i];
+    const b = S.belt[i];
+    cell.classList.toggle('sel', i === S.slot);
+    cell.classList.toggle('full', !!b);
+    const span = cell.lastChild;
+    const want = b ? CFG.blocks[b].name : '';
+    if (span.textContent !== want) {
+      span.textContent = want;
+      span.style.color = b ? CFG.blocks[b].color : '';
+    }
+  }
 
   /* EVERY EAR'S OWN OPINION, shown honestly: the loudest thing it has ever heard,
    * against what it needs. Not a hint — it is the engine's own number, the same

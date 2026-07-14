@@ -661,9 +661,46 @@ group('what a material charges sound to cross it', () => {
   ok(thruGrit > thruRock, `and a grit plug (${thruGrit.toFixed(1)}) is dearer than either — it is very nearly deaf`);
 });
 
-group('carrying', () => {
+group('THE VEST AND THE TOOL BELT', () => {
+  /* Rocky wears a leather harness with a satchel on it and strap-bands on his
+   * arms, and he is never not pulling something out of it. SIX pockets, because
+   * Eridians count in six and it would not occur to him to build five or seven. */
   const S = deep();
-  eq(S.held, 0, 'empty handed');
+  eq(CFG.belt.pockets, 6, 'six pockets — Eridians count in six');
+  eq(S.belt.length, 6, 'and the belt has six');
+  eq(S.belt.filter(Boolean).length, 0, 'all empty');
+  eq(S.slot, 0, 'his hands are on the first');
+
+  /* THERE IS NO SECOND OPINION ABOUT WHAT HE IS CARRYING.
+   * `held` is a VIEW of the selected pocket, not a field of its own. Keep them as
+   * two facts and they WILL drift, and the block on the screen stops being the
+   * block in the rules. */
+  ok(/const held = \(S\) => S\.belt\[S\.slot\]/.test(SRC.sim), 'what is in his hands IS the selected pocket, read straight off the belt');
+  eq(R.held(S), R.blockAt ? S.belt[S.slot] : 0, 'and there is nowhere else it could be');
+
+  /* AND IT IS A FUNCTION, NOT AN ACCESSOR.
+   * An accessor ANYWHERE on the state object — even declared in the literal, even
+   * one the hot loop never touches — puts V8 off its fast path for the whole
+   * object, and every property read in the Dijkstra loop goes slow with it.
+   * Measured, on the same warren:
+   *      no accessor ..................  9.5 ms a pulse
+   *      get held() in the literal .... 32.4 ms a pulse
+   * Three dropped frames every time he opens his mouth, for a getter. The speed
+   * test caught it, which is the entire reason the speed test exists. */
+  ok(!/get held\(\)\s*\{|Object\.defineProperty\(S,/.test(SRC.sim),
+    'and it is NOT an accessor on the state, which would deoptimise every pulse in the game (measured: 9.5ms -> 32.4ms)');
+  S.belt[2] = 7;
+  R.selectSlot(S, 2);
+  eq(R.held(S), 7, 'select a pocket and that IS what he is holding');
+  R.setHeld(S, 9);
+  eq(S.belt[2], 9, 'and writing to his hands writes to the pocket — one fact, one place');
+  S.belt[2] = 0;
+  R.selectSlot(S, 0);
+  eq(R.held(S), 0, 'empty again');
+
+  eq(R.selectSlot(S, 9), false, 'there is no seventh pocket');
+  eq(R.selectSlot(S, -1), false, 'nor a zeroth');
+
   eq(R.takeBlock(S).ok, false, 'and nothing in reach to lift');
 
   // stand at the xenonite on its ledge and take it
@@ -671,20 +708,37 @@ group('carrying', () => {
   S.player.yaw = 0;                                    // facing -z, toward [25,5,34]
   const t = R.takeBlock(S);
   ok(t.ok, 'he lifts the xenonite');
-  eq(S.held, 7, 'and it is in his arms');
+  eq(R.held(S), 7, 'and it is in his hands');
+  eq(S.belt[t.slot], 7, 'and in a pocket');
   eq(R.blockAt(S, 25, 5, 34), 0, 'and it is gone from the world — a block is a THING, not a decoration');
-  eq(R.takeBlock(S).ok, false, 'he has five arms and can still only carry one block');
+
+  /* A pocket at a time, and then it is full. He lifts the grit plug, and it lands
+   * in the first free pocket — and when there is no free pocket, he is out of vest. */
+  const F = deep();
+  F.player.x = 12.5; F.player.y = 3.5; F.player.z = 30.5; F.player.yaw = Math.PI / 2;
+  for (let i = 0; i < 5; i++) F.belt[i] = 1;       // five pockets already stuffed
+  eq(R.freeSlot(F), 5, 'one pocket left');
+  const g = R.takeBlock(F);
+  ok(g.ok && g.block === 9, 'he lifts the grit');
+  eq(g.slot, 5, 'and it goes into the last free pocket');
+  eq(F.slot, 5, 'and his hands go to it, because that is what a hand does');
+  eq(F.belt.filter(Boolean).length, 6, 'six things carried');
+
+  eq(R.freeSlot(F), -1, 'there is nowhere left to put anything');
+  const no = R.takeBlock(F);
+  eq(no.ok, false, 'so he cannot pick up a seventh thing');
+  eq(no.why, 'every pocket is full', 'and he says why');
 
   const p = R.placeBlock(S);
   ok(p.ok, 'he puts it down');
-  eq(S.held, 0, 'his arms are empty');
+  eq(R.held(S), 0, 'his arms are empty');
   ok(R.isSolid(S, p.at[0], p.at[1], p.at[2]), 'and it is solid where he put it');
 
   // ...and only what config says he may lift
   const C = deep();
   C.player.x = 20.5; C.player.y = 2.5; C.player.z = 30.5;
   for (let i = 0; i < 20; i++) { C.player.yaw = i * 0.31; R.takeBlock(C); }
-  ok(C.held === 0 || CFG.blocks[C.held].carry, 'he never ends up holding a block config says he cannot lift');
+  ok(R.held(C) === 0 || CFG.blocks[R.held(C)].carry, 'he never ends up holding a block config says he cannot lift');
   for (const b of CFG.blocks) if (b.carry) ok(b.solid, b.name + ' is liftable and solid');
 
   // a dropped block BANGS, and a bang is a sound like any other
@@ -756,7 +810,7 @@ group('THE DEEP HALL: a locked door is a routing problem', () => {
   solve('seal channel A with xenonite and be heard through it', (S) => {
     S.player.x = 12.5; S.player.y = 3.5; S.player.z = 30.5; S.player.yaw = Math.PI / 2;
     R.takeBlock(S);                            // grit out
-    S.held = 7;                                // xenonite in (he fetched it from the ledge)
+    R.setHeld(S, 7);                                // xenonite in (he fetched it from the ledge)
     const p = R.placeBlock(S);
     ok(p.ok && p.at[0] === 11, 'the xenonite goes into the channel mouth');
     ok(R.isSolid(S, 11, 3, 30), 'the channel is SEALED — solid, not a hole');
@@ -772,7 +826,7 @@ group('THE DEEP HALL: a locked door is a routing problem', () => {
     const withGrit = shout(S, 12.5, 3, 30.5);
     const T = deep();
     T.player.x = 12.5; T.player.y = 3.5; T.player.z = 30.5; T.player.yaw = Math.PI / 2;
-    R.takeBlock(T); T.held = 7; R.placeBlock(T);
+    R.takeBlock(T); R.setHeld(T, 7); R.placeBlock(T);
     const withXeno = shout(T, 12.5, 3, 30.5);
     ok(withXeno > withGrit * 1.5,
       `THE SAME HOLE, two materials: xenonite ${pct(withXeno)} against grit ${pct(withGrit)} — this is the whole game`);
@@ -819,13 +873,13 @@ group('CONSENSUS: no Eridian can be made to do anything', () => {
   const voth = (S) => {
     S.player.x = 14.5; S.player.y = 3.5; S.player.z = 36.5; S.player.yaw = Math.PI / 2;
     ok(R.takeBlock(S).ok, 'the first cell of grit comes out');
-    S.held = 0;
+    R.setHeld(S, 0);
     ok(R.takeBlock(S).ok, 'and the second — one block at a time, he has only five arms');
     shout(S, 14.5, 3, 36.5);
   };
   const ark = (S) => shout(S, 36.5, 3, 32.5);          // down the shaft, on his claws
   const seven = (S) => {
-    S.held = 0;
+    R.setHeld(S, 0);
     S.player.x = 30.5; S.player.y = 4.5; S.player.z = 19.5; S.player.yaw = Math.PI;
     const t = R.takeBlock(S);
     ok(t.ok && t.block === 9, 'he lifts a block of the grit floor out from under his own feet');
@@ -905,7 +959,7 @@ group('THE ASTRONOMERS: a bell is a resonator that shouts back', () => {
   for (let k = 0; k < 6; k++) {
     S.player.x = 38.4 + k * 0.6; S.player.y = 3.5; S.player.z = 12.5; S.player.yaw = -Math.PI / 2;
     const t = R.takeBlock(S);
-    if (t.ok) { dug++; ok(t.block === 9, 'a cell of grit comes out of the crawl'); S.held = 0; }
+    if (t.ok) { dug++; ok(t.block === 9, 'a cell of grit comes out of the crawl'); R.setHeld(S, 0); }
   }
   eq(dug, 4, 'four cells of grit, dug out one at a time — he has five arms and can still carry only one');
   fire(S);
@@ -934,7 +988,7 @@ group('THE ASTRONOMERS: a bell is a resonator that shouts back', () => {
   eq(R.blockAt(S, 52, 4, 12), 13, 'the instrument\'s chamber has a CAST xenonite window, not a door');
   ok(R.isSolid(S, 52, 3, 12), 'and solid rock beside it');
   S.player.x = 51.5; S.player.y = 4.5; S.player.z = 12.5; S.player.yaw = -Math.PI / 2;
-  S.held = 0;
+  R.setHeld(S, 0);
   eq(R.takeBlock(S).ok, false, 'and he cannot pull the window out and walk to his own instrument');
 });
 
@@ -951,7 +1005,7 @@ group('THE FORGE: he makes the thing that was not there', () => {
   const steps4 = (S) => steps(S, 4);
   const shout = (S, x, y, z) => { S.player.x = x; S.player.y = y; S.player.z = z; S.pulseCd = 0; R.pulse(S); steps4(S); };
   const vault = (S) => S.ears.find((e) => e.id === 'vaultear');
-  const feed = (S, b) => { S.held = b; S.player.x = 4.5; S.player.y = 3; S.player.z = 12.5; return R.feedForge(S); };
+  const feed = (S, b) => { R.setHeld(S, b); S.player.x = 4.5; S.player.y = 3; S.player.z = 12.5; return R.feedForge(S); };
 
   // the tree
   const S = fg();
@@ -963,19 +1017,19 @@ group('THE FORGE: he makes the thing that was not there', () => {
   ok(!feed(S, 9).made, 'two grit: nothing');
   const x1 = feed(S, 9);
   eq(x1.made, 'xenonite', 'THREE grit makes XENONITE — the deafest stuff on Erid becomes the loudest');
-  eq(S.held, 7, 'and it goes straight into his arms');
+  eq(R.held(S), 7, 'and it goes straight into his arms');
   eq(S.forges[0].hopper[9], 0, 'and the hopper is spent');
 
-  S.held = 0;
+  R.setHeld(S, 0);
   feed(S, 9); feed(S, 9); feed(S, 9);
-  eq(S.held, 7, 'a second one');
-  S.held = 0;
+  eq(R.held(S), 7, 'a second one');
+  R.setHeld(S, 0);
 
   feed(S, 7); feed(S, 7);
   ok(!R.canMake(S, S.forges[0]), 'two xenonite alone is not a bell');
   const b = feed(S, 3);
   eq(b.made, 'bell', 'two xenonite AND a girder make a RELAY BELL');
-  eq(S.held, 11, 'and he is holding it');
+  eq(R.held(S), 11, 'and he is holding it');
   eq(S.made, 3, 'three things made');
 
   /* A BELL HE BUILT IS A BELL LIKE ANY OTHER.
@@ -1157,6 +1211,32 @@ group('the renderer is a window, not a witness', () => {
     'config.js is pure data: no functions hiding in the tables');
   const round = JSON.parse(JSON.stringify(CFG));
   eq(JSON.stringify(round), JSON.stringify(CFG), 'and the whole config survives a JSON round-trip');
+});
+
+group('the model', () => {
+  /* Rocky's body is baked from a reference sculpt: 258,432 triangles voxelised
+   * ONCE, offline, into a couple of thousand cubes. The sculpt itself (13MB, and
+   * a 41MB sibling) is not in this repository and is never touched at runtime —
+   * what ships is his silhouette, in the only shape this game knows how to draw. */
+  const M = require(path.join(ROOT, 'js/model.js'));
+  eq(M.cells.length % 3, 0, 'the cells are x,y,z triples');
+  const n = M.cells.length / 3;
+  ok(n > 800 && n < 6000, `${n} cubes — enough to be a creature, few enough to draw every frame`);
+
+  const [W, H, D] = M.dim;
+  let minY = Infinity, maxY = -Infinity;
+  for (let i = 0; i < M.cells.length; i += 3) {
+    const x = M.cells[i], y = M.cells[i + 1], z = M.cells[i + 2];
+    ok(x >= 0 && x < W && y >= 0 && y < H && z >= 0 && z < D, 'every cube is inside the grid it was baked into');
+    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+  }
+  ok(maxY - minY > H * 0.5, 'and he STANDS UP — a sculpt for a printer is Z-up and this game is Y-up, and straight out of the STL he lies flat on his back like something you have run over');
+
+  ok(fs.existsSync(path.join(ROOT, 'scripts/voxelize.js')), 'the bake is reproducible: scripts/voxelize.js');
+  ok(!fs.existsSync(path.join(ROOT, 'assets/statue_unsupported.stl')) ||
+     fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8').includes('assets/'),
+    'and the sculpt itself is NOT committed — it is 13MB and it is not ours to redistribute');
+  ok(SRC.html.includes('js/model.js'), 'the game loads the baked model');
 });
 
 group('the cache knows what it holds', () => {

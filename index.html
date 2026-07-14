@@ -28,8 +28,19 @@
     transition:opacity .3s;line-height:1.9}
   #ear .on{color:#8fe36b}
   #ear .ring{color:#7cf7ff;text-shadow:0 0 12px #7cf7ff}
-  #held{left:50%;transform:translateX(-50%);bottom:44px;font-size:11px;letter-spacing:.2em;
-    color:#b46bff;opacity:0;transition:opacity .3s}
+  /* THE TOOL BELT — six pockets of worn leather, because Eridians count in six */
+  #belt{left:50%;transform:translateX(-50%);bottom:52px;display:flex;gap:5px}
+  #belt .p{width:64px;height:40px;border-radius:3px;position:relative;
+    background:linear-gradient(180deg,rgba(62,42,24,.85),rgba(38,25,14,.9));
+    border:1px solid #53381f;box-shadow:inset 0 1px 0 rgba(255,210,150,.12);
+    display:flex;align-items:center;justify-content:center;padding:0 4px;transition:.15s}
+  #belt .p b{position:absolute;top:2px;left:5px;font-size:9px;color:#7a5a34;font-weight:400}
+  #belt .p span{font-size:9px;line-height:1.2;text-align:center;letter-spacing:.06em;
+    color:#8fa6be;word-break:break-word}
+  #belt .p.full{border-color:#8a6134;background:linear-gradient(180deg,rgba(86,58,32,.9),rgba(48,32,18,.92))}
+  #belt .p.sel{border-color:var(--amber);box-shadow:0 0 16px rgba(255,154,60,.35),inset 0 1px 0 rgba(255,210,150,.2);
+    transform:translateY(-4px)}
+  #belt .p.sel b{color:var(--amber)}
 
   #forge{left:18px;top:50%;transform:translateY(-50%);opacity:0;transition:opacity .3s;
     background:linear-gradient(180deg,rgba(10,6,2,.92),rgba(6,4,2,.88));
@@ -110,7 +121,7 @@
   </div>
   <div id="gbox"><span id="glabel">GAUGES READ</span><span id="gcount">0 / 3</span><span id="ear"></span></div>
 </div>
-<div class="hud" id="held"></div>
+<div class="hud" id="belt"></div>
 <div class="hud" id="forge"></div>
 
 <div class="hud" id="talk"><div id="chord">♪♩♪</div><div id="speech"></div></div>
@@ -121,7 +132,7 @@
 <div class="hud" id="keys">
   <b>WASD / ARROWS</b> move · <b>into a wall</b> climb · <b>SHIFT</b> down · <b>SPACE</b> jump<br>
   <b>E / click</b> pulse · <b>F</b> use — read a gauge, feed a forge<br>
-  <b>Q</b> lift · <b>R</b> place
+  <b>Q</b> lift · <b>R</b> place · <b>1–6 / wheel</b> pick a pocket
 </div>
 
 <div id="gate">
@@ -143,6 +154,7 @@
 </div>
 
 <script src="js/config.js"></script>
+<script src="js/model.js"></script>
 <script src="js/sim.js"></script>
 <script src="js/audio.js"></script>
 <script>

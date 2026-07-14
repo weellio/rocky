@@ -84,6 +84,13 @@
       }
     ],
 
+    /* THE VEST AND THE TOOL BELT.
+     * Rocky wears a leather harness across his carapace with a satchel on it and
+     * strap-bands on his arms, and he is never not pulling something out of it.
+     * SIX pockets, because Eridians count in six and it would not occur to him to
+     * build five or seven. */
+    belt: { pockets: 6 },
+
     /* A bell Rocky builds is the same OBJECT as any other bell — same list, same
      * rules, same field — but it is a better bell than the old ones in the walls,
      * because he is a better engineer than whoever hung those. And it had better
@@ -639,7 +646,7 @@
       { marker: 'sources',  title: 'The warren breathes', body: 'Machines make their own noise on their own rhythm. Near a vent you are never blind. In a dead corridor you are.' },
       { marker: 'base6',    title: 'Six',         body: 'Eridians count in sixes, because they have five arms and think of the hand itself as the sixth thing. Every number here is base six.' },
       { marker: 'gauge',    title: 'Gauges',      body: 'Stand at a gauge and press F to read it. It gives you a temperature, and what that temperature is supposed to be.' },
-      { marker: 'carry',    title: 'Carry',       body: 'Q lifts the block you are facing, R puts it down. Rocky has five arms and no respect whatsoever for the idea that a wall must stay where somebody left it. He can lift xenonite and grit. A block dropped lands with a BANG — and a bang is a sound like any other.' },
+      { marker: 'carry',    title: 'The tool belt', body: 'Rocky wears a leather harness with a satchel on it and strap-bands on his arms, and he is never not pulling something out of it. SIX pockets, because Eridians count in six. Q lifts the block you are facing into a pocket, R puts the selected one down, and 1–6 (or the mouse wheel) choose which pocket your hands are on. A block dropped lands with a BANG — and a bang is a sound like any other.' },
       { marker: 'conduct',  title: 'What sound costs', body: 'Every material charges the sound a different price to pass through it. Air is free. Basalt is dear. GRIT is very nearly soundproof — pack a channel with grit and it goes deaf. XENONITE is very nearly free: it does not scatter sound, it CARRIES it, which is why Eridians build ships out of it. Bring the right block and you can run a noise through a wall.' },
       { marker: 'ear',      title: 'Resonators',  body: 'A resonator is a listener, and it opens a door when enough sound REACHES it. So a locked door is never a key hunt — it is a routing problem. Walk over and shout. Clear the grit. Bridge the gap with xenonite. Drop something heavy beside it. Open a vent and let a machine do it for you. Every one of those is a real answer.' },
       { marker: 'forge',    title: 'The forge',   body: 'Rocky is an engineer, and his people build everything out of xenonite. Stand at a forge with a block in your arms and press F to FEED it. He carries one block at a time — five arms and no pockets — so he does not carry a recipe about with him. He feeds the hopper, one trip at a time, and the forge remembers.' },

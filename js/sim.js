@@ -428,8 +428,41 @@
     S.pending = S.pending.filter((p) => p.id !== id);
   }
 
+  /* ---------- THE VEST ----------
+   * WHAT IS IN HIS HANDS IS THE SELECTED POCKET. There is no second field holding
+   * "the block he is carrying": keep it as two facts about one thing and they WILL
+   * drift, and then the block on the screen stops being the block in the rules.
+   *
+   * It is a FUNCTION, not a property. An accessor anywhere on the state object —
+   * even declared in the literal, even one the hot loop never touches — puts V8
+   * off its fast path for the whole object, and every property read in the
+   * Dijkstra loop goes slow with it. Measured, on the same warren:
+   *
+   *      no accessor .................  9.5 ms a pulse
+   *      get held() in the literal ... 32.4 ms a pulse
+   *
+   * Three dropped frames every time he opens his mouth, for a getter. The speed
+   * test caught it, which is the entire reason the speed test exists. */
+  const held = (S) => S.belt[S.slot] || 0;
+  const setHeld = (S, b) => { S.belt[S.slot] = b || 0; };
+
+  /* Which pocket does a thing go in? The one he has selected, if it is empty;
+   * otherwise the first free one — and it becomes the selected one, because that
+   * is what a hand does. */
+  function freeSlot(S) {
+    if (!S.belt[S.slot]) return S.slot;
+    for (let i = 0; i < S.belt.length; i++) if (!S.belt[i]) return i;
+    return -1;
+  }
+  function selectSlot(S, i) {
+    if (i < 0 || i >= S.belt.length) return false;
+    S.slot = i;
+    return true;
+  }
+
   function takeBlock(S) {
-    if (S.held) return { ok: false, why: 'hands full' };
+    const slot = freeSlot(S);
+    if (slot < 0) return { ok: false, why: 'every pocket is full' };
     const p = S.player;
     const dx = -Math.sin(p.yaw), dz = -Math.cos(p.yaw);
     for (let t = 0.6; t <= 2.4; t += 0.2) {
@@ -446,16 +479,17 @@
         }
         setBlock(S, x, y, z, 0);
         rebuildSurface(S);
-        S.held = b;
+        S.slot = slot;
+        S.belt[slot] = b;
         cue(S, 'take');
-        return { ok: true, block: b, at: [x, y, z] };
+        return { ok: true, block: b, at: [x, y, z], slot: slot };
       }
     }
     return { ok: false, why: 'nothing to lift' };
   }
 
   function placeBlock(S) {
-    if (!S.held) return { ok: false, why: 'empty handed' };
+    if (!held(S)) return { ok: false, why: 'that pocket is empty' };
     const p = S.player;
     const dx = -Math.sin(p.yaw), dz = -Math.cos(p.yaw);
     for (let t = 0.8; t <= 2.6; t += 0.2) {
@@ -465,10 +499,10 @@
         // never brick yourself into the wall
         const pb = [Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)];
         if (x === pb[0] && z === pb[2] && (y === pb[1] || y === pb[1] - 1)) continue;
-        const b = S.held;
+        const b = held(S);
         setBlock(S, x, y, z, b);
         rebuildSurface(S);
-        S.held = 0;
+        setHeld(S, 0);
         if (b === 11) addBell(S, x, y, z);      // set a bell down and it starts listening
         cue(S, 'place');
         // it lands with a bang, and the bang is a sound like any other
@@ -725,11 +759,12 @@
   function feedForge(S) {
     const f = nearestForge(S);
     if (!f) return { ok: false, why: 'no forge in reach' };
-    if (!S.held) return { ok: false, why: 'nothing to feed it' };
+    const has = held(S);
+    if (!has) return { ok: false, why: 'that pocket is empty' };
 
-    f.hopper[S.held] = (f.hopper[S.held] || 0) + 1;
-    const fed = S.held;
-    S.held = 0;
+    f.hopper[has] = (f.hopper[has] || 0) + 1;
+    const fed = has;
+    setHeld(S, 0);
     S.fed++;
     cue(S, 'feed');
 
@@ -737,7 +772,10 @@
     if (!r) return { ok: true, fed: fed, made: null };
 
     for (const n of r.needs) f.hopper[n.block] -= n.n;
-    S.held = r.gives;
+    // what it makes goes into a free pocket — his hands are full of the forge
+    const slot = freeSlot(S);
+    if (slot >= 0) S.slot = slot;
+    setHeld(S, r.gives);
     S.made++;
     f.made.push(r.id);
     cue(S, 'craft');
@@ -839,7 +877,16 @@
       earAt: {},
       pending: [],
       forges: (chapter.forges || []).map((f) => ({ at: f.at, hopper: {}, made: [] })),
-      held: 0,
+      /* THE VEST.
+       * Rocky wears a tool belt and is never not pulling something out of it, so
+       * he is not limited to what fits in his arms. SIX pockets, because Eridians
+       * count in six and it would not occur to him to build five or seven.
+       * `held` is not a variable — it is a VIEW of the selected pocket (see below).
+       * A second field holding "what is in his hands" is a second opinion about
+       * the same fact, and second opinions are how the screen ends up showing a
+       * block the rules do not think he has. */
+      belt: new Array(cfg.belt.pockets).fill(0),
+      slot: 0,
       fed: 0,
       made: 0,
       builtN: 0,
@@ -905,7 +952,7 @@
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
-    feedForge, nearestForge, canMake, addBell, removeBell,
+    feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld,
     FIXED
   };
   return api;
