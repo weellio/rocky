@@ -281,16 +281,30 @@
           { op: 'fill', from: [25, 5, 14], to: [26, 5, 16], block: 3 },   // a step up to it
           { op: 'fill', from: [26, 6, 14], to: [29, 7, 16], block: 0 },   // and the crawl, walkable
 
-          // ROOM 3 — GRIT IS DEAF. An ear behind a plug you must pull.
+          /* ROOM 3 — GRIT IS DEAF. An ear behind a plug you must pull.
+           *
+           * The plug used to sit in a channel three cells of solid rock BEHIND the
+           * room's south wall, where no player could ever reach it. The step said
+           * "lift the grit" and would accept ANY grit — so picking a block up off the
+           * bench ticked it off while the real plug stayed exactly where it was, and
+           * the resonator could never hear you, ever. The tutorial was unwinnable.
+           *
+           * The plug is now in the room's own wall, at arm's length, labelled. */
           { op: 'room', from: [30, 1, 10], to: [41, 8, 20], floor: 2 },
-          { op: 'fill', from: [36, 3, 22], to: [40, 3, 22], block: 0 },   // the ear's channel
-          { op: 'set', at: [40, 3, 22], block: 9 },                       // <- THE GRIT PLUG
-          { op: 'fill', from: [33, 2, 24], to: [37, 5, 26], block: 0 },   // the ear's alcove
+          { op: 'fill', from: [36, 3, 21], to: [36, 3, 23], block: 0 },   // the channel, into the wall
+          { op: 'set', at: [36, 3, 21], block: 9 },                       // <- THE GRIT PLUG, reachable
+          { op: 'fill', from: [33, 2, 24], to: [38, 5, 26], block: 0 },   // the ear's alcove beyond it
 
-          // the forge, and stock: grit to make xenonite, and a girder for the bell
+          /* the forge, and ENOUGH STOCK TO ACTUALLY FINISH.
+           * A bell is two xenonite and a girder, and a xenonite is three grit — so a
+           * bell is SIX grit, and there were three in the room. The player could pull
+           * the plug, forge one xenonite, and then stand there for the rest of their
+           * life. (My own test fabricated the blocks into his hands instead of taking
+           * them off the floor, so it never noticed.) */
           { op: 'set', at: [32, 2, 12], block: 12 },
           { op: 'set', at: [32, 2, 11], block: 5 },
           { op: 'fill', from: [34, 2, 12], to: [36, 2, 12], block: 9 },
+          { op: 'fill', from: [34, 2, 14], to: [36, 2, 14], block: 9 },
           { op: 'set', at: [38, 2, 12], block: 3 },
 
           // a gauge to read, and the door out
@@ -316,8 +330,8 @@
           { at: [24, 2, 19], block: 11 },
           { at: [26, 7, 15], block: 0, text: 'THE CRAWL — climb the step, go through', color: '#8fe36b' },
           { at: [32, 2, 12], block: 12, text: 'THE FORGE — F to feed it' },
-          { at: [40, 3, 22], block: 9, text: 'GRIT — plugging the channel' },
-          { at: [33, 3, 25], block: 10, text: 'RESONATOR — get a sound to it' },
+          { at: [36, 3, 21], block: 9, text: 'GRIT — pull it out (Q)' },
+          { at: [34, 3, 25], block: 10, text: 'RESONATOR — get a sound to it' },
           { at: [41, 3, 16], block: 6, text: 'GAUGE — F to read it' },
           { at: [42, 3, 15], block: 8 },
           { at: [47, 3, 15], block: 15 }
@@ -331,7 +345,7 @@
         ],
         forges: [{ at: [32, 2, 12] }],
         ears: [
-          { id: 'e1', at: [33, 3, 25], needs: 0.35, name: 'THE DOOR', opens: 'out' }
+          { id: 'e1', at: [34, 3, 25], needs: 0.35, name: 'THE DOOR', opens: 'out' }
         ],
         doors: [
           { id: 'out', cells: [[42, 2, 15], [42, 3, 15], [42, 4, 15]] }
@@ -357,8 +371,8 @@
             done: { reach: [34, 3, 15], within: 5 } },
           { say: 'That door is locked, and a locked door here is never a key hunt. It listens. Get a sound to the RESONATOR and it opens — but somebody has packed its channel with GRIT, and grit is deaf.',
             done: { pulse: 6 } },
-          { say: 'So take the grit out. Face it and press Q to LIFT it — it goes in a pocket of your vest.',
-            done: { lift: 9 } },
+          { say: 'So take the grit out. It is in the south wall, labelled, at head height. Face it and press Q to LIFT it — it goes in a pocket of your vest.',
+            done: { gone: [36, 3, 21] } },
           { say: 'The channel is open. Now pulse, and let the resonator hear you.',
             done: { ear: 'e1' } },
           { say: 'THE DOOR IS OPEN. Now the other half of the trade: you are an engineer. Take the grit to the FORGE and press F to feed it. Three of grit make one XENONITE.',

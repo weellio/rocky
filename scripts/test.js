@@ -1259,32 +1259,65 @@ group('THE WALKTHROUGH: nobody should ever stand in a room wondering what the ga
   while (at() === 7) shout();                           // 8. pulse at the locked door
   ok(at() >= 8, 'step 8 done: he has found the door, and it does not answer');
 
-  // 9. LIFT THE GRIT
-  S.player.x = 38.5; S.player.y = 3.5; S.player.z = 22.5; S.player.yaw = -Math.PI / 2;
+  /* 9. LIFT THE GRIT PLUG — and it must be THE PLUG, not any old grit.
+   * The step used to say `lift: 9`, which any block of grit satisfied. So a player
+   * who picked one up off the bench ticked step 9 off while the real plug sat in the
+   * wall, and the resonator could never hear them. Stuck at 28% of 35%, forever. */
+  S.player.x = 36.5; S.player.y = 3.5; S.player.z = 19.6; S.player.yaw = Math.PI;
   const g = R.takeBlock(S);
-  ok(g.ok && g.block === 9, 'he lifts the grit plug out of the channel');
+  ok(g.ok && g.block === 9 && g.at[0] === 36 && g.at[2] === 21,
+    'he can REACH the plug from inside the room, and lifts it out');
   tick(0.2);
-  ok(at() >= 9, 'step 9 done: the grit is in his vest');
+  ok(at() >= 9, 'step 9 done: the channel is open');
 
   // 10. and now the resonator can hear him
-  goto(38, 3, 21);
+  goto(36, 3, 19);
   for (let i = 0; i < 4 && at() === 9; i++) shout();
   ok(S.ears[0].open, 'the resonator hears him');
   ok(!R.isSolid(S, 42, 3, 15), 'AND THE DOOR OPENS');
   ok(at() >= 10, 'step 10 done');
 
-  // 11. three grit -> xenonite  (there are three blocks of it on the bench)
-  const feed = (b) => { R.setHeld(S, b); S.player.x = 33.2; S.player.y = 3; S.player.z = 12.5; return R.feedForge(S); };
-  feed(9); feed(9);
-  const x = feed(9);
-  eq(x.made, 'xenonite', 'three of grit make one xenonite');
+  /* 11-12. THE FORGE — and every block he feeds it comes OFF THE FLOOR.
+   *
+   * This is the whole reason the level shipped unwinnable. The test used to hand him
+   * blocks (setHeld) instead of making him find them, so it never noticed that a bell
+   * costs SIX grit — two xenonite at three grit each — and there were three in the
+   * room. A player could pull the plug, forge one xenonite, and then stand there for
+   * the rest of their life. A test that conjures its own materials is not playing the
+   * game; it is describing one. */
+  // stand at the end of a row and lift what is in front of you, like a person
+  const liftFrom = (x, z) => {
+    S.player.x = x; S.player.y = 2.34; S.player.z = z;
+    S.player.yaw = Math.PI / 2;                       // face -x, down the row
+    const r = R.takeBlock(S);
+    ok(r.ok && r.block === 9, `he picks a block of grit up off the floor (${r.ok ? r.at : r.why})`);
+    return r;
+  };
+  const toForge = () => { S.player.x = 33.2; S.player.y = 3; S.player.z = 12.5; return R.feedForge(S); };
+  const liftGirder = () => {
+    S.player.x = 39.6; S.player.y = 2.34; S.player.z = 12.5; S.player.yaw = Math.PI / 2;
+    const r = R.takeBlock(S);
+    ok(r.ok && r.block === 3, 'and a girder to hang the bell from');
+    return r;
+  };
+
+  const made = [];
+  // his reach is 2.4 blocks, so he steps down the row: three lifts, three positions
+  for (const [x, z] of [[37.6, 12.5], [36.6, 12.5], [35.6, 12.5], [37.6, 14.5], [36.6, 14.5], [35.6, 14.5]]) {
+    liftFrom(x, z);
+    const r = toForge();
+    if (r.made) { made.push(r.made); R.setHeld(S, 0); }   // set the xenonite down and go back for more
+  }
+  eq(made.filter((m) => m === 'xenonite').length, 2,
+    'six blocks of grit off the floor make TWO xenonite — which is what a bell costs, and there are exactly six');
   tick(0.2);
   ok(at() >= 11, 'step 11 done: he has forged xenonite out of the deafest stuff on Erid');
 
-  // 12. two xenonite + a girder -> a bell
-  R.setHeld(S, 0);
-  feed(7); feed(7);
-  const bell = feed(3);
+  // now feed the two xenonite back, and a girder off the floor
+  R.setHeld(S, 7); toForge();
+  R.setHeld(S, 7); toForge();
+  liftGirder();
+  const bell = toForge();
   eq(bell.made, 'bell', 'two xenonite and a girder make a bell');
   tick(0.2);
   ok(at() >= 12, 'step 12 done: he has made a bell');
@@ -1424,6 +1457,50 @@ group('on a wall, the wall is the floor', () => {
   ok(q.y > 4, 'he climbs it');
   ok(!q.onGround, 'and he is NOT still standing on the floor, four blocks below him');
   ok(q.onWall && q.wallN, 'he is on the wall, and the engine knows which way it faces');
+});
+
+group('A LEVEL THAT ASKS FOR A BELL MUST CONTAIN A BELL\'S WORTH OF GRIT', () => {
+  /* PLAYTEST: "I've fed everything into the forge and I'm stuck in a room."
+   *
+   * He was. The tutorial was UNWINNABLE. A bell is two xenonite and a girder; a
+   * xenonite is three grit; so a bell is SIX GRIT — and there were three in the room.
+   * You could pull the plug, forge one xenonite, and then stand there for the rest of
+   * your life.
+   *
+   * It shipped because the test HANDED HIM THE BLOCKS instead of making him find
+   * them. A test that conjures its own materials is not playing the game, it is
+   * describing one — and it will describe a game nobody can finish just as happily as
+   * a game they can.
+   *
+   * So: count what a level ASKS for, count what it CONTAINS, and compare. */
+  const cost = { 9: 0, 7: 0, 3: 0 };
+  const bellCost = { 9: 0, 7: 0, 3: 0 };
+  for (const n of CFG.recipes.find((r) => r.id === 'bell').needs) bellCost[n.block] = n.n;
+  const xenoCost = CFG.recipes.find((r) => r.id === 'xenonite').needs[0].n;
+  // a bell, from raw grit: 2 xenonite (3 grit each) + 1 girder
+  const gritForBell = bellCost[7] * xenoCost;
+  eq(gritForBell, 6, 'a bell costs SIX grit — two xenonite at three grit each');
+  eq(bellCost[3], 1, 'and a girder');
+
+  for (const c of CFG.chapters) {
+    const needsBell = (c.walk || []).some((w) => w.done && w.done.forged === 'bell') ||
+      (c.walk || []).some((w) => w.done && w.done.rang);
+    const alsoBell = c.id === 'forge' || c.id === 'petrova';
+    if (!needsBell && !alsoBell) continue;
+
+    const S = R.create(CFG, { seed: 1, chapter: c.id });
+    let grit = 0, gird = 0, xeno = 0;
+    for (let x = 0; x < S.w; x++) for (let y = 0; y < S.h; y++) for (let z = 0; z < S.d; z++) {
+      const b = R.blockAt(S, x, y, z);
+      if (b === 9) grit++;
+      if (b === 3) gird++;
+      if (b === 7) xeno++;
+    }
+    const have = grit + xeno * xenoCost;
+    ok(have >= gritForBell,
+      `${c.name} asks you to build a bell and contains ${grit} grit + ${xeno} xenonite = ${have} grit's worth — a bell costs ${gritForBell}`);
+    ok(gird >= 1, `${c.name}: and at least one girder to hang it from`);
+  }
 });
 
 group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
