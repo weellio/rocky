@@ -402,6 +402,32 @@
     return null;
   }
 
+  /* A BELL ROCKY BUILT IS A BELL LIKE ANY OTHER.
+   * When he sets one down it becomes a real listener, in the same list, obeying
+   * the same rules, wired into the same field — and when he picks it up again it
+   * stops being one. There is no such thing as a "player bell" anywhere in this
+   * engine, because the moment there were two kinds of bell they would start to
+   * disagree, and the one on screen would not be the one in the rules. */
+  function addBell(S, x, y, z) {
+    const spec = S.cfg.bell;
+    const e = {
+      id: 'built' + (++S.builtN), at: [x, y, z], name: 'YOUR BELL',
+      needs: spec.needs, rings: spec.rings, rearm: spec.rearm,
+      open: false, lit: 0, loudest: 0, cd: 0, rang: 0, built: true
+    };
+    S.ears.push(e);
+    S.earAt[idx(S, x, y, z)] = e.id;
+    return e;
+  }
+  function removeBell(S, x, y, z) {
+    const i = idx(S, x, y, z);
+    const id = S.earAt[i];
+    if (id === undefined) return;
+    delete S.earAt[i];
+    S.ears = S.ears.filter((e) => e.id !== id);
+    S.pending = S.pending.filter((p) => p.id !== id);
+  }
+
   function takeBlock(S) {
     if (S.held) return { ok: false, why: 'hands full' };
     const p = S.player;
@@ -411,6 +437,13 @@
         const x = Math.floor(p.x + dx * t), y = Math.floor(p.y) + dy, z = Math.floor(p.z + dz * t);
         const b = blockAt(S, x, y, z);
         if (!S.carryOf[b]) continue;
+        // a bell the LEVEL placed is part of the level. only your own come up again.
+        if (b === 11) {
+          const id = S.earAt[idx(S, x, y, z)];
+          const e = S.ears.find((q) => q.id === id);
+          if (!e || !e.built) continue;
+          removeBell(S, x, y, z);
+        }
         setBlock(S, x, y, z, 0);
         rebuildSurface(S);
         S.held = b;
@@ -436,6 +469,7 @@
         setBlock(S, x, y, z, b);
         rebuildSurface(S);
         S.held = 0;
+        if (b === 11) addBell(S, x, y, z);      // set a bell down and it starts listening
         cue(S, 'place');
         // it lands with a bang, and the bang is a sound like any other
         emit(S, x + 0.5, y + 0.5, z + 0.5, S.cfg.sonar.placeAmp, 0, S.cfg.sonar.placeRange);
@@ -660,6 +694,56 @@
     }
   }
 
+  /* ---------- THE FORGE ----------
+   * He carries ONE block. Five arms and no pockets. So he does not carry a recipe
+   * around with him — he FEEDS the forge, one trip at a time, and the forge
+   * remembers. When the hopper holds what a recipe wants, it makes the thing and
+   * puts it in his arms.
+   */
+  function nearestForge(S, radius) {
+    const p = S.player;
+    const R = radius == null ? 2.6 : radius;
+    let best = null, bd = R * R;
+    for (const f of S.forges) {
+      const dx = f.at[0] + 0.5 - p.x, dy = f.at[1] + 0.5 - p.y, dz = f.at[2] + 0.5 - p.z;
+      const d2 = dx * dx + dy * dy + dz * dz;
+      if (d2 < bd) { bd = d2; best = f; }
+    }
+    return best;
+  }
+
+  /* What could this hopper make, right now? The renderer asks this to show it —
+   * it does not work it out for itself, or the forge on screen would start to
+   * disagree with the forge in the rules. */
+  function canMake(S, f) {
+    for (const r of S.cfg.recipes) {
+      if (r.needs.every((n) => (f.hopper[n.block] || 0) >= n.n)) return r;
+    }
+    return null;
+  }
+
+  function feedForge(S) {
+    const f = nearestForge(S);
+    if (!f) return { ok: false, why: 'no forge in reach' };
+    if (!S.held) return { ok: false, why: 'nothing to feed it' };
+
+    f.hopper[S.held] = (f.hopper[S.held] || 0) + 1;
+    const fed = S.held;
+    S.held = 0;
+    S.fed++;
+    cue(S, 'feed');
+
+    const r = canMake(S, f);
+    if (!r) return { ok: true, fed: fed, made: null };
+
+    for (const n of r.needs) f.hopper[n.block] -= n.n;
+    S.held = r.gives;
+    S.made++;
+    f.made.push(r.id);
+    cue(S, 'craft');
+    return { ok: true, fed: fed, made: r.id, gives: r.gives };
+  }
+
   /* ---------- cues: the engine says what happened; app.js decides how it sounds ---------- */
   function cue(S, id) { S.cueQ.push(id); if (S.cueQ.length > 64) S.cueQ.shift(); }
   function takeCues(S) { const q = S.cueQ; S.cueQ = []; return q; }
@@ -754,7 +838,11 @@
       doors: (chapter.doors || []).map((d) => Object.assign({ open: false }, d)),
       earAt: {},
       pending: [],
+      forges: (chapter.forges || []).map((f) => ({ at: f.at, hopper: {}, made: [] })),
       held: 0,
+      fed: 0,
+      made: 0,
+      builtN: 0,
       carryOf: cfg.blocks.map((b) => !!b.carry),
       flags: {},
       cueQ: [],
@@ -768,6 +856,7 @@
       S.earAt[idx(S, e.at[0], e.at[1], e.at[2])] = e.id;
     }
     for (const d of S.doors) for (const c of d.cells) setBlock(S, c[0], c[1], c[2], 8);
+    for (const f of S.forges) setBlock(S, f.at[0], f.at[1], f.at[2], 12);
     rebuildSurface(S);
     return S;
   }
@@ -816,6 +905,7 @@
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
+    feedForge, nearestForge, canMake, addBell, removeBell,
     FIXED
   };
   return api;

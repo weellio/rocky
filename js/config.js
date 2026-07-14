@@ -32,7 +32,7 @@
       { id: 0,  key: 'air',      name: 'Air',            solid: false, color: '#000000', absorb: 0.0,  cost: 1.0,  tex: 'none',   carry: false },
       { id: 1,  key: 'rock',     name: 'Erid basalt',    solid: true,  color: '#4a5a6e', absorb: 0.35, cost: 6.5,  tex: 'mottle', carry: false },
       { id: 2,  key: 'plate',    name: 'Floor plate',    solid: true,  color: '#6f7f93', absorb: 0.22, cost: 6.0,  tex: 'plate',  carry: false },
-      { id: 3,  key: 'girder',   name: 'Girder',         solid: true,  color: '#c88a3a', absorb: 0.10, cost: 4.0,  tex: 'stripe', carry: false },
+      { id: 3,  key: 'girder',   name: 'Girder',         solid: true,  color: '#c88a3a', absorb: 0.10, cost: 4.0,  tex: 'stripe', carry: true  },
       { id: 4,  key: 'pipe',     name: 'Ammonia pipe',   solid: true,  color: '#3fd3c0', absorb: 0.08, cost: 3.0,  tex: 'rings',  carry: false },
       { id: 5,  key: 'vent',     name: 'Heat vent',      solid: true,  color: '#ff6a2b', absorb: 0.05, cost: 3.0,  tex: 'grille', carry: false },
       { id: 6,  key: 'gauge',    name: 'Heat gauge',     solid: true,  color: '#ffd23c', absorb: 0.04, cost: 3.0,  tex: 'dial',   carry: false },
@@ -44,8 +44,54 @@
        * from where it stands — so a chain of them carries a sound clean across a
        * warren far too big to shout across. It is also how you find a blockage:
        * fire the chain and watch where it stops. */
-      { id: 11, key: 'bell',     name: 'Relay bell',     solid: true,  color: '#7cf7ff', absorb: 0.01, cost: 5.0,  tex: 'bell',   carry: false }
+      { id: 11, key: 'bell',     name: 'Relay bell',     solid: true,  color: '#7cf7ff', absorb: 0.01, cost: 5.0,  tex: 'bell',   carry: true  },
+      { id: 12, key: 'forge',    name: 'Xenonite forge', solid: true,  color: '#ff8a3c', absorb: 0.06, cost: 5.0,  tex: 'forge',  carry: false },
+      /* CAST xenonite — poured in place, part of the structure, and it does not
+       * come up again. A loose block of xenonite you can lift is a window you can
+       * simply REMOVE and crawl through, which quietly unlocks every chamber in
+       * the game that was supposed to be reachable only by sound. */
+      { id: 13, key: 'pane',     name: 'Cast xenonite',  solid: true,  color: '#c9a4ff', absorb: 0.02, cost: 1.4,  tex: 'pane',   carry: false }
     ],
+
+    /* ---------------------------------------------------------------
+     * THE FORGE
+     * Rocky is an engineer, and his people's entire civilisation rests on one
+     * trick: they can make xenonite. He carries ONE block at a time — five arms
+     * and no pockets — so he does not carry a recipe around, he FEEDS the forge.
+     * Drop a block in the hopper, go and get another. When the hopper holds what
+     * a recipe wants, the forge makes the thing and puts it in his arms.
+     *
+     * The tree is the story: the stuff that DEAFENS you becomes the stuff that
+     * CARRIES sound, and then it becomes a voice of its own.
+     *
+     *      grit x3  ->  xenonite
+     *      xenonite x2 + girder  ->  a relay bell you can put anywhere
+     * ------------------------------------------------------------- */
+    recipes: [
+      {
+        id: 'xenonite',
+        name: 'Xenonite',
+        needs: [{ block: 9, n: 3 }],
+        gives: 7,
+        note: 'Grit is dead rock. It is the deafest thing on Erid, and under enough heat and enough pressure it becomes the loudest thing we know. Nobody has ever explained this to my satisfaction.'
+      },
+      {
+        id: 'bell',
+        name: 'Relay bell',
+        needs: [{ block: 7, n: 2 }, { block: 3, n: 1 }],
+        gives: 11,
+        note: 'Two of xenonite to sing, and a girder to hang it from. Put it down anywhere and it will answer when it hears you.'
+      }
+    ],
+
+    /* A bell Rocky builds is the same OBJECT as any other bell — same list, same
+     * rules, same field — but it is a better bell than the old ones in the walls,
+     * because he is a better engineer than whoever hung those. And it had better
+     * be: A BELL MUST BE LOUDER THAN A PERSON. If it is not, then building one and
+     * standing it where you are already standing gains you precisely nothing, and
+     * the entire craft is decoration. It shouts further than he can (40 cells
+     * against his 32) and that is the only reason it is worth making. */
+    bell: { needs: 0.30, rings: { amp: 1.15, range: 40 }, rearm: 2.5 },
 
     /* Rocky is small, five-legged, and strong. Erid pulls about twice as hard
      * as Earth. He does not jump well. He climbs anything. */
@@ -438,7 +484,7 @@
            * transparent to sound. You cannot walk to your own instrument. You can
            * only be heard by it. (The door it opens is underneath, and it is the
            * instrument that decides to let you in.) */
-          { op: 'fill', from: [52, 4, 12], to: [53, 4, 12], block: 7 },
+          { op: 'fill', from: [52, 4, 12], to: [53, 4, 12], block: 13 },  // CAST xenonite: it does not come up
           { op: 'fill', from: [52, 2, 12], to: [53, 2, 12], block: 8 },   // <- the door it opens
           { op: 'fill', from: [52, 3, 12], to: [53, 3, 12], block: 1 },
 
@@ -466,6 +512,92 @@
           { at: 'bell', chord: '♪♩', text: 'Ring.' },
           { at: 'all_doors', chord: '♩♪♪♩', text: 'The instrument agrees with me, and the instrument cannot be frightened, and cannot be polite. The star is going out.' }
         ]
+      },
+
+      /* ==============================================================
+       * ACT II.1 — THE FORGE
+       *
+       * The council has agreed and the ship must be built, and everything an
+       * Eridian has ever built is made of xenonite. So: the forge.
+       *
+       * The level cannot be solved by finding anything. There is one bell, and
+       * the gap to the vault is forty cells — further than any bell can shout.
+       * You have to MAKE the second one:
+       *
+       *      grit x3               ->  xenonite
+       *      xenonite x2 + girder  ->  a relay bell
+       *
+       * and there is exactly enough grit in the walls to do it. He carries one
+       * block at a time, so it is six trips to the forge, and the sixth one hands
+       * him a bell. Then he has to work out where to STAND it — halfway, in the
+       * gallery, where both ends can hear it.
+       * ============================================================== */
+      {
+        id: 'forge',
+        name: 'The Forge',
+        world: { w: 56, h: 16, d: 26 },
+        spawn: [6, 3, 12],
+        objective: 'The gap is too wide for one voice and there is only one bell. Make another.',
+        build: [
+          { op: 'fill', from: [0, 0, 0], to: [55, 15, 25], block: 1 },
+
+          { op: 'room', from: [2, 1, 7], to: [14, 7, 17], floor: 2 },     // the workshop, with the forge
+          { op: 'room', from: [21, 1, 8], to: [31, 6, 16], floor: 2 },    // the middle gallery
+          { op: 'room', from: [38, 1, 8], to: [48, 6, 16], floor: 2 },    // the far gallery, and the ear
+
+          { op: 'fill', from: [15, 3, 12], to: [20, 3, 12], block: 0 },   // the crawl he can get through
+
+          /* ...and the one he CANNOT. Six cells of cast xenonite through six cells
+           * of rock: solid, permanent, and very nearly transparent to sound. He can
+           * never walk to that vault. He can only be heard by it — and he is not
+           * loud enough. Nothing he owns is loud enough. That is the level. */
+          { op: 'fill', from: [32, 3, 12], to: [37, 3, 12], block: 13 },
+
+          // THE FORGE
+          { op: 'set', at: [3, 2, 12], block: 12 },
+          { op: 'set', at: [3, 2, 11], block: 5 },
+          { op: 'set', at: [3, 2, 13], block: 5 },                        // the heat it runs on
+
+          /* THE STOCK. Exactly enough, and not a block more: six of grit (two
+           * xenonite worth) and one girder. Count them — the level is a sum. */
+          { op: 'fill', from: [5, 2, 8], to: [7, 2, 8], block: 9 },
+          { op: 'fill', from: [5, 2, 16], to: [7, 2, 16], block: 9 },
+          { op: 'set', at: [12, 2, 12], block: 3 },
+
+          // the one bell the warren already had, on a ledge in the workshop
+          { op: 'fill', from: [10, 4, 8], to: [12, 4, 10], block: 3 },
+          { op: 'set', at: [11, 5, 9], block: 11 },
+
+          // and the vault, sealed, at the far end
+          { op: 'fill', from: [49, 2, 11], to: [49, 4, 13], block: 8 }
+        ],
+        sources: [
+          { at: [3, 3, 11], kind: 'vent' }
+        ],
+        gauges: [],
+        forges: [
+          { at: [3, 2, 12] }
+        ],
+        /* The vault's ear is forty cells from the workshop. Rocky's voice carries
+         * 32 and a bell's carries 30, so NOTHING you already own can reach it —
+         * not by shouting, not by carrying the old bell to the crawl, not by any
+         * cleverness at all. You have to build the relay. */
+        /* MEASURED. From the closest he can stand, Rocky's own voice reaches this
+         * ear at 28%. A bell he builds and stands in the same spot reaches it at
+         * 47%, because a bell is louder than a person. The threshold sits between
+         * them, and that gap is the whole reason to build anything. */
+        ears: [
+          { id: 'vaultear', at: [48, 3, 12], needs: 0.35, name: 'THE VAULT', opens: 'vault' }
+        ],
+        doors: [
+          { id: 'vault', cells: [[49, 2, 11], [49, 2, 12], [49, 2, 13], [49, 3, 11], [49, 3, 12], [49, 3, 13], [49, 4, 11], [49, 4, 12], [49, 4, 13]] }
+        ],
+        lines: [
+          { at: 'start', chord: '♪♩♪♩', text: 'Everything my people have ever built is xenonite. Ships, tools, the walls of my own workshop. And nobody outside this room can tell you how it is made, which I find funny, and which the council does not.' },
+          { at: 'start', chord: '♩♪♩', text: 'Grit is the deafest stuff on Erid. Squeeze it hot enough and it becomes the loudest. I have never understood it. I have only ever done it.' },
+          { at: 'craft', chord: '♪♪♩', text: 'Made.' },
+          { at: 'all_doors', chord: '♩♩♪♪♩', text: 'A bell where there was no bell. This is the entire trade, and it is the whole reason we will reach that star: we make the thing that was not there.' }
+        ]
       }
     ],
 
@@ -489,7 +621,9 @@
       'act:carry':    'how:carry',
       'world:conduct': 'how:conduct',
       'world:ear':    'how:ear',
-      'world:bell':   'how:bell'
+      'world:bell':   'how:bell',
+      'act:forge':    'how:forge',
+      'act:build':    'how:build'
     },
 
     how: [
@@ -508,6 +642,8 @@
       { marker: 'carry',    title: 'Carry',       body: 'Q lifts the block you are facing, R puts it down. Rocky has five arms and no respect whatsoever for the idea that a wall must stay where somebody left it. He can lift xenonite and grit. A block dropped lands with a BANG — and a bang is a sound like any other.' },
       { marker: 'conduct',  title: 'What sound costs', body: 'Every material charges the sound a different price to pass through it. Air is free. Basalt is dear. GRIT is very nearly soundproof — pack a channel with grit and it goes deaf. XENONITE is very nearly free: it does not scatter sound, it CARRIES it, which is why Eridians build ships out of it. Bring the right block and you can run a noise through a wall.' },
       { marker: 'ear',      title: 'Resonators',  body: 'A resonator is a listener, and it opens a door when enough sound REACHES it. So a locked door is never a key hunt — it is a routing problem. Walk over and shout. Clear the grit. Bridge the gap with xenonite. Drop something heavy beside it. Open a vent and let a machine do it for you. Every one of those is a real answer.' },
+      { marker: 'forge',    title: 'The forge',   body: 'Rocky is an engineer, and his people build everything out of xenonite. Stand at a forge with a block in your arms and press F to FEED it. He carries one block at a time — five arms and no pockets — so he does not carry a recipe about with him. He feeds the hopper, one trip at a time, and the forge remembers.' },
+      { marker: 'build',    title: 'Making things', body: 'GRIT x3 makes XENONITE: the deafest stuff on Erid becomes the loudest, which nobody has ever explained to Rocky\'s satisfaction. XENONITE x2 and a GIRDER make a RELAY BELL — and a bell you build is a bell like any other. Stand it anywhere and it listens, and when it hears you it shouts back, further than you can shout yourself. That is the whole trade: you make the thing that was not there.' },
       { marker: 'bell',     title: 'Bells',       body: 'A BELL is a resonator that shouts back. Ring it and it answers, loudly, from where it stands — so a line of bells carries a sound clean across a warren far too big for one voice. And when a chain of them dies halfway, the bell it died at is telling you exactly where the blockage is. Do not go hunting for a switch. Fire the chain, and watch.' }
     ],
 

@@ -291,7 +291,7 @@ group('materials have voices', () => {
    * the repository). */
   for (const b of blocks) {
     ok(b.tex && b.tex !== 'none', b.name + ' has a grain');
-    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear|bell)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
+    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear|bell|forge|pane)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
   }
   ok(new Set(blocks.map((b) => b.tex)).size === blocks.length, 'no two materials share a grain either');
   for (const b of blocks) ok(new RegExp("'" + b.tex + "'").test(SRC.app), `app.js knows how to draw "${b.tex}"`);
@@ -928,9 +928,115 @@ group('THE ASTRONOMERS: a bell is a resonator that shouts back', () => {
   ok(/S\.ringQ\.push/.test(SRC.sim), 'a bell\'s ring is QUEUED');
   ok(!/emit\(S[^)]*\)\s*;[\s\S]{0,40}settleEars/.test(SRC.sim), 'emit() never settles ears inside itself (that is an infinite recursion waiting to happen)');
 
-  // the instrument cannot be reached on foot: there is only a xenonite window
-  eq(R.blockAt(S, 52, 4, 12), 7, 'the instrument\'s chamber has a XENONITE window, not a door');
+  /* The instrument cannot be reached on foot: there is only a xenonite window —
+   * and it is CAST, so he cannot simply lift it out and crawl through, which is
+   * exactly what he could do when it was a loose block. */
+  eq(R.blockAt(S, 52, 4, 12), 13, 'the instrument\'s chamber has a CAST xenonite window, not a door');
   ok(R.isSolid(S, 52, 3, 12), 'and solid rock beside it');
+  S.player.x = 51.5; S.player.y = 4.5; S.player.z = 12.5; S.player.yaw = -Math.PI / 2;
+  S.held = 0;
+  eq(R.takeBlock(S).ok, false, 'and he cannot pull the window out and walk to his own instrument');
+});
+
+group('THE FORGE: he makes the thing that was not there', () => {
+  /* Act II.1. Rocky is an engineer, and his civilisation rests on one trick: they
+   * can make xenonite. He carries ONE block — five arms and no pockets — so he
+   * does not carry a recipe about with him. He FEEDS the forge, one trip at a
+   * time, and it remembers.
+   *
+   *      grit x3               ->  xenonite
+   *      xenonite x2 + girder  ->  a relay bell you can stand anywhere
+   */
+  const fg = () => R.create(CFG, { seed: 1, chapter: 'forge' });
+  const steps4 = (S) => steps(S, 4);
+  const shout = (S, x, y, z) => { S.player.x = x; S.player.y = y; S.player.z = z; S.pulseCd = 0; R.pulse(S); steps4(S); };
+  const vault = (S) => S.ears.find((e) => e.id === 'vaultear');
+  const feed = (S, b) => { S.held = b; S.player.x = 4.5; S.player.y = 3; S.player.z = 12.5; return R.feedForge(S); };
+
+  // the tree
+  const S = fg();
+  eq(S.forges.length, 1, 'one forge');
+  eq(R.blockAt(S, 3, 2, 12), 12, 'and it is a real block in the world');
+  eq(R.feedForge(S).ok, false, 'you cannot feed it nothing');
+
+  ok(!feed(S, 9).made, 'one grit: nothing');
+  ok(!feed(S, 9).made, 'two grit: nothing');
+  const x1 = feed(S, 9);
+  eq(x1.made, 'xenonite', 'THREE grit makes XENONITE — the deafest stuff on Erid becomes the loudest');
+  eq(S.held, 7, 'and it goes straight into his arms');
+  eq(S.forges[0].hopper[9], 0, 'and the hopper is spent');
+
+  S.held = 0;
+  feed(S, 9); feed(S, 9); feed(S, 9);
+  eq(S.held, 7, 'a second one');
+  S.held = 0;
+
+  feed(S, 7); feed(S, 7);
+  ok(!R.canMake(S, S.forges[0]), 'two xenonite alone is not a bell');
+  const b = feed(S, 3);
+  eq(b.made, 'bell', 'two xenonite AND a girder make a RELAY BELL');
+  eq(S.held, 11, 'and he is holding it');
+  eq(S.made, 3, 'three things made');
+
+  /* A BELL HE BUILT IS A BELL LIKE ANY OTHER.
+   * The same list, the same rules, the same field. The moment there were two
+   * kinds of bell they would begin to disagree, and the one on the screen would
+   * not be the one in the rules. */
+  const before = S.ears.length;
+  S.player.x = 30.5; S.player.y = 3.5; S.player.z = 12.5; S.player.yaw = -Math.PI / 2;
+  const p = R.placeBlock(S);
+  ok(p.ok && p.block === 11, 'he stands it in the middle gallery');
+  eq(S.ears.length, before + 1, 'and it becomes a LISTENER — a real one, in the real list');
+  const mine = S.ears.find((e) => e.built);
+  ok(mine, 'his own bell');
+  ok(mine.rings, 'and it shouts back, like every other bell');
+  eq(R.blockAt(S, p.at[0], p.at[1], p.at[2]), 11, 'and it is a real block');
+
+  shout(S, 28, 3, 12);
+  steps(S, 3);
+  ok(mine.rang > 0, 'shout at it and it answers');
+  ok(vault(S).open, `and the vault hears the BELL where it never heard him (${(vault(S).loudest * 100).toFixed(0)}% of ${(vault(S).needs * 100).toFixed(0)}%)`);
+  ok(!R.isSolid(S, 49, 3, 12), 'THE VAULT OPENS');
+
+  // and picking it back up un-makes the listener
+  S.player.x = 30.5; S.player.y = 3.5; S.player.z = 12.5; S.player.yaw = -Math.PI / 2;
+  const t = R.takeBlock(S);
+  ok(t.ok && t.block === 11, 'he can pick his own bell back up');
+  ok(!S.ears.some((e) => e.built), 'and it stops being a listener — no ghosts left in the list');
+
+  /* THE LEVEL CANNOT BE SOLVED BY FINDING ANYTHING.
+   * A BELL MUST BE LOUDER THAN A PERSON, or building one and standing it exactly
+   * where you are already standing gains you nothing at all, and the whole craft
+   * is decoration. */
+  ok(CFG.bell.rings.range > CFG.sonar.maxDist,
+    `a bell shouts ${CFG.bell.rings.range} cells against Rocky's own ${CFG.sonar.maxDist} — it is LOUDER THAN HE IS, which is the only reason to make one`);
+
+  const C = fg();
+  for (const spot of [[13, 3, 12], [18, 3, 12], [22, 3, 12], [27, 3, 12], [31, 3, 12]]) shout(C, spot[0], spot[1], spot[2]);
+  ok(!vault(C).open, `he shouts from every place he can stand and the vault hears ${(vault(C).loudest * 100).toFixed(0)}% of the ${(vault(C).needs * 100).toFixed(0)}% it wants`);
+  ok(R.isSolid(C, 49, 3, 12), 'the vault does not move');
+
+  /* CAST XENONITE DOES NOT COME UP.
+   * A liftable window is a window you can simply REMOVE and crawl through, and
+   * that quietly unlocks every chamber in this game that was meant to be reachable
+   * only by sound. (It did. In two chapters.) */
+  eq(R.blockAt(C, 34, 3, 12), 13, 'the wall to the vault is CAST xenonite');
+  ok(R.isSolid(C, 34, 3, 12), 'and solid — he can never walk to that vault');
+  C.player.x = 31.5; C.player.y = 3.5; C.player.z = 12.5; C.player.yaw = -Math.PI / 2;
+  eq(R.takeBlock(C).ok, false, 'and he cannot lift it out and crawl through');
+  eq(CFG.blocks[13].carry, false, 'cast xenonite is not carryable, anywhere, ever');
+  ok(CFG.blocks[13].cost < CFG.blocks[1].cost / 3, 'but it still carries sound almost as freely as loose xenonite');
+
+  // there is EXACTLY enough stock. the level is a sum.
+  const K = fg();
+  let grit = 0, gird = 0;
+  for (let x = 0; x < K.w; x++) for (let y = 0; y < K.h; y++) for (let z = 0; z < K.d; z++) {
+    const bb = R.blockAt(K, x, y, z);
+    if (bb === 9) grit++;
+    if (bb === 3) gird++;
+  }
+  eq(grit, 6, 'six cells of grit in the world — exactly two xenonite worth, and not one block more');
+  ok(gird >= 1, 'and at least one girder to hang the bell from');
 });
 
 group('doors', () => {
@@ -965,7 +1071,8 @@ group('curriculum', () => {
   // every mechanic the engine actually enforces has an entry
   const MECHANICS = ['move:walk', 'move:climb', 'move:jump', 'sense:pulse', 'sense:return',
     'sense:footfall', 'sense:decay', 'sense:through', 'sense:material', 'world:sources',
-    'read:base6', 'act:gauge', 'act:carry', 'world:conduct', 'world:ear', 'world:bell'];
+    'read:base6', 'act:gauge', 'act:carry', 'world:conduct', 'world:ear', 'world:bell',
+    'act:forge', 'act:build'];
   for (const m of MECHANICS) ok(CFG.teach[m], 'mechanic "' + m + '" is on the curriculum');
   eq(Object.keys(CFG.teach).length, MECHANICS.length, 'and there are no orphan lessons teaching rules that do not exist');
 

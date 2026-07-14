@@ -123,6 +123,19 @@ function tile(kind) {
       g.stroke();
     }
     g.fillStyle = ink(0.55); g.beginPath(); g.arc(N / 2, N / 2, 3, 0, Math.PI * 2); g.fill();
+  } else if (kind === 'forge') {                 // the bench: a hopper and a throat of fire
+    g.fillStyle = ink(0.42); g.fillRect(0, 0, N, 8);
+    g.fillStyle = ink(0.3); g.fillRect(4, 10, N - 8, N - 14);
+    g.fillStyle = lit(0.5);
+    for (let x = 7; x < N - 6; x += 6) g.fillRect(x, 13, 3, N - 20);
+    g.fillStyle = ink(0.5); g.fillRect(0, N - 4, N, 4);
+  } else if (kind === 'pane') {                  // cast xenonite: poured, and staying put
+    g.fillStyle = ink(0.12); g.fillRect(0, 0, N, N);
+    g.strokeStyle = lit(0.45); g.lineWidth = 2;
+    g.strokeRect(3, 3, N - 6, N - 6);
+    g.lineWidth = 1;
+    g.beginPath(); g.moveTo(3, 3); g.lineTo(N - 3, N - 3); g.stroke();
+    g.beginPath(); g.moveTo(N - 3, 3); g.lineTo(3, N - 3); g.stroke();
   } else if (kind === 'grain') {                 // grit: dense, dead, swallows the wave
     for (let i = 0; i < 700; i++) {
       g.fillStyle = ink(0.1 + rnd() * 0.5);
@@ -227,7 +240,7 @@ const EATEN = ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
 addEventListener('keydown', (e) => {
   keys[e.code] = true;
   if (e.code === 'KeyE') doPulse();
-  if (e.code === 'KeyF') doRead();
+  if (e.code === 'KeyF') doUse();
   if (e.code === 'KeyQ') doTake();
   if (e.code === 'KeyR') doPlace();
   if (e.code === 'Escape') document.exitPointerLock();
@@ -247,6 +260,21 @@ function doPulse() {
   if (!r.ok) { flash('cooling…'); return; }
   ringFrom(S.player);
   flare = 1;                        // Rocky himself flashes: HE is the one shouting
+}
+
+/* F is "use the thing in front of you". A gauge is read. A forge is FED. */
+function doUse() {
+  if (Sim.nearestForge(S)) { doFeed(); return; }
+  doRead();
+}
+
+function doFeed() {
+  const r = Sim.feedForge(S);
+  if (!r.ok) { flash(r.why); return; }
+  if (!r.made) return;
+  const rec = CFG.recipes.find((x) => x.id === r.made);
+  say('♪♪♩', `${rec.name}. ${rec.note}`);
+  banner('MADE · ' + rec.name.toUpperCase());
 }
 
 function doRead() {
@@ -454,8 +482,32 @@ function frame(now) {
     el('ear').style.opacity = '0';
   }
 
+  /* THE FORGE PANEL. What is in the hopper, and what the recipes want. The
+   * "can this be made" question goes to the ENGINE (Sim.canMake) — work it out
+   * here and the bench on screen starts disagreeing with the bench in the rules. */
+  const f = Sim.nearestForge(S, 5);
+  if (f) {
+    const ready = Sim.canMake(S, f);
+    el('forge').style.opacity = '1';
+    el('forge').innerHTML =
+      '<b>THE FORGE</b>' +
+      CFG.recipes.map((r) => {
+        const parts = r.needs.map((n) => {
+          const have = f.hopper[n.block] || 0;
+          const cls = have >= n.n ? 'got' : '';
+          return `<span class="${cls}">${CFG.blocks[n.block].name} ${have}/${n.n}</span>`;
+        }).join(' + ');
+        const hot = ready && ready.id === r.id ? ' class="hot"' : '';
+        return `<div${hot}>${parts} → ${r.name}</div>`;
+      }).join('') +
+      '<i>F — feed it the block in your arms</i>';
+  } else {
+    el('forge').style.opacity = '0';
+  }
+
   const g = Sim.nearestGauge(S);
-  el('prompt').style.opacity = g && !g.read ? '1' : '0';
+  el('prompt').style.opacity = (g && !g.read) ? '1' : '0';
+  if (g && !g.read) el('prompt').textContent = 'F — READ GAUGE';
 
   requestAnimationFrame(frame);
 }

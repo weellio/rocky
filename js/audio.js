@@ -68,6 +68,14 @@
       setTimeout(function () { ping(1320, 0.12, 'sine', 0.16); }, 100);
     },
     take: function () { ping(300, 0.07, 'triangle', 0.16, 460); },
+    feed: function () { noise(0.18, 500, 0.16); ping(160, 0.1, 'sine', 0.1, 110); },
+    /* the forge makes a thing: a hiss, and then it rings like what it now is */
+    craft: function () {
+      noise(0.35, 1800, 0.2);
+      [440, 660, 880, 1320].forEach(function (f, i) {
+        setTimeout(function () { ping(f, 0.4, 'sine', 0.16); }, 120 + i * 70);
+      });
+    },
     place: function () { noise(0.2, 340, 0.3); ping(140, 0.16, 'sine', 0.2, 90); },
     /* the resonator hears you: a bell finding its own note */
     ear: function () {
