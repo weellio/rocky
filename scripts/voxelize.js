@@ -297,9 +297,74 @@ const upPivots = pivots.map((p) => {
   const [ux, uy, uz] = spin(p[0], p[1], p[2]);
   return [+ux.toFixed(2), +uy.toFixed(2), +uz.toFixed(2)];
 });
+
+/* ================================================================
+ * PUT HIS ARMS DOWN.
+ *
+ * The sculpt is a STATUE: he is reared up with two arms flung in the air, which is
+ * a wonderful thing to have on a shelf and a terrible thing to walk around in. No
+ * amount of clever swinging fixes it — animating a statue just wiggles the statue,
+ * and he looked like he was being dragged along by a rope.
+ *
+ * But we know where his shoulders are, so we can simply PUT HIM IN A STANCE: for
+ * every limb, work out where it currently points, work out where a limb standing on
+ * the ground OUGHT to point (outward from his axis, and down), and store the turn
+ * that gets it from one to the other. The renderer applies that first and then
+ * walks him on top of it.
+ *
+ * A limb that is already pointing down and out is left exactly where it is. Only
+ * the ones in the air get put away.
+ * ============================================================== */
+const v3 = {
+  sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]],
+  add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]],
+  mul: (a, k) => [a[0] * k, a[1] * k, a[2] * k],
+  len: (a) => Math.hypot(a[0], a[1], a[2]),
+  norm: (a) => { const l = v3.len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; },
+  dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
+  cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+};
+
+// his centre, in the Y-up frame the game will see
+let bx = 0, by = 0, bz = 0, bn = 0;
+for (const p of parts) for (let i = 0; i < p.length; i += 3) { bx += p[i]; by += p[i + 1]; bz += p[i + 2]; bn++; }
+bx /= bn; by /= bn; bz /= bn;
+
+const rests = [];
+for (let k = 0; k < best.limbs.length; k++) {
+  const pv = upPivots[k];
+  const cells = parts[k + 1];
+  let sx = 0, sy = 0, sz = 0;
+  for (let i = 0; i < cells.length; i += 3) { sx += cells[i]; sy += cells[i + 1]; sz += cells[i + 2]; }
+  const n = cells.length / 3;
+  const centroid = [sx / n, sy / n, sz / n];
+
+  const reach = v3.norm(v3.sub(centroid, pv));
+
+  // where a limb he is STANDING on ought to point: out from his spine, and down
+  let out = v3.norm([pv[0] - bx, 0, pv[2] - bz]);
+  if (v3.len(out) < 0.2) out = v3.norm([reach[0], 0, reach[2]]);
+  if (v3.len(out) < 0.2) out = [1, 0, 0];
+  const want = v3.norm(v3.add(v3.mul(out, 0.72), [0, -0.70, 0]));
+
+  const d = Math.max(-1, Math.min(1, v3.dot(reach, want)));
+  let axis = v3.cross(reach, want);
+  let angle = Math.acos(d);
+  if (v3.len(axis) < 1e-4) { axis = [0, 1, 0]; angle = 0; }
+  else axis = v3.norm(axis);
+
+  // already standing on it? leave it alone.
+  const posed = angle < 0.35 ? reach : want;
+  if (angle < 0.35) angle = 0;
+
+  const h = Math.sin(angle / 2);
+  rests.push({
+    q: [+(axis[0] * h).toFixed(4), +(axis[1] * h).toFixed(4), +(axis[2] * h).toFixed(4), +Math.cos(angle / 2).toFixed(4)],
+    dir: posed.map((v) => +v.toFixed(3)),
+    turned: +(angle * 180 / Math.PI).toFixed(0)
+  });
+}
 console.log(`  up axis: ${UP.toUpperCase()}  ->  grid ${OW} x ${OH} x ${OD}`);
-parts.forEach((p, k) => console.log(`     part ${k}: ${(p.length / 3).toString().padStart(4)} cubes` +
-  (k ? `   shoulder at ${upPivots[k - 1].join(', ')}` : '   (the carapace)')));
 const cells = parts.flat();
 
 const out = `/* ROCKY — the model, IN PIECES.
@@ -314,9 +379,17 @@ const out = `/* ROCKY — the model, IN PIECES.
  * is the point it turns about — swing a limb from its own middle instead and it
  * detaches from him as it goes.
  *
+ * And he is PUT IN A STANCE. The sculpt is a statue, reared up with two arms flung
+ * in the air — wonderful on a shelf, useless to walk around in, and no amount of
+ * clever swinging fixes it, because animating a statue only wiggles the statue. So
+ * every limb carries the turn that takes it from where the sculptor left it to where
+ * a limb standing on the ground ought to be: out from his spine, and down.
+ *
  *   dim     the grid he was rasterised into
  *   parts   [0] is the carapace; the rest are limbs
  *   pivot   a limb's shoulder, in grid coordinates. The carapace has none.
+ *   rest    the quaternion that puts that limb into its stance (x,y,z,w)
+ *   dir     which way it points once it is standing on it
  *   cells   x,y,z triples, one per cube
  */
 (function (root, factory) {
@@ -326,10 +399,17 @@ const out = `/* ROCKY — the model, IN PIECES.
   return {
     dim: [${OW}, ${OH}, ${OD}],
     parts: [
-${parts.map((p, k) => `      { name: ${k === 0 ? "'carapace'" : `'limb${k}'`}, pivot: ${k === 0 ? 'null' : JSON.stringify(upPivots[k - 1])}, cells: [${p.join(',')}] }`).join(',\n')}
+${parts.map((p, k) => k === 0
+    ? `      { name: 'carapace', pivot: null, rest: null, dir: null, cells: [${p.join(',')}] }`
+    : `      { name: 'limb${k}', pivot: ${JSON.stringify(upPivots[k - 1])}, rest: ${JSON.stringify(rests[k - 1].q)}, dir: ${JSON.stringify(rests[k - 1].dir)}, cells: [${p.join(',')}] }`
+  ).join(',\n')}
     ]
   };
 });
 `;
+parts.forEach((p, k) => console.log(
+  `     part ${k}: ${(p.length / 3).toString().padStart(4)} cubes` +
+  (k ? `   shoulder ${upPivots[k - 1].map((v) => v.toFixed(0)).join(',')}   put down by ${rests[k - 1].turned}°`
+     : '   (the carapace)')));
 fs.writeFileSync(OUT, out);
 console.log(`  wrote js/model.js  (${(out.length / 1024).toFixed(0)}KB)`);

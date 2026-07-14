@@ -243,14 +243,21 @@ const limbs = [];
       centroid.divideScalar(n);
 
       if (part.pivot) {
-        /* WHICH WAY THIS LEG POINTS decides how it must move. Lifting it is a turn
-         * about the axis across it; stepping it forward is a turn about his spine.
-         * And its phase comes from where it sits AROUND him, so the five of them
-         * ripple instead of all stamping at once. */
-        const reach = centroid.clone().sub(pivot).normalize();
-        const lift = new THREE.Vector3().crossVectors(reach, new THREE.Vector3(0, 1, 0)).normalize();
+        /* HIS STANCE comes with the model: the sculpt is a statue with two arms in
+         * the air, and `rest` is the turn that puts each limb where a limb standing
+         * on the ground belongs. It is applied FIRST, and he walks on top of it.
+         *
+         * `dir` is where the limb points once it is standing on it — which is what
+         * decides how it must move. Lifting it is a turn about the axis across it;
+         * stepping it is a turn about his spine. Its phase comes from where it sits
+         * AROUND him, so the five of them ripple instead of stamping in unison. */
+        const rest = new THREE.Quaternion(part.rest[0], part.rest[1], part.rest[2], part.rest[3]);
+        const dir = new THREE.Vector3(part.dir[0], part.dir[1], part.dir[2]).normalize();
+        const lift = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0)).normalize();
+        if (lift.lengthSq() < 0.01) lift.set(1, 0, 0);
         const around = Math.atan2(pivot.z, pivot.x);
-        limbs.push({ g, reach, lift, phase: around * 1.6 });
+        g.quaternion.copy(rest);
+        limbs.push({ g, rest, dir, lift, phase: around * 1.6 });
       } else {
         rocky.userData.model = mesh;          // the carapace: it is what flares when he shouts
       }
@@ -441,6 +448,7 @@ let camDist = 5.4;
 let flare = 0;
 let drawn = 0;
 let gaitT = 0;
+let faceYaw = 0;
 const UP_AXIS = new THREE.Vector3(0, 1, 0);
 const qStep = new THREE.Quaternion();
 const qLift = new THREE.Quaternion();
@@ -520,8 +528,6 @@ function frame(now) {
   // Rocky, and the camera that trails him
   const p = S.player;
   rocky.position.set(p.x, p.y, p.z);
-  // the sculpt faces down its +x axis; the game's forward is -z. Turn him a quarter.
-  rocky.rotation.y = p.yaw + Math.PI / 2;
   /* HE WALKS.
    * Five legs, and no hurry. They ripple rather than pair off, because five does not
    * divide into two — and there is never a moment when he is not touching the ground
@@ -532,29 +538,42 @@ function frame(now) {
    * went to the trouble of finding where the shoulders are. */
   const speed = Math.hypot(p.vx, p.vz);
   const moving = speed > 0.35 || p.climbing;
-  gaitT += (p.climbing ? speed * 0.7 + 1.2 : speed) * dt * 3.0;
-  const idle = S.t * 1.1;
+  gaitT += (p.climbing ? speed * 0.7 + 1.2 : speed) * dt * 2.6;
 
   for (let i = 0; i < limbs.length; i++) {
     const L = limbs[i];
     const ph = gaitT + L.phase;
-    // stepping: forward on the swing, back on the stance (and the stance is longer,
-    // because a foot on the ground is what he is standing on)
-    const stride = moving ? Math.sin(ph) * 0.30 : Math.sin(idle + L.phase) * 0.035;
-    // lifting: only while it is swinging. A leg does not rise while it is carrying him.
-    const up = moving ? Math.max(0, Math.sin(ph)) * 0.38 : 0;
+    // stepping: forward on the swing, back on the stance
+    const stride = moving ? Math.sin(ph) * 0.26 : 0;
+    // lifting: only while it is SWINGING. A leg does not rise while it is carrying him.
+    const up = moving ? Math.max(0, Math.sin(ph)) * 0.30 : 0;
 
     qStep.setFromAxisAngle(UP_AXIS, stride);
     qLift.setFromAxisAngle(L.lift, -up);
-    L.g.quaternion.copy(qStep).multiply(qLift);
+    // stance first, then walk on top of it. Get this order wrong and he swings his
+    // legs in the sculptor's pose instead of his own.
+    L.g.quaternion.copy(qStep).multiply(qLift).multiply(L.rest);
   }
 
-  // the body rides on top of the legs: a slow roll, and a dip on every other beat
-  const roll = moving ? Math.sin(gaitT * 0.5) * 0.045 : 0;
-  const dip = moving ? Math.abs(Math.sin(gaitT * 1.25)) * 0.03 : 0;
-  rocky.rotation.z = roll;
-  rocky.rotation.x = p.climbing ? -0.34 : (moving ? Math.sin(gaitT * 1.25 + 1.2) * 0.025 : 0);
-  rocky.position.y = p.y - dip;
+  /* HE FACES THE WAY HE IS GOING.
+   * Pointing him wherever the CAMERA is looking is what made him look like he was
+   * being towed along on a rope: strafe, and he slides sideways while still staring
+   * straight ahead. A creature turns to walk. He turns toward his own velocity, and
+   * only holds the camera's heading when he is standing still. */
+  if (speed > 0.4) {
+    const want = Math.atan2(-p.vx, -p.vz);
+    let dyaw = want - faceYaw;
+    while (dyaw > Math.PI) dyaw -= Math.PI * 2;
+    while (dyaw < -Math.PI) dyaw += Math.PI * 2;
+    faceYaw += dyaw * Math.min(1, dt * 9);
+  }
+  rocky.rotation.y = faceYaw + Math.PI / 2;
+
+  // the body rides on the legs. Barely: he has five of them, so there is never a
+  // moment when nothing is holding him up, and a five-legged creature does not bounce.
+  rocky.rotation.z = moving ? Math.sin(gaitT * 0.5) * 0.02 : 0;
+  rocky.rotation.x = p.climbing ? -0.34 : 0;
+  rocky.position.y = p.y - (moving ? Math.abs(Math.sin(gaitT * 1.25)) * 0.012 : 0);
 
   // the satchel swells as the pockets fill: you can see how loaded he is
   const carried = S.belt.filter(Boolean).length;

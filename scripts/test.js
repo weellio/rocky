@@ -1254,9 +1254,37 @@ group('the model', () => {
 
   ok(maxY - minY > H * 0.5, 'and he STANDS UP — a sculpt for a printer is Z-up and this game is Y-up, and straight out of the STL he lies flat on his back like something you have run over');
 
+  /* AND HIS ARMS ARE PUT DOWN.
+   * PLAYTEST: "he always has two arms in the air and appears to be pulled around by
+   * a rope. it looks weird and distracting."
+   * The sculpt is a STATUE — reared up, two arms flung in the air — and no amount of
+   * clever swinging fixes that, because animating a statue only wiggles the statue.
+   * Every limb carries the turn that takes it from where the sculptor left it to
+   * where a limb standing on the ground belongs: out from his spine, and DOWN. */
+  let raised = 0, standing = 0;
+  for (const p of M.parts) {
+    if (!p.pivot) continue;
+    eq(p.rest.length, 4, `${p.name} carries the turn that puts it into its stance`);
+    const q = Math.hypot(p.rest[0], p.rest[1], p.rest[2], p.rest[3]);
+    near(q, 1, 0.01, `${p.name}'s stance is a unit quaternion`);
+    eq(p.dir.length, 3, `${p.name} knows which way it points once it is standing on it`);
+    ok(p.dir[1] < 0.15, `${p.name} points DOWNWARD once he is standing on it (y = ${p.dir[1]})`);
+    if (Math.abs(p.rest[3]) < 0.98) raised++;      // a real rotation: this one was in the air
+    standing++;
+  }
+  eq(standing, M.parts.length - 1, 'every limb has a stance');
+  ok(raised >= 2, `${raised} of his limbs were up in the air in the sculpt and have been PUT DOWN — he stands on them now`);
+
   // the renderer must hang each limb at its shoulder, or it swings from its own middle and comes off him
   ok(/g\.position\.copy\(pivot\)/.test(SRC.app), 'the renderer hangs each limb at its SHOULDER');
   ok(/setFromAxisAngle/.test(SRC.app), 'and turns it about that joint');
+  ok(/multiply\(L\.rest\)/.test(SRC.app), 'and applies the STANCE first, then walks him on top of it');
+
+  /* AND HE FACES THE WAY HE IS GOING.
+   * Pointing him wherever the CAMERA looks is what made him look towed on a rope:
+   * strafe, and he slides sideways while staring straight ahead. A creature turns to
+   * walk. */
+  ok(/Math\.atan2\(-p\.vx, -p\.vz\)/.test(SRC.app), 'he turns toward his own velocity, not the camera\'s heading');
 
   ok(fs.existsSync(path.join(ROOT, 'scripts/voxelize.js')), 'the bake is reproducible: scripts/voxelize.js');
   ok(!fs.existsSync(path.join(ROOT, 'assets/statue_unsupported.stl')) ||
