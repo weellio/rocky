@@ -435,6 +435,21 @@
           { op: 'set', at: [34, 6, 6], block: 7 },
           { op: 'set', at: [35, 6, 6], block: 7 },
           { op: 'fill', from: [6, 4, 16], to: [10, 7, 16], block: 8 },
+
+          /* ERID IS A WARREN. It was not built, it was WORN — so gnaw the walls until
+           * nothing is flat, hang teeth off the ceilings, and drop the rubble that came
+           * down long ago. (These ops only ever eat ROCK, so every alcove a puzzle
+           * depends on stays exactly as thick as it was measured to be.) */
+          /* A PULSE HAS TO FIT INSIDE ONE FRAME, and air is what a pulse costs: every
+           * cell of rock you chew away is another cell the wavefront has to cross
+           * twenty-six ways. So the warren is gnawed where you walk (y 1-10) and left
+           * alone in the roof, and the rubble and the teeth put some of the stone back. */
+          { op: 'roughen', from: [2, 1, 2], to: [41, 13, 41], amount: 0.30, passes: 2 },
+          { op: 'cave', at: [22, 5, 21], r: 6, ry: 4, wobble: 0.45 },
+          { op: 'cave', at: [10, 5, 33], r: 4, ry: 3, wobble: 0.5 },
+          { op: 'tunnel', from: [22, 4, 30], to: [22, 4, 17], r: 1.9, wander: 0.8 },
+          { op: 'spikes', from: [3, 4, 3], to: [40, 13, 40], amount: 0.13 },
+          { op: 'rubble', from: [3, 2, 3], to: [40, 8, 40], amount: 0.13 },
           { op: 'set', at: [34, 2, 10], block: 15 }
         ],
         sources: [
@@ -485,6 +500,9 @@
         world: { w: 40, h: 20, d: 40 },
         spawn: [20, 3, 33],
         exit: [20, 2, 8],
+        /* The two channels ARE the puzzle — every number in this level was measured
+         * against how much rock sits around them. The cave ops do not touch them. */
+        protect: [[[2, 1, 24], [14, 12, 34]]],
         objective: 'The council is behind that door. Get a sound to the resonator — any way you can.',
         build: [
           { op: 'fill', from: [0, 0, 0], to: [39, 19, 39], block: 1 },
@@ -521,6 +539,12 @@
 
           { op: 'fill', from: [16, 1, 36], to: [17, 3, 36], block: 4 },
           { op: 'set', at: [24, 2, 37], block: 5 },
+
+          // worn, not built
+          { op: 'roughen', from: [2, 1, 2], to: [37, 14, 37], amount: 0.32, passes: 2 },
+          { op: 'cave', at: [20, 5, 31], r: 6, ry: 4, wobble: 0.45 },
+          { op: 'spikes', from: [3, 5, 3], to: [36, 12, 36], amount: 0.06 },
+          { op: 'rubble', from: [3, 2, 3], to: [36, 8, 36], amount: 0.07 },
           { op: 'set', at: [20, 2, 8], block: 15 }
         ],
         sources: [
@@ -624,6 +648,12 @@
           { op: 'set', at: [28, 5, 38], block: 7 },
           { op: 'set', at: [27, 5, 38], block: 7 },
           { op: 'set', at: [16, 2, 39], block: 5 },
+
+          // worn, not built
+          { op: 'roughen', from: [2, 1, 2], to: [41, 14, 41], amount: 0.32, passes: 2 },
+          { op: 'cave', at: [22, 5, 33], r: 5, ry: 3.5, wobble: 0.45 },
+          { op: 'spikes', from: [3, 5, 3], to: [40, 13, 40], amount: 0.10 },
+          { op: 'rubble', from: [3, 2, 3], to: [40, 8, 40], amount: 0.11 },
           { op: 'set', at: [22, 2, 6], block: 15 }
         ],
         sources: [
@@ -876,6 +906,12 @@
           { op: 'room', from: [40, 1, 13], to: [45, 6, 21], floor: 2 },
           { op: 'fill', from: [35, 3, 17], to: [39, 3, 17], block: 13 },
           { op: 'fill', from: [35, 2, 17], to: [39, 2, 17], block: 8 },
+
+          // the deep bore: the oldest rock on Erid, and it looks it
+          { op: 'roughen', from: [2, 1, 2], to: [33, 12, 31], amount: 0.30, passes: 2 },
+          { op: 'cave', at: [18, 5, 17], r: 6, ry: 4, wobble: 0.45 },
+          { op: 'spikes', from: [3, 5, 3], to: [33, 10, 30], amount: 0.08 },
+          { op: 'rubble', from: [3, 2, 3], to: [33, 8, 30], amount: 0.09 },
           { op: 'set', at: [44, 2, 17], block: 15 }
         ],
         sources: [

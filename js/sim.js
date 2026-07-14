@@ -44,12 +44,157 @@
     return true;
   }
 
-  /* ---------- world building: a level is DATA, not a hand-placed array ---------- */
+  /* ---------- world building: a level is DATA, not a hand-placed array ----------
+   *
+   * PLAYTEST: "all the rooms are square. can we have more of a WORLD?"
+   *
+   * Erid is a warren. It was not built, it was WORN — hot ammonia through basalt for
+   * a billion years — and it should not look like a corridor in an office. So the
+   * builder grew some ops that eat rock the way water does:
+   *
+   *   roughen   gnaw at every wall that already faces air, so nothing is flat
+   *   rubble    lumps on the floor, where the ceiling came down once
+   *   spikes    and things hanging off it that have not come down yet
+   *   cave      a lumpy ball of nothing, for a chamber that was never a room
+   *   tunnel    a wandering worm of nothing, for a passage nobody surveyed
+   *
+   * They are seeded off the run's own RNG, so a level is the same warren every time
+   * you walk into it. And they only ever eat ROCK, never anything a puzzle is made of
+   * — so a resonator's alcove stays exactly as thick as it was measured to be.
+   *
+   * The SHIP does not get any of this. A ship is machined. That contrast is the point:
+   * Erid is a place that happened, and the Blip-A is a place somebody decided.
+   */
+  /* PROTECTED STONE.
+   *
+   * The first time I let the cave ops loose they ate the puzzles. Of course they did:
+   * a resonator's alcove is walled in ROCK, and "eat any rock that faces air" eats
+   * exactly that. Voth, who is supposed to be stone deaf behind two cells of grit and
+   * five of basalt, could suddenly hear Rocky shouting from the assembly floor at 60%
+   * of the 42% he needs. The level was still beautiful. It was just no longer a level.
+   *
+   * So the geometry a puzzle is MEASURED on is off the menu: nothing may gnaw within
+   * reach of an ear, a door, or anything the chapter names. Everywhere else, chew away.
+   */
+  function protectedAt(S, x, y, z) {
+    const c = S.chapter;
+    const near = (p, r) => Math.hypot(x - p[0], y - p[1], z - p[2]) <= r;
+    for (const e of c.ears || []) if (near(e.at, e.keepOut == null ? 7 : e.keepOut)) return true;
+    for (const d of c.doors || []) for (const cell of d.cells) if (near(cell, 3)) return true;
+    if (c.exit && near(c.exit, 3)) return true;
+    for (const f of c.forges || []) if (near(f.at, 3)) return true;
+    for (const g of c.gauges || []) if (near(g.at, 3)) return true;
+    for (const b of c.protect || []) {
+      if (x >= b[0][0] && x <= b[1][0] && y >= b[0][1] && y <= b[1][1] && z >= b[0][2] && z <= b[1][2]) return true;
+    }
+    return false;
+  }
+
   function applyOp(S, op) {
+    const rnd = S.rnd;
+    const free = (x, y, z) => !protectedAt(S, x, y, z);
+
     if (op.op === 'set') {
       setBlock(S, op.at[0], op.at[1], op.at[2], op.block);
       return;
     }
+
+    if (op.op === 'roughen') {
+      /* Gnaw at the walls. Only ROCK, and only where it already faces air, so it can
+       * open a room out but can never seal one, never bury a block, and never punch
+       * into an alcove that the far side of a puzzle depends on. */
+      const [x0, y0, z0] = op.from, [x1, y1, z1] = op.to;
+      const passes = op.passes || 2;
+      const amount = op.amount == null ? 0.34 : op.amount;
+      for (let pass = 0; pass < passes; pass++) {
+        const eat = [];
+        for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++)
+          for (let z = Math.min(z0, z1); z <= Math.max(z0, z1); z++)
+            for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) {
+              if (blockAt(S, x, y, z) !== 1) continue;                 // rock only
+              const open =
+                blockAt(S, x + 1, y, z) === 0 || blockAt(S, x - 1, y, z) === 0 ||
+                blockAt(S, x, y + 1, z) === 0 || blockAt(S, x, y - 1, z) === 0 ||
+                blockAt(S, x, y, z + 1) === 0 || blockAt(S, x, y, z - 1) === 0;
+              if (!open) continue;
+              if (!free(x, y, z)) continue;          // the stone a puzzle is measured on is not food
+              if (rnd() < amount) eat.push([x, y, z]);
+            }
+        for (const c of eat) setBlock(S, c[0], c[1], c[2], 0);
+      }
+      return;
+    }
+
+    if (op.op === 'rubble' || op.op === 'spikes') {
+      /* Lumps on the floor and teeth on the ceiling — but ONLY where there is headroom
+       * to spare, because a boulder in a one-block crawl is not atmosphere, it is a
+       * wall, and the flood-fill guard would (rightly) fail the level for it. */
+      const [x0, y0, z0] = op.from, [x1, y1, z1] = op.to;
+      const amount = op.amount == null ? 0.10 : op.amount;
+      const drop = op.op === 'spikes';
+      for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++)
+        for (let z = Math.min(z0, z1); z <= Math.max(z0, z1); z++)
+          for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) {
+            if (blockAt(S, x, y, z) !== 0) continue;
+            const anchored = drop ? isSolid(S, x, y + 1, z) : isSolid(S, x, y - 1, z);
+            if (!anchored) continue;
+            // three clear cells the other way, or he cannot get past it
+            const clear = drop
+              ? (!isSolid(S, x, y - 1, z) && !isSolid(S, x, y - 2, z) && !isSolid(S, x, y - 3, z))
+              : (!isSolid(S, x, y + 1, z) && !isSolid(S, x, y + 2, z) && !isSolid(S, x, y + 3, z));
+            if (!clear) continue;
+            if (!free(x, y, z)) continue;
+            if (rnd() < amount) setBlock(S, x, y, z, op.block == null ? 1 : op.block);
+          }
+      return;
+    }
+
+    if (op.op === 'cave') {
+      // a lumpy ball of nothing: a chamber that was never a room
+      const [cx, cy, cz] = op.at;
+      const r = op.r || 5;
+      const ry = op.ry == null ? r * 0.7 : op.ry;
+      const wob = op.wobble == null ? 0.35 : op.wobble;
+      const phase = [rnd() * 9, rnd() * 9, rnd() * 9];
+      for (let y = Math.floor(cy - ry - 2); y <= cy + ry + 2; y++)
+        for (let z = Math.floor(cz - r - 2); z <= cz + r + 2; z++)
+          for (let x = Math.floor(cx - r - 2); x <= cx + r + 2; x++) {
+            if (!inside(S, x, y, z)) continue;
+            if (blockAt(S, x, y, z) !== 1) continue;
+            const dx = (x - cx) / r, dy = (y - cy) / ry, dz = (z - cz) / r;
+            const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            // a cheap deterministic wobble, so the ball is not a ball
+            const n = Math.sin(x * 0.7 + phase[0]) * Math.sin(y * 0.9 + phase[1]) * Math.sin(z * 0.6 + phase[2]);
+            if (d < 1 + n * wob && free(x, y, z)) setBlock(S, x, y, z, 0);
+          }
+      return;
+    }
+
+    if (op.op === 'tunnel') {
+      // a wandering worm of nothing: a passage nobody surveyed
+      const a = op.from, b = op.to;
+      const r = op.r == null ? 1.6 : op.r;
+      const steps = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) * 1.5) + 1;
+      let wx = 0, wy = 0, wz = 0;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        wx += (rnd() - 0.5) * (op.wander == null ? 0.5 : op.wander);
+        wy += (rnd() - 0.5) * 0.25;
+        wz += (rnd() - 0.5) * (op.wander == null ? 0.5 : op.wander);
+        const cx = a[0] + (b[0] - a[0]) * t + wx;
+        const cy = a[1] + (b[1] - a[1]) * t + wy;
+        const cz = a[2] + (b[2] - a[2]) * t + wz;
+        const rr = r * (0.8 + rnd() * 0.5);
+        for (let y = Math.floor(cy - rr); y <= cy + rr; y++)
+          for (let z = Math.floor(cz - rr); z <= cz + rr; z++)
+            for (let x = Math.floor(cx - rr); x <= cx + rr; x++) {
+              if (!inside(S, x, y, z) || blockAt(S, x, y, z) !== 1) continue;
+              if (Math.hypot(x - cx, y - cy, z - cz) <= rr && free(x, y, z)) setBlock(S, x, y, z, 0);
+            }
+      }
+      return;
+    }
+
     if (op.op === 'fill' || op.op === 'room') {
       const [x0, y0, z0] = op.from, [x1, y1, z1] = op.to;
       const lo = [Math.min(x0, x1), Math.min(y0, y1), Math.min(z0, z1)];
@@ -97,53 +242,6 @@
    * so the wavefront you watch expand is the same number the puzzle logic asks.
    * ONE FIELD. Everything reads it.
    * ============================================================== */
-  function heapPush(h, dist, i) {
-    if (h.n >= h.dist.length) h.grow();
-    h.push(dist, i);
-    let c = h.n++;
-    while (c > 0) {
-      const p = (c - 1) >> 1;
-      if (h.dist[p] <= h.dist[c]) break;
-      h.swap(p, c); c = p;
-    }
-  }
-  function heapPop(h) {
-    const top = h.i[0];
-    h.n--;
-    if (h.n > 0) {
-      h.dist[0] = h.dist[h.n]; h.i[0] = h.i[h.n];
-      let p = 0;
-      for (;;) {
-        const l = p * 2 + 1, r = l + 1;
-        let m = p;
-        if (l < h.n && h.dist[l] < h.dist[m]) m = l;
-        if (r < h.n && h.dist[r] < h.dist[m]) m = r;
-        if (m === p) break;
-        h.swap(p, m); p = m;
-      }
-    }
-    return top;
-  }
-  function makeHeap(cap) {
-    const h = {
-      n: 0,
-      dist: new Float32Array(cap),
-      i: new Int32Array(cap),
-      push(d, i) { h.dist[h.n] = d; h.i[h.n] = i; },
-      grow() {
-        const nd = new Float32Array(h.dist.length * 2);
-        const ni = new Int32Array(h.i.length * 2);
-        nd.set(h.dist); ni.set(h.i);
-        h.dist = nd; h.i = ni;
-      },
-      swap(a, b) {
-        const td = h.dist[a]; h.dist[a] = h.dist[b]; h.dist[b] = td;
-        const ti = h.i[a]; h.i[a] = h.i[b]; h.i[b] = ti;
-      }
-    };
-    return h;
-  }
-
   /* Sound is SPHERICAL. A wavefront on a 6-neighbour grid is a diamond — the
    * cell straight ahead arrives on time and the cell diagonally ahead arrives
    * 41% late, which the eye reads instantly as a lie. So we cross the 26
@@ -177,22 +275,51 @@
     const x0 = Math.floor(wx), y0 = Math.floor(wy), z0 = Math.floor(wz);
     if (!inside(S, x0, y0, z0)) return 0;
 
+    /* A BUCKET QUEUE, not a heap.
+     *
+     * Dijkstra with non-negative weights visits cells in non-decreasing order of cost,
+     * and our costs are bounded (nothing beyond `reach`) — so we do not need a heap at
+     * all. Drop each cell into a bucket by its cost and walk the buckets forward: O(1)
+     * to push, O(1) to pop, and the cache likes it far better than sifting a binary
+     * heap of forty thousand entries.
+     *
+     * Bought back the frame that the caves cost. (The warren got rougher, the wavefront
+     * got more air to cross, and the pulse went over one frame — which is the sort of
+     * thing you only find out because there is a test that measures it.) */
     const stamp = ++S.stamp;
-    const h = S.heap;
-    h.n = 0;
+    const maxD = reach;
+    const BW = 0.25;                                    // bucket width
+    const nB = Math.ceil(maxD / BW) + 2;
+    const buckets = S.buckets;
+    if (buckets.length < nB) { while (buckets.length < nB) buckets.push([]); }
+    for (let bk = 0; bk < nB; bk++) buckets[bk].length = 0;
+
     const start = idx(S, x0, y0, z0);
     S.seen[start] = stamp;
     S.cost[start] = 0;
-    heapPush(h, 0, start);
+    buckets[0].push(start);
 
-    const maxD = reach;
     const solidCost = son.solidCost;
     let touched = 0;
 
-    while (h.n > 0) {
-      const i = heapPop(h);
-      const d = S.cost[i];
-      if (d > maxD) break;
+    for (let bk = 0; bk < nB; bk++) {
+      const bucket = buckets[bk];
+      for (let bi = 0; bi < bucket.length; bi++) {
+        const i = bucket[bi];
+        /* FIRST POP WINS, and that is not a heuristic — it is Dijkstra's guarantee: with
+         * non-negative weights, the first time a cell comes out of the queue its cost is
+         * final. Mark it done and never look at it again.
+         *
+         * I first wrote this guard as "recompute which bucket this cell belongs in, and
+         * skip it if it does not match" — which is WRONG, because S.cost is a Float32Array
+         * and the recomputed bucket can land one off. Cells were then silently discarded
+         * FOREVER, the wavefront quietly found longer paths, and a bell that should have
+         * reached the vault at 66% reached it at 17%. The suite caught it. Nothing else
+         * would have: the game still looked completely fine. */
+        if (S.done[i] === stamp) continue;
+        S.done[i] = stamp;
+        const d = S.cost[i];
+        if (d > maxD) continue;
 
       const x = i % S.w;
       const z = ((i / S.w) | 0) % S.d;
@@ -298,8 +425,10 @@
         if (S.seen[j] !== stamp || nd < S.cost[j]) {
           S.seen[j] = stamp;
           S.cost[j] = nd;
-          heapPush(h, nd, j);
+          const nb = Math.floor(nd / BW);
+          if (nb < nB) buckets[nb].push(j);
         }
+      }
       }
     }
     S.emits++;
@@ -1063,10 +1192,11 @@
       src: new Uint8Array(N),
       cost: new Float32Array(N),
       seen: new Int32Array(N),
+      done: new Int32Array(N),
       active: new Int32Array(N),
       nActive: 0,
       stamp: 0,
-      heap: makeHeap(N + 8),
+      buckets: [],
       dirty: true,
       solidOf: cfg.blocks.map((b) => b.solid),
       absorbOf: cfg.blocks.map((b) => b.absorb),

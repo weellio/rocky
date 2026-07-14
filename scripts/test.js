@@ -361,10 +361,10 @@ group('you always know the ground you stand on', () => {
    * his own feet did not, because nothing under his feet had made a sound in
    * seconds. Five legs on stone are five small sounds. He cannot help hearing
    * the ground he walks on, and now he doesn't have to. */
-  const S = mk();
+  const S = openWorld(30);
   const p = S.player;
-
-  steps(S, 12);                          // stand perfectly still, deep in the workshop
+  p.x = 15.5; p.y = 3; p.z = 15.5;
+  steps(S, 12);                          // stand perfectly still, on a flat floor
   const beneath = () => {
     const i = R.idx(S, Math.floor(p.x), Math.floor(p.y) - 1, Math.floor(p.z));
     return S.heat[i];
@@ -380,7 +380,8 @@ group('you always know the ground you stand on', () => {
   eq(S.pulses, 0, 'and he still has not spent a single pulse doing it');
 
   // a footfall is a WHISPER, not a pulse: it must not light the room
-  const F = mk();
+  const F = openWorld(30);
+  F.player.x = 15.5; F.player.y = 3; F.player.z = 20.5;
   steps(F, 4.0, { fwd: 1, yaw: 0 });
   const near1 = R.litCells(F, []).filter((c) => Math.hypot(c.x - F.player.x, c.y - F.player.y, c.z - F.player.z) < 8).length;
   const far1 = R.litCells(F, []).filter((c) => Math.hypot(c.x - F.player.x, c.y - F.player.y, c.z - F.player.z) > 16).length;
@@ -390,9 +391,9 @@ group('you always know the ground you stand on', () => {
   ok(CFG.sonar.footAmp < CFG.sonar.pulseAmp, 'and it is quieter than one');
 
   // and a LANDING is loud. drop into a dark room and you hear the whole floor.
-  const L = mk();
-  L.player.y = 7;
-  steps(L, 2.5);                          // fall
+  const L = openWorld(30);
+  L.player.x = 15.5; L.player.y = 10; L.player.z = 15.5;
+  steps(L, 3.5);                          // fall
   ok(L.player.onGround, 'he landed');
   ok(R.litCells(L, []).length > 40, 'and the crash lit the room he landed in');
   ok(CFG.sonar.landAmp > CFG.sonar.footAmp, 'a landing is louder than a footstep');
@@ -545,9 +546,12 @@ group('the camera never leaves the world', () => {
    * through the stone and shows you the warren inside-out. Nothing may come
    * between the camera and Rocky — and where the rock IS is the engine's
    * business, so the engine is what answers. */
-  const S = mk();
+  /* In a BOX, not in a cave. This is testing the camera, not the level — and The Cold
+   * is a worn-out warren now, with boulders on the floor and teeth on the ceiling, so a
+   * hard-coded spot in it is a hard-coded spot inside a rock. */
+  const S = openWorld(30);
   const p = S.player;
-  p.x = 17.6; p.y = 2.5; p.z = 33.5;            // right up against the workshop's west wall
+  p.x = 2.0; p.y = 3.0; p.z = 15.5;             // right up against the west wall
 
   let clipped = 0, tried = 0;
   for (let a = 0; a < 64; a++) {
@@ -571,7 +575,7 @@ group('the camera never leaves the world', () => {
   eq(clipped, 0, 'and not one of them puts stone between the camera and Rocky');
 
   // in the open, it must NOT crowd him — the fix cannot cost us the third-person view
-  p.x = 22.5; p.y = 4.5; p.z = 33.5;
+  p.x = 15.5; p.y = 8.0; p.z = 15.5;
   const openD = R.cameraFit(S, p.x, p.y + 0.3, p.z, 0, 0.16, 1, 5.4);
   ok(openD > 4.5, `in open air the camera still sits well back (${openD.toFixed(1)} of a wanted 5.4)`);
 
