@@ -379,6 +379,20 @@ canvas.addEventListener('click', () => {
   if (!locked) canvas.requestPointerLock(); else doPulse();
 });
 document.addEventListener('pointerlockchange', () => { locked = document.pointerLockElement === canvas; });
+
+/* GIVE THE MOUSE BACK.
+ * Pointer lock is how mouse-look works, and on Windows it is the same OS call that
+ * pins the cursor to a rectangle. If a tab holding the lock gets hidden, minimised,
+ * or shoved onto another virtual desktop, the browser does not always hand the
+ * cursor back — and the player finds their mouse trapped in a corner of a monitor by
+ * a game they are not even looking at. (Reported. Believed.)
+ *
+ * So we let go of it ourselves the moment we stop being the thing on screen. Nothing
+ * this game does is worth somebody's mouse. */
+const letGo = () => { if (document.pointerLockElement) document.exitPointerLock(); };
+addEventListener('blur', letGo);
+addEventListener('pagehide', letGo);
+document.addEventListener('visibilitychange', () => { if (document.hidden) letGo(); });
 addEventListener('mousemove', (e) => {
   if (!locked) return;
   yaw -= e.movementX * 0.0026;
@@ -390,6 +404,15 @@ function doPulse() {
   if (!r.ok) { flash('cooling…'); return; }
   ringFrom(S.player);
   flare = 1;                        // Rocky himself flashes: HE is the one shouting
+
+  /* AND THE ROOM ANSWERS IN ITS OWN VOICE.
+   * Wait for the near echoes to actually get home, then ask the ENGINE what came
+   * back — which materials, and how much of each — and play that as a chord. A
+   * basalt corridor hums low and dull. A gallery of xenonite and bells rings.
+   * A room with grit in it has a hole in the chord where the grit is. */
+  setTimeout(() => {
+    if (window.RockyAudio) window.RockyAudio.chord(Sim.chordOf(S));
+  }, 620);
 }
 
 /* F is "use the thing in front of you". A gauge is read. A forge is FED. */
@@ -568,6 +591,9 @@ let faceYaw = 0;
 const UP_AXIS = new THREE.Vector3(0, 1, 0);
 const qStep = new THREE.Quaternion();
 const qLift = new THREE.Quaternion();
+const qWall = new THREE.Quaternion();
+const qFace = new THREE.Quaternion();
+const wallUp = new THREE.Vector3();
 
 function resize() {
   const w = innerWidth, h = innerHeight;
@@ -686,13 +712,39 @@ function frame(now) {
     while (dyaw < -Math.PI) dyaw += Math.PI * 2;
     faceYaw += dyaw * Math.min(1, dt * 9);
   }
-  rocky.rotation.y = faceYaw + Math.PI / 2;
+  /* ON A WALL, THE WALL IS THE FLOOR.
+   * PLAYTEST: "when climbing walls can his body rotate to make it look like his legs
+   * are touching the wall — re-orient his 'down' to that of the wall?"  Yes: an
+   * Eridian on a cliff face has his feet ON the cliff. The ENGINE reports which way
+   * the rock is facing (p.wallN — that is a fact about the world, not a drawing
+   * decision); we turn his own UP to match it and lean him into the stone. He rolls
+   * onto the wall and rolls off it again, because a creature does not snap. */
+  const onWall = (p.onWall || p.climbing) && p.wallN && !p.onGround;
+  if (onWall) {
+    wallUp.set(p.wallN[0], p.wallN[1], p.wallN[2]);
+    qWall.setFromUnitVectors(UP_AXIS, wallUp);
+  } else {
+    qWall.identity();
+  }
+  rocky.quaternion.slerp(qWall, Math.min(1, dt * 7));
+
+  // his heading, applied inside whatever "up" he is currently living under
+  qFace.setFromAxisAngle(UP_AXIS, faceYaw + Math.PI / 2);
+  rocky.quaternion.multiply(qFace);
 
   // the body rides on the legs. Barely: he has five of them, so there is never a
   // moment when nothing is holding him up, and a five-legged creature does not bounce.
-  rocky.rotation.z = moving ? Math.sin(gaitT * 0.5) * 0.02 : 0;
-  rocky.rotation.x = p.climbing ? -0.34 : 0;
-  rocky.position.y = p.y - (moving ? Math.abs(Math.sin(gaitT * 1.25)) * 0.012 : 0);
+  if (!onWall) {
+    rocky.rotateZ(moving ? Math.sin(gaitT * 0.5) * 0.02 : 0);
+  }
+  rocky.position.y = p.y - (moving && !onWall ? Math.abs(Math.sin(gaitT * 1.25)) * 0.012 : 0);
+
+  /* the labels: they turn to face you, and fade in when you are close enough to read */
+  for (const sp of labels.children) {
+    const d = sp.position.distanceTo(camera.position);
+    sp.material.opacity = Math.max(0, Math.min(1, (16 - d) / 5));
+    sp.visible = sp.material.opacity > 0.02;
+  }
 
   // the satchel swells as the pockets fill: you can see how loaded he is
   if (pouches[0]) {
@@ -835,6 +887,60 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
+/* ---------- LABELS ----------
+ * PLAYTEST: "can we have text blocks above the materials, so we can correlate the
+ * word in the quest to a block?"  Yes, and it is the obvious thing: a name in a
+ * sentence and a lump of colour in a room are only the same thing if somebody says
+ * so. They come from the chapter's own data, and they fade in only when you are
+ * close enough to read them.
+ */
+const labels = new THREE.Group();
+scene.add(labels);
+
+function makeLabel(text, color) {
+  const pad = 12, fs = 30;
+  const c = document.createElement('canvas');
+  const g0 = c.getContext('2d');
+  g0.font = `${fs}px ui-monospace, monospace`;
+  const w = Math.ceil(g0.measureText(text).width) + pad * 2;
+  c.width = w; c.height = fs + pad * 2;
+  const g = c.getContext('2d');
+  g.fillStyle = 'rgba(4,10,18,0.82)';
+  g.fillRect(0, 0, c.width, c.height);
+  g.strokeStyle = color; g.lineWidth = 3;
+  g.strokeRect(1.5, 1.5, c.width - 3, c.height - 3);
+  g.font = `${fs}px ui-monospace, monospace`;
+  g.textBaseline = 'middle';
+  g.fillStyle = color;
+  g.fillText(text, pad, c.height / 2 + 1);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.minFilter = THREE.LinearFilter;
+  /* sizeAttenuation OFF: a label is a piece of WRITING, and writing does not get
+   * bigger when you walk toward it. Leave it on and the label two metres in front of
+   * you fills the entire screen while the one across the room is unreadable — which
+   * is exactly what happened. It stays the same size and simply fades in when you
+   * are near enough for it to be any of your business. */
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: tex, transparent: true, depthTest: false, depthWrite: false, fog: false,
+    sizeAttenuation: false
+  }));
+  sp.scale.set(c.width / c.height * 0.05, 0.05, 1);
+  sp.renderOrder = 10;
+  return sp;
+}
+
+function buildLabels() {
+  labels.clear();
+  const list = S.chapter.labels || [];
+  for (const L of list) {
+    const b = L.block != null ? CFG.blocks[L.block] : null;
+    const sp = makeLabel(L.text || (b ? b.name : '?'), L.color || (b ? b.color : '#8fe8ff'));
+    sp.position.set(L.at[0] + 0.5, L.at[1] + 1.35, L.at[2] + 0.5);
+    labels.add(sp);
+  }
+}
+
 /* ---------- open ---------- */
 function load(id) {
   S = Sim.create(CFG, { seed: 1, chapter: id });
@@ -848,6 +954,7 @@ function load(id) {
   el('glabel').style.display = S.gauges.length ? '' : 'none';
   el('gcount').style.display = S.gauges.length ? '' : 'none';
   refreshGauges();
+  buildLabels();
   const open = S.chapter.lines.filter((l) => l.at === 'start');
   if (open[0]) say(open[0].chord, open[0].text);
   if (open[1]) setTimeout(() => say(open[1].chord, open[1].text), 5600);

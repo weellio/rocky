@@ -108,8 +108,40 @@
     'source:gauge': function () { ping(1100, 0.06, 'sine', 0.025); }
   };
 
+  /* THE ROOM ANSWERS IN ITS OWN VOICE.
+   * PLAYTEST: "the sounds don't sound all that much different to me." They did not,
+   * because they were not sounds at all — every material had a colour and a texture
+   * and nothing to say. Now each one has a NOTE, and when your pulse comes home the
+   * room plays back a chord of whatever it hit, each material as loud as the share of
+   * the echo it accounts for.
+   *
+   * So a basalt corridor comes back a low, dull hum. A gallery of xenonite and bells
+   * comes back bright and ringing. A room with grit in it has a hole in the chord.
+   * You can hear the difference between two rooms with your eyes shut, which is the
+   * entire premise of this game and was, until now, a lie. */
+  function chord(mix) {
+    if (!ctx || !on || !mix.length) return;
+    const t = ctx.currentTime;
+    mix.slice(0, 5).forEach(function (m, i) {
+      if (!m.note || m.share < 0.03) return;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = m.note > 500 ? 'sine' : 'triangle';
+      o.frequency.setValueAtTime(m.note, t);
+      const vol = Math.min(0.16, 0.03 + m.share * 0.26);
+      const dur = 0.5 + m.share * 0.8;
+      const at = t + i * 0.035;
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(vol, at + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      o.connect(g); g.connect(master);
+      o.start(at); o.stop(at + dur + 0.02);
+    });
+  }
+
   root.RockyAudio = {
     start: start,
+    chord: chord,
     cue: function (id) { const f = CUES[id]; if (f) f(); },
     setOn: function (v) { on = !!v; },
     /* the test suite asks this: every cue the ENGINE can utter must have a voice */

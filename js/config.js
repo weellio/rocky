@@ -29,34 +29,34 @@
      * a noise through a wall if you bring the right block with you.
      * `carry` says whether Rocky can pick it up and put it somewhere better. */
     blocks: [
-      { id: 0,  key: 'air',      name: 'Air',            solid: false, color: '#000000', absorb: 0.0,  cost: 1.0,  tex: 'none',   carry: false },
-      { id: 1,  key: 'rock',     name: 'Erid basalt',    solid: true,  color: '#4a5a6e', absorb: 0.35, cost: 6.5,  tex: 'mottle', carry: false },
-      { id: 2,  key: 'plate',    name: 'Floor plate',    solid: true,  color: '#6f7f93', absorb: 0.22, cost: 6.0,  tex: 'plate',  carry: false },
-      { id: 3,  key: 'girder',   name: 'Girder',         solid: true,  color: '#c88a3a', absorb: 0.10, cost: 4.0,  tex: 'stripe', carry: true  },
-      { id: 4,  key: 'pipe',     name: 'Ammonia pipe',   solid: true,  color: '#3fd3c0', absorb: 0.08, cost: 3.0,  tex: 'rings',  carry: false },
-      { id: 5,  key: 'vent',     name: 'Heat vent',      solid: true,  color: '#ff6a2b', absorb: 0.05, cost: 3.0,  tex: 'grille', carry: false },
-      { id: 6,  key: 'gauge',    name: 'Heat gauge',     solid: true,  color: '#ffd23c', absorb: 0.04, cost: 3.0,  tex: 'dial',   carry: false },
-      { id: 7,  key: 'xenonite', name: 'Xenonite',       solid: true,  color: '#b46bff', absorb: 0.02, cost: 1.4,  tex: 'facet',  carry: true  },
-      { id: 8,  key: 'door',     name: 'Warren door',    solid: true,  color: '#8fe36b', absorb: 0.30, cost: 9.0,  tex: 'panel',  carry: false },
-      { id: 9,  key: 'sand',     name: 'Grit',           solid: true,  color: '#2f3743', absorb: 0.72, cost: 22.0, tex: 'grain',  carry: true  },
-      { id: 10, key: 'ear',      name: 'Resonator',      solid: true,  color: '#ff4fa3', absorb: 0.01, cost: 5.0,  tex: 'ear',    carry: false },
+      { id: 0,  key: 'air',      name: 'Air',            solid: false, color: '#000000', absorb: 0.0,  cost: 1.0,  tex: 'none',   carry: false , note: 0 },
+      { id: 1,  key: 'rock',     name: 'Erid basalt',    solid: true,  color: '#4a5a6e', absorb: 0.35, cost: 6.5,  tex: 'mottle', carry: false , note: 174 },
+      { id: 2,  key: 'plate',    name: 'Floor plate',    solid: true,  color: '#6f7f93', absorb: 0.22, cost: 6.0,  tex: 'plate',  carry: false , note: 233 },
+      { id: 3,  key: 'girder',   name: 'Girder',         solid: true,  color: '#c88a3a', absorb: 0.10, cost: 4.0,  tex: 'stripe', carry: true  , note: 311 },
+      { id: 4,  key: 'pipe',     name: 'Ammonia pipe',   solid: true,  color: '#3fd3c0', absorb: 0.08, cost: 3.0,  tex: 'rings',  carry: false , note: 415 },
+      { id: 5,  key: 'vent',     name: 'Heat vent',      solid: true,  color: '#ff6a2b', absorb: 0.05, cost: 3.0,  tex: 'grille', carry: false , note: 139 },
+      { id: 6,  key: 'gauge',    name: 'Heat gauge',     solid: true,  color: '#ffd23c', absorb: 0.04, cost: 3.0,  tex: 'dial',   carry: false , note: 523 },
+      { id: 7,  key: 'xenonite', name: 'Xenonite',       solid: true,  color: '#b46bff', absorb: 0.02, cost: 1.4,  tex: 'facet',  carry: true  , note: 659 },
+      { id: 8,  key: 'door',     name: 'Warren door',    solid: true,  color: '#8fe36b', absorb: 0.30, cost: 9.0,  tex: 'panel',  carry: false , note: 277 },
+      { id: 9,  key: 'sand',     name: 'Grit',           solid: true,  color: '#2f3743', absorb: 0.72, cost: 22.0, tex: 'grain',  carry: true  , note: 87 },
+      { id: 10, key: 'ear',      name: 'Resonator',      solid: true,  color: '#ff4fa3', absorb: 0.01, cost: 5.0,  tex: 'ear',    carry: false , note: 784 },
       /* A BELL is a resonator that SHOUTS BACK. Ring it and it answers, loudly,
        * from where it stands — so a chain of them carries a sound clean across a
        * warren far too big to shout across. It is also how you find a blockage:
        * fire the chain and watch where it stops. */
-      { id: 11, key: 'bell',     name: 'Relay bell',     solid: true,  color: '#7cf7ff', absorb: 0.01, cost: 5.0,  tex: 'bell',   carry: true  },
-      { id: 12, key: 'forge',    name: 'Xenonite forge', solid: true,  color: '#ff8a3c', absorb: 0.06, cost: 5.0,  tex: 'forge',  carry: false },
+      { id: 11, key: 'bell',     name: 'Relay bell',     solid: true,  color: '#7cf7ff', absorb: 0.01, cost: 5.0,  tex: 'bell',   carry: true  , note: 880 },
+      { id: 12, key: 'forge',    name: 'Xenonite forge', solid: true,  color: '#ff8a3c', absorb: 0.06, cost: 5.0,  tex: 'forge',  carry: false , note: 196 },
       /* CAST xenonite — poured in place, part of the structure, and it does not
        * come up again. A loose block of xenonite you can lift is a window you can
        * simply REMOVE and crawl through, which quietly unlocks every chamber in
        * the game that was supposed to be reachable only by sound. */
-      { id: 13, key: 'pane',     name: 'Cast xenonite',  solid: true,  color: '#c9a4ff', absorb: 0.02, cost: 1.4,  tex: 'pane',   carry: false },
+      { id: 13, key: 'pane',     name: 'Cast xenonite',  solid: true,  color: '#c9a4ff', absorb: 0.02, cost: 1.4,  tex: 'pane',   carry: false , note: 698 },
       /* ASTROPHAGE.
        * It eats light. Of course it eats sound — it eats everything that arrives,
        * which is what it is FOR. It returns nothing at all, so Rocky cannot hear
        * it: he can only hear the hole where it is. You find the thing that is
        * killing your star by looking for the part of the room that is not there. */
-      { id: 14, key: 'astro',    name: 'Astrophage',     solid: true,  color: '#120a1c', absorb: 0.995, cost: 26.0, tex: 'void', carry: true }
+      { id: 14, key: 'astro',    name: 'Astrophage',     solid: true,  color: '#120a1c', absorb: 0.995, cost: 26.0, tex: 'void', carry: true , note: 55 }
     ],
 
     /* And a pocketful of the stuff eats YOUR voice too. Every sample in the vest
@@ -280,6 +280,26 @@
           // a gauge to read, and the door out
           { op: 'set', at: [41, 3, 16], block: 6 },
           { op: 'fill', from: [42, 2, 15], to: [42, 4, 15], block: 8 }
+        ],
+        /* THE LABELS. A name in a sentence and a lump of colour in a room are only
+         * the same thing if somebody says so. They fade in when you are close enough
+         * to read them, and every one of them names the block it stands on. */
+        labels: [
+          { at: [16, 2, 11], block: 1 },
+          { at: [18, 2, 11], block: 2 },
+          { at: [20, 2, 11], block: 3 },
+          { at: [22, 2, 11], block: 4 },
+          { at: [24, 2, 11], block: 5 },
+          { at: [16, 2, 19], block: 6 },
+          { at: [18, 2, 19], block: 7, text: 'XENONITE — carries sound' },
+          { at: [20, 2, 19], block: 9, text: 'GRIT — deaf' },
+          { at: [22, 2, 19], block: 13 },
+          { at: [24, 2, 19], block: 11 },
+          { at: [32, 2, 12], block: 12, text: 'THE FORGE — F to feed it' },
+          { at: [40, 3, 22], block: 9, text: 'GRIT — plugging the channel' },
+          { at: [33, 3, 25], block: 10, text: 'RESONATOR — get a sound to it' },
+          { at: [41, 3, 16], block: 6, text: 'GAUGE — F to read it' },
+          { at: [42, 3, 15], block: 8 }
         ],
         sources: [
           { at: [24, 4, 10], kind: 'vent' },

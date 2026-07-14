@@ -1299,6 +1299,82 @@ group('THE WALKTHROUGH: nobody should ever stand in a room wondering what the ga
   eq(S.stepDoneN, S.chapter.walk.length, `all ${S.chapter.walk.length} steps done`);
 });
 
+group('every material has a NOTE, and the room answers in its own voice', () => {
+  /* PLAYTEST: "the sounds don't sound all that much different to me."
+   * They did not — because they were not sounds at all. Every material had a colour
+   * and a texture and nothing whatsoever to SAY. Now each one has a note, and when
+   * your pulse comes home the room plays back a CHORD of what it hit, each material
+   * as loud as the share of the echo it accounts for. A basalt corridor hums low and
+   * dull. A gallery of xenonite and bells rings. A room with grit in it has a hole in
+   * the chord where the grit is.
+   *
+   * The mix comes from the ENGINE (chordOf), because "how much of what I am hearing
+   * is xenonite" is a fact about the world, not a decision about audio. */
+  for (const b of CFG.blocks) {
+    if (!b.solid) continue;
+    ok(b.note > 20 && b.note < 2000, `${b.name} has a note (${b.note}Hz)`);
+  }
+  const notes = CFG.blocks.filter((b) => b.solid).map((b) => b.note);
+  eq(new Set(notes).size, notes.length, 'and no two materials sing the same note — you can tell them apart with your eyes shut');
+  ok(CFG.blocks[9].note < CFG.blocks[7].note, 'grit is the lowest thing on Erid and xenonite is one of the highest');
+  ok(CFG.blocks[14].note < CFG.blocks[9].note, 'and astrophage is lower still — a note you feel rather than hear');
+
+  const S = R.create(CFG, { seed: 1, chapter: 'workshop' });
+  eq(R.chordOf(S).length, 0, 'a silent room has nothing to say');
+
+  S.player.x = 20.5; S.player.y = 3; S.player.z = 15.5;
+  R.pulse(S);
+  steps(S, 1.6);
+  const mix = R.chordOf(S);
+  ok(mix.length >= 3, `the gallery answers with ${mix.length} different materials at once`);
+  const total = mix.reduce((a, m) => a + m.share, 0);
+  near(total, 1, 0.001, 'and the shares are shares: they add up to all of it');
+  ok(mix[0].share >= mix[mix.length - 1].share, 'sorted loudest first');
+  for (const m of mix) ok(CFG.blocks[m.block], 'every voice in the chord is a real material');
+
+  ok(/RockyAudio\.chord\(Sim\.chordOf\(S\)\)/.test(SRC.app), 'app.js plays what the ENGINE heard');
+  // (rec.note is a recipe's flavour text, not a pitch — the guard is about BLOCK notes)
+  ok(!/blocks\[[^\]]*\]\.note|\bb\.note\b/.test(SRC.app), 'and does not decide what any material SOUNDS like — that is the engine\'s to say');
+  ok(/chord: chord/.test(fs.readFileSync(path.join(ROOT, 'js/audio.js'), 'utf8')), 'audio.js can play a chord');
+});
+
+group('on a wall, the wall is the floor', () => {
+  /* PLAYTEST: "when climbing walls can his body rotate to make it look like his legs
+   * are touching the wall — re-orient his 'down' to that of the wall?"
+   * An Eridian on a cliff face has his feet ON the cliff. So the ENGINE reports which
+   * way the rock is facing — that is a fact about the world, not a drawing decision —
+   * and the renderer turns his own UP to match it. */
+  const S = openWorld(30);
+  const p = S.player;
+
+  p.x = 15.5; p.y = 15; p.z = 15.5;
+  steps(S, 4);
+  ok(p.onGround, 'on the floor');
+  eq(p.wallN, null, 'and no wall in reach: he has no other down');
+
+  // press him into the wall at x = 0
+  p.x = 2.0; p.y = 2.0; p.z = 15.5; p.vx = p.vy = p.vz = 0;
+  steps(S, 1.2, { fwd: 1, yaw: Math.PI / 2 });
+  ok(p.onWall, 'he is on the wall');
+  ok(p.wallN, 'and the engine knows which way it faces');
+  near(p.wallN[0], 1, 0.01, 'the normal points AWAY from the stone (+x, out of a wall on his west)');
+  eq(p.wallN[1], 0, 'and a wall is vertical');
+
+  // the far wall faces the other way
+  p.x = 27.5; p.y = 2.0; p.z = 15.5; p.vx = p.vy = p.vz = 0;
+  steps(S, 1.2, { fwd: 1, yaw: -Math.PI / 2 });
+  ok(p.wallN && p.wallN[0] < -0.9, 'the opposite wall faces the opposite way');
+
+  // step off, and he has an ordinary down again
+  p.x = 15.5; p.z = 15.5; p.y = 8;
+  steps(S, 3);
+  eq(p.wallN, null, 'off the wall, down is down again');
+
+  ok(/p\.wallN/.test(SRC.app), 'the renderer ASKS the engine which way the rock faces');
+  ok(/setFromUnitVectors\(UP_AXIS, wallUp\)/.test(SRC.app), 'and turns his own up to match it');
+  ok(/slerp/.test(SRC.app), 'rolling onto the wall, not snapping — a creature does not snap');
+});
+
 group('doors', () => {
   const S = deep();
   ok(R.isSolid(S, 20, 3, 17), 'a shut door is solid');
@@ -1536,6 +1612,15 @@ group('it has to be playable on a phone', () => {
    * A thumb is not a mouse. There is no pointer lock on a phone and there never
    * will be, so the mouse path has to be OPTIONAL rather than assumed — and the
    * verbs have to be buttons big enough to hit while the other thumb is steering. */
+  /* AND IT GIVES THE MOUSE BACK.
+   * Pointer lock is the same OS call that pins the cursor to a rectangle, and a tab
+   * that gets hidden while holding it can leave the player's mouse trapped in a
+   * corner of a monitor by a game they are not even looking at. (Reported. Believed.)
+   * Nothing this game does is worth somebody's mouse. */
+  ok(/addEventListener\('blur', letGo\)/.test(SRC.app), 'the game releases the mouse when it loses focus');
+  ok(/document\.hidden\) letGo\(\)/.test(SRC.app), 'and when it is hidden');
+  ok(/exitPointerLock/.test(SRC.app), 'it can let go at all');
+
   ok(/pointer: coarse/.test(SRC.app), 'the game knows when it is being played with a thumb');
   ok(/TOUCH\) return;/.test(SRC.app), 'and does not try to lock a pointer that does not exist');
   ok(/pointer: coarse/.test(SRC.html), '...on the gate either');

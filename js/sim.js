@@ -643,10 +643,25 @@
   /* Is there a wall within reach of one of his legs? This asks the world, not
    * the last frame's collision — an Eridian holding still on a cliff face is
    * still holding on. */
+  /* WHICH WALL, AND WHICH WAY IS IT FACING?
+   * Not just "is there one" — an Eridian on a cliff face has his feet ON the cliff,
+   * and to draw him that way the renderer has to know which way the rock is. So the
+   * engine reports the NORMAL: the direction from the wall out toward him. That is a
+   * fact about the world, so it comes from here.
+   */
+  const WALLS = [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]];
   function nearWall(S) {
     const p = S.player, hw = S.cfg.physics.halfWidth, e = 0.07;
-    return collides(S, p.x + hw + e, p.y, p.z) || collides(S, p.x - hw - e, p.y, p.z) ||
-           collides(S, p.x, p.y, p.z + hw + e) || collides(S, p.x, p.y, p.z - hw - e);
+    let nx = 0, nz = 0, found = false;
+    for (const [dx, , dz] of WALLS) {
+      if (!collides(S, p.x + dx * (hw + e), p.y, p.z + dz * (hw + e))) continue;
+      nx -= dx; nz -= dz;                 // the normal points AWAY from the stone
+      found = true;
+    }
+    if (!found) { p.wallN = null; return false; }
+    const len = Math.hypot(nx, nz);
+    p.wallN = len > 0.01 ? [nx / len, 0, nz / len] : null;   // wedged in a corner: no one normal
+    return true;
   }
 
   function stepPlayer(S, dt, input) {
@@ -923,7 +938,7 @@
       player: {
         x: chapter.spawn[0] + 0.5, y: chapter.spawn[1] + 0.5, z: chapter.spawn[2] + 0.5,
         vx: 0, vy: 0, vz: 0, yaw: 0, onGround: false, onWall: false, climbing: false,
-        dist: 0, strideAcc: 0
+        dist: 0, strideAcc: 0, wallN: null
       },
       pulseCd: 0,
       pulses: 0,
@@ -988,6 +1003,34 @@
     return S;
   }
 
+  /* WHAT DID THE ROOM SOUND LIKE?
+   * A mix of every material currently answering, and the share of the echo each one
+   * accounts for. The renderer plays this back as a CHORD — so a basalt corridor is
+   * a low dull hum, a gallery of xenonite and bells is bright and ringing, and a room
+   * with grit in it has a hole in the chord.
+   *
+   * It lives HERE, in the engine, because "how much of what I am hearing is xenonite"
+   * is a fact about the world, not a decision about audio. app.js asks. It does not
+   * work it out. */
+  function chordOf(S) {
+    const by = {};
+    let total = 0;
+    for (let k = 0; k < S.nActive; k++) {
+      const i = S.active[k];
+      const v = S.heat[i];
+      if (v <= 0) continue;
+      const b = S.vox[i];
+      by[b] = (by[b] || 0) + v;
+      total += v;
+    }
+    if (!total) return [];
+    return Object.keys(by).map((b) => ({
+      block: +b,
+      note: S.cfg.blocks[+b].note,
+      share: by[b] / total
+    })).sort((a, c) => c.share - a.share);
+  }
+
   /* what the renderer is allowed to ask for. it may ask. it may not invent. */
   function litCells(S, out) {
     out = out || [];
@@ -1015,7 +1058,7 @@
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
-    stepNow, stepDone, stepWalk,
+    stepNow, stepDone, stepWalk, chordOf,
     feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED
   };
