@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const CFG = require(path.join(ROOT, 'js/config.js'));
+const CFG = require(path.join(ROOT, 'js/chapters.js')); /* config.js + every act, stitched */
 global.ROCKY_CFG = CFG;
 const R = require(path.join(ROOT, 'js/sim.js'));
 const AUDIO = require(path.join(ROOT, 'js/audio.js')).RockyAudio;
@@ -20,6 +20,8 @@ const SRC = {
   sim: fs.readFileSync(path.join(ROOT, 'js/sim.js'), 'utf8'),
   app: fs.readFileSync(path.join(ROOT, 'js/app.js'), 'utf8'),
   cfg: fs.readFileSync(path.join(ROOT, 'js/config.js'), 'utf8'),
+  acts: ['act0_workshop', 'act1_erid', 'act2_ship', 'act3_voyage']
+    .map((a) => fs.readFileSync(path.join(ROOT, 'js/acts/' + a + '.js'), 'utf8')).join('\n'),
   html: fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'),
   sw: fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8')
 };
@@ -2211,8 +2213,44 @@ group('the renderer is a window, not a witness', () => {
   // config is DATA. if a function ever lands in it, the whole "config-driven" claim is a lie.
   ok(!/=>|function\s*\(/.test(SRC.cfg.split('return {')[1].split('\n};')[0] || ''),
     'config.js is pure data: no functions hiding in the tables');
+  /* ...and the rule follows the levels into the act files. Splitting the data across
+   * four files is only safe if the promise the data made comes with it. */
+  const actData = SRC.acts.split('return [').slice(1).map((s) => s.split('\n  ];')[0]).join('\n');
+  ok(!/=>|function\s*\(/.test(actData),
+    'and the act files are pure data too: a level is a room, not a program');
   const round = JSON.parse(JSON.stringify(CFG));
   eq(JSON.stringify(round), JSON.stringify(CFG), 'and the whole config survives a JSON round-trip');
+});
+
+group('the running order: a split that can lose a level is worse than the long file', () => {
+  /* The levels used to live in config.js — 1,346 lines, of which 1,015 were rooms.
+   * They are four act files now. The danger of that move is not that it breaks; it is
+   * that it QUIETLY DROPS A CHAPTER, the game still boots one room shorter, and nobody
+   * notices for a month. So the loader refuses to boot, and here is the proof. */
+  const ACTS = ['act0_workshop', 'act1_erid', 'act2_ship', 'act3_voyage']
+    .map((a) => require(path.join(ROOT, 'js/acts/' + a + '.js')));
+
+  const written = ACTS.flat().map((c) => c.id);
+  const played = CFG.chapters.map((c) => c.id);
+  eq(played.length, written.length, `every chapter written is a chapter played (${written.length})`);
+  for (const id of written) ok(played.includes(id), `${id} made it into the running order`);
+  eq(new Set(played).size, played.length, 'and no chapter is in the game twice');
+
+  /* The order is the ONE thing chapters.js is for, and the exit of chapter N drops you
+   * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
+   * waking up in the wrong room. */
+  eq(played.join(' '),
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers longdark',
+    'and they are in the order you play them in');
+
+  /* Every act file stands alone. That is the whole point: you can open the ship act,
+   * read five levels, and never scroll past a block table. */
+  ACTS.forEach((act, i) => ok(Array.isArray(act) && act.length > 0, `act ${i} stands on its own`));
+
+  /* And the loader tells you when you break it, instead of shrugging. */
+  const loader = fs.readFileSync(path.join(ROOT, 'js/chapters.js'), 'utf8');
+  ok(/throw new Error/.test(loader), 'a chapter that exists but is not listed is an ERROR, not a shrug');
+  ok(/ORDER\.indexOf/.test(loader), 'and the loader is the thing that checks it');
 });
 
 group('the model', () => {
@@ -2330,7 +2368,7 @@ group('it has to be playable on a phone', () => {
 });
 
 group('the cache knows what it holds', () => {
-  const files = ['js/config.js', 'js/sim.js', 'js/app.js', 'js/audio.js',
+  const files = ['js/config.js', 'js/chapters.js', 'js/sim.js', 'js/app.js', 'js/audio.js',
     'vendor/three.module.min.js', 'vendor/three.core.min.js', 'index.html'];
   for (const f of files) ok(SRC.sw.includes(f), `sw.js caches ${f} (or the game breaks offline)`);
   ok(/rocky-v(\d+)/.test(SRC.sw), 'sw.js has a versioned cache name');
