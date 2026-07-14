@@ -177,6 +177,7 @@ const BLOCK_COL = CFG.blocks.map((b) => new THREE.Color(b.color));
  * pockets are, and the pouch on his flank fills up as you fill them. */
 const rocky = new THREE.Group();
 const pouches = [];
+const limbs = [];
 {
   const strapMat = new THREE.MeshBasicMaterial({ color: 0x53381f, vertexColors: true, fog: false });
   const buckleMat = new THREE.MeshBasicMaterial({ color: 0xb9a05a, vertexColors: true, fog: false });
@@ -187,39 +188,73 @@ const pouches = [];
    * thousand cubes — his silhouette, in the only shape this game knows how to
    * draw. The mesh itself (821k triangles, 41MB) is not in the repository and is
    * never touched at runtime. */
+  /* ...and he comes APART. The bake hands us a carapace and five limbs, each with
+   * the shoulder it turns about, so he is not a statue being slid along the floor:
+   * he WALKS, on five legs, and there is never a moment when he is not touching the
+   * ground with something. */
   const M = window.ROCKY_MODEL;
   if (M) {
     const [MW, MH, MD] = M.dim;
-    const n = M.cells.length / 3;
     const span = Math.max(MW, MH, MD);
     const s = 1.15 / span;                      // he stands about a block and a bit wide
-    const mat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false });
-    const mesh = new THREE.InstancedMesh(bakedBox(0.96), mat, n);
-    const d = new THREE.Object3D();
-    const col = new THREE.Color();
-    // he sits ON the floor: find how low he goes and drop him onto it
     let minY = Infinity;
-    for (let i = 1; i < M.cells.length; i += 3) minY = Math.min(minY, M.cells[i]);
-    for (let i = 0, k = 0; i < M.cells.length; i += 3, k++) {
-      const x = M.cells[i], y = M.cells[i + 1], z = M.cells[i + 2];
-      d.position.set((x - MW / 2) * s, (y - minY) * s - 0.36, (z - MD / 2) * s);
-      d.scale.setScalar(s);
-      d.updateMatrix();
-      mesh.setMatrixAt(k, d.matrix);
-      // a carapace: burnt orange on top, dark underneath, mottled like something
-      // that grew rather than something that was made
-      const up = (y - minY) / MH;
-      const grain = ((x * 7 + y * 13 + z * 5) % 5) / 5;
-      col.setRGB(
-        0.34 + up * 0.34 + grain * 0.06,
-        0.14 + up * 0.15 + grain * 0.03,
-        0.09 + up * 0.08 + grain * 0.02
-      );
-      mesh.setColorAt(k, col);
-    }
-    mesh.frustumCulled = false;
-    rocky.add(mesh);
-    rocky.userData.model = mesh;
+    for (const p of M.parts) for (let i = 1; i < p.cells.length; i += 3) minY = Math.min(minY, p.cells[i]);
+
+    // grid coordinates -> his own body's frame
+    const put = (x, y, z) => new THREE.Vector3((x - MW / 2) * s, (y - minY) * s - 0.36, (z - MD / 2) * s);
+    const col = new THREE.Color();
+    const d = new THREE.Object3D();
+
+    M.parts.forEach((part, pi) => {
+      const n = part.cells.length / 3;
+      if (!n) return;
+      const mat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false });
+      const mesh = new THREE.InstancedMesh(bakedBox(0.96), mat, n);
+      mesh.frustumCulled = false;
+
+      // a limb hangs in a group pinned at its SHOULDER, so it turns about the joint
+      // and not about its own middle — swing it from the middle and it comes off him.
+      const g = new THREE.Group();
+      const pivot = part.pivot ? put(part.pivot[0], part.pivot[1], part.pivot[2]) : new THREE.Vector3();
+      g.position.copy(pivot);
+      rocky.add(g);
+      g.add(mesh);
+
+      const centroid = new THREE.Vector3();
+      for (let i = 0, k = 0; i < part.cells.length; i += 3, k++) {
+        const x = part.cells[i], y = part.cells[i + 1], z = part.cells[i + 2];
+        const v = put(x, y, z);
+        centroid.add(v);
+        d.position.copy(v).sub(pivot);
+        d.scale.setScalar(s);
+        d.updateMatrix();
+        mesh.setMatrixAt(k, d.matrix);
+        // a carapace: burnt orange on top, dark underneath, mottled like something
+        // that grew rather than something that was made
+        const up = (y - minY) / MH;
+        const grain = ((x * 7 + y * 13 + z * 5) % 5) / 5;
+        col.setRGB(
+          0.34 + up * 0.34 + grain * 0.06,
+          0.14 + up * 0.15 + grain * 0.03,
+          0.09 + up * 0.08 + grain * 0.02
+        );
+        mesh.setColorAt(k, col);
+      }
+      centroid.divideScalar(n);
+
+      if (part.pivot) {
+        /* WHICH WAY THIS LEG POINTS decides how it must move. Lifting it is a turn
+         * about the axis across it; stepping it forward is a turn about his spine.
+         * And its phase comes from where it sits AROUND him, so the five of them
+         * ripple instead of all stamping at once. */
+        const reach = centroid.clone().sub(pivot).normalize();
+        const lift = new THREE.Vector3().crossVectors(reach, new THREE.Vector3(0, 1, 0)).normalize();
+        const around = Math.atan2(pivot.z, pivot.x);
+        limbs.push({ g, reach, lift, phase: around * 1.6 });
+      } else {
+        rocky.userData.model = mesh;          // the carapace: it is what flares when he shouts
+      }
+    });
   }
 
   /* THE HARNESS. He wears a leather rig with a satchel on it and is never not
@@ -405,6 +440,10 @@ let fps = 0, frames = 0, fpsT = 0;
 let camDist = 5.4;
 let flare = 0;
 let drawn = 0;
+let gaitT = 0;
+const UP_AXIS = new THREE.Vector3(0, 1, 0);
+const qStep = new THREE.Quaternion();
+const qLift = new THREE.Quaternion();
 
 function resize() {
   const w = innerWidth, h = innerHeight;
@@ -483,17 +522,39 @@ function frame(now) {
   rocky.position.set(p.x, p.y, p.z);
   // the sculpt faces down its +x axis; the game's forward is -z. Turn him a quarter.
   rocky.rotation.y = p.yaw + Math.PI / 2;
-  /* HE WALKS. Five legs and no hurry: the body rocks and dips on the stride rather
-   * than bobbing like a biped, because there is never a moment when he is not
-   * touching the ground with something. */
-  const gait = p.dist * 3.2;
-  const moving = Math.hypot(p.vx, p.vz) > 0.4;
-  const sway = moving ? Math.sin(gait) * 0.05 : 0;
-  const dip = moving ? Math.abs(Math.sin(gait * 2)) * 0.035 : 0;
-  rocky.rotation.z = sway;
-  rocky.rotation.x = moving ? Math.sin(gait * 2 + 1.2) * 0.03 : 0;
+  /* HE WALKS.
+   * Five legs, and no hurry. They ripple rather than pair off, because five does not
+   * divide into two — and there is never a moment when he is not touching the ground
+   * with something, so his body rides ALONG rather than bobbing like a biped's.
+   *
+   * Each leg lifts by turning about the axis across it, and steps by turning about
+   * his spine. Both of those are rotations about the SHOULDER, which is why the bake
+   * went to the trouble of finding where the shoulders are. */
+  const speed = Math.hypot(p.vx, p.vz);
+  const moving = speed > 0.35 || p.climbing;
+  gaitT += (p.climbing ? speed * 0.7 + 1.2 : speed) * dt * 3.0;
+  const idle = S.t * 1.1;
+
+  for (let i = 0; i < limbs.length; i++) {
+    const L = limbs[i];
+    const ph = gaitT + L.phase;
+    // stepping: forward on the swing, back on the stance (and the stance is longer,
+    // because a foot on the ground is what he is standing on)
+    const stride = moving ? Math.sin(ph) * 0.30 : Math.sin(idle + L.phase) * 0.035;
+    // lifting: only while it is swinging. A leg does not rise while it is carrying him.
+    const up = moving ? Math.max(0, Math.sin(ph)) * 0.38 : 0;
+
+    qStep.setFromAxisAngle(UP_AXIS, stride);
+    qLift.setFromAxisAngle(L.lift, -up);
+    L.g.quaternion.copy(qStep).multiply(qLift);
+  }
+
+  // the body rides on top of the legs: a slow roll, and a dip on every other beat
+  const roll = moving ? Math.sin(gaitT * 0.5) * 0.045 : 0;
+  const dip = moving ? Math.abs(Math.sin(gaitT * 1.25)) * 0.03 : 0;
+  rocky.rotation.z = roll;
+  rocky.rotation.x = p.climbing ? -0.34 : (moving ? Math.sin(gaitT * 1.25 + 1.2) * 0.025 : 0);
   rocky.position.y = p.y - dip;
-  if (p.climbing) rocky.rotation.x = -0.35;      // nose into the wall as he goes up it
 
   // the satchel swells as the pockets fill: you can see how loaded he is
   const carried = S.belt.filter(Boolean).length;

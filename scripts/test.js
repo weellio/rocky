@@ -1219,18 +1219,44 @@ group('the model', () => {
    * a 41MB sibling) is not in this repository and is never touched at runtime —
    * what ships is his silhouette, in the only shape this game knows how to draw. */
   const M = require(path.join(ROOT, 'js/model.js'));
-  eq(M.cells.length % 3, 0, 'the cells are x,y,z triples');
-  const n = M.cells.length / 3;
-  ok(n > 800 && n < 6000, `${n} cubes — enough to be a creature, few enough to draw every frame`);
-
   const [W, H, D] = M.dim;
-  let minY = Infinity, maxY = -Infinity;
-  for (let i = 0; i < M.cells.length; i += 3) {
-    const x = M.cells[i], y = M.cells[i + 1], z = M.cells[i + 2];
-    ok(x >= 0 && x < W && y >= 0 && y < H && z >= 0 && z < D, 'every cube is inside the grid it was baked into');
-    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+
+  /* AND HE COMES APART, because a statue does not walk. */
+  ok(M.parts.length >= 5, `${M.parts.length} parts: a carapace and ${M.parts.length - 1} limbs`);
+  eq(M.parts[0].name, 'carapace', 'part zero is the body');
+  eq(M.parts[0].pivot, null, 'which turns about nothing — it IS him');
+
+  let total = 0, moving = 0, minY = Infinity, maxY = -Infinity;
+  for (const p of M.parts) {
+    eq(p.cells.length % 3, 0, `${p.name}: the cells are x,y,z triples`);
+    ok(p.cells.length > 0, `${p.name} is not empty`);
+    const n = p.cells.length / 3;
+    total += n;
+    if (p.pivot) moving += n;
+    for (let i = 0; i < p.cells.length; i += 3) {
+      const x = p.cells[i], y = p.cells[i + 1], z = p.cells[i + 2];
+      ok(x >= 0 && x < W && y >= 0 && y < H && z >= 0 && z < D, `${p.name}: every cube is inside the grid it was baked into`);
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+    }
+    if (p.pivot) {
+      eq(p.pivot.length, 3, `${p.name} has a shoulder`);
+      ok(p.pivot[0] >= 0 && p.pivot[0] <= W && p.pivot[1] >= 0 && p.pivot[1] <= H && p.pivot[2] >= 0 && p.pivot[2] <= D,
+        `${p.name}'s shoulder is somewhere on his body`);
+    }
   }
+  ok(total > 800 && total < 8000, `${total} cubes — enough to be a creature, few enough to draw every frame`);
+
+  /* ENOUGH OF HIM HAS TO MOVE. Cut the limbs off too greedily and he twitches his
+   * fingertips while his body slides across the floor, which is worse than a statue
+   * because a statue is at least honest about it. */
+  ok(moving > total * 0.25,
+    `${moving} of his ${total} cubes are limb — over a quarter of him MOVES when he walks (cut it finer and he twitches his fingertips while his body slides along the floor)`);
+
   ok(maxY - minY > H * 0.5, 'and he STANDS UP — a sculpt for a printer is Z-up and this game is Y-up, and straight out of the STL he lies flat on his back like something you have run over');
+
+  // the renderer must hang each limb at its shoulder, or it swings from its own middle and comes off him
+  ok(/g\.position\.copy\(pivot\)/.test(SRC.app), 'the renderer hangs each limb at its SHOULDER');
+  ok(/setFromAxisAngle/.test(SRC.app), 'and turns it about that joint');
 
   ok(fs.existsSync(path.join(ROOT, 'scripts/voxelize.js')), 'the bake is reproducible: scripts/voxelize.js');
   ok(!fs.existsSync(path.join(ROOT, 'assets/statue_unsupported.stl')) ||
