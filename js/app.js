@@ -136,6 +136,12 @@ function tile(kind) {
     g.lineWidth = 1;
     g.beginPath(); g.moveTo(3, 3); g.lineTo(N - 3, N - 3); g.stroke();
     g.beginPath(); g.moveTo(N - 3, 3); g.lineTo(3, N - 3); g.stroke();
+  } else if (kind === 'void') {                  // astrophage: it gives back nothing at all
+    g.fillStyle = ink(0.86); g.fillRect(0, 0, N, N);
+    for (let i = 0; i < 40; i++) {                // a few grains of something, and then nothing
+      g.fillStyle = lit(0.05 + rnd() * 0.10);
+      g.fillRect(rnd() * N | 0, rnd() * N | 0, 1, 1);
+    }
   } else if (kind === 'grain') {                 // grit: dense, dead, swallows the wave
     for (let i = 0; i < 700; i++) {
       g.fillStyle = ink(0.1 + rnd() * 0.5);
@@ -179,8 +185,6 @@ const rocky = new THREE.Group();
 const pouches = [];
 const limbs = [];
 {
-  const strapMat = new THREE.MeshBasicMaterial({ color: 0x53381f, vertexColors: true, fog: false });
-  const buckleMat = new THREE.MeshBasicMaterial({ color: 0xb9a05a, vertexColors: true, fog: false });
   const bagMat = new THREE.MeshBasicMaterial({ color: 0x6b4726, vertexColors: true, fog: false });
 
   /* HIS BODY IS A VOXEL MODEL, baked from a reference sculpt.
@@ -204,6 +208,20 @@ const limbs = [];
     const put = (x, y, z) => new THREE.Vector3((x - MW / 2) * s, (y - minY) * s - 0.36, (z - MD / 2) * s);
     const col = new THREE.Color();
     const d = new THREE.Object3D();
+
+    /* WHERE THE HARNESS GOES.
+     * It used to be a plank and a crate bolted onto him — hard-coded boxes that knew
+     * nothing about the shape they were sitting on, so they floated over his back
+     * like luggage on a roof rack. Measure the carapace, and put the leather ON it. */
+    const cara = M.parts[0];
+    const cmin = new THREE.Vector3(Infinity, Infinity, Infinity);
+    const cmax = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+    for (let i = 0; i < cara.cells.length; i += 3) {
+      const v = put(cara.cells[i], cara.cells[i + 1], cara.cells[i + 2]);
+      cmin.min(v); cmax.max(v);
+    }
+    const cmid = cmin.clone().add(cmax).multiplyScalar(0.5);
+    const csize = cmax.clone().sub(cmin);
 
     M.parts.forEach((part, pi) => {
       const n = part.cells.length / 3;
@@ -238,9 +256,33 @@ const limbs = [];
           0.14 + up * 0.15 + grain * 0.03,
           0.09 + up * 0.08 + grain * 0.02
         );
+
+        /* THE HARNESS IS PAINTED INTO HIM, not bolted on. A strap runs over the top
+         * of the carapace and a girth goes round it, and both are just cubes of his
+         * own body wearing a different colour — so they follow every lump of the
+         * shell instead of hovering above it. */
+        if (pi === 0) {
+          const overTheBack = Math.abs(v.z - cmid.z) < csize.z * 0.10 && v.y > cmid.y - csize.y * 0.15;
+          const roundTheGirth = Math.abs(v.x - cmid.x) < csize.x * 0.09 && v.y > cmid.y - csize.y * 0.35;
+          if (overTheBack || roundTheGirth) {
+            col.setRGB(0.30 + grain * 0.05, 0.19 + grain * 0.03, 0.10);          // worn leather
+            if (overTheBack && roundTheGirth) col.setRGB(0.72, 0.60, 0.28);      // the buckle, where they cross
+          }
+        }
         mesh.setColorAt(k, col);
       }
       centroid.divideScalar(n);
+
+      /* THE SATCHEL. One small pouch, slung against the shell where the straps meet
+       * — sized and placed from the carapace we just measured, so it sits ON him
+       * rather than hovering beside him. It swells as the pockets fill. */
+      if (pi === 0) {
+        const bag = new THREE.Mesh(bakedBox(1), bagMat);
+        bag.userData.base = Math.min(csize.x, csize.z) * 0.30;
+        bag.position.set(cmid.x + csize.x * 0.30, cmid.y - csize.y * 0.12, cmid.z - csize.z * 0.16);
+        rocky.add(bag);
+        pouches.push(bag);
+      }
 
       if (part.pivot) {
         /* HIS STANCE comes with the model: the sculpt is a statue with two arms in
@@ -264,27 +306,6 @@ const limbs = [];
     });
   }
 
-  /* THE HARNESS. He wears a leather rig with a satchel on it and is never not
-   * pulling something out of it — which is where the six pockets are. */
-  const strapA = new THREE.Mesh(bakedBox(1), strapMat);
-  strapA.scale.set(0.58, 0.08, 0.13);
-  strapA.position.set(0, 0.14, 0.02);
-  rocky.add(strapA);
-  const buckle = new THREE.Mesh(bakedBox(1), buckleMat);
-  buckle.scale.set(0.1, 0.06, 0.1);
-  buckle.position.set(-0.06, 0.19, 0.02);
-  rocky.add(buckle);
-
-  // the satchel on his flank. it swells as the pockets fill.
-  const bag = new THREE.Mesh(bakedBox(1), bagMat);
-  bag.scale.set(0.18, 0.2, 0.26);
-  bag.position.set(0.3, 0.02, -0.04);
-  rocky.add(bag);
-  pouches.push(bag);
-  const flap = new THREE.Mesh(bakedBox(1), strapMat);
-  flap.scale.set(0.2, 0.05, 0.28);
-  flap.position.set(0.3, 0.13, -0.04);
-  rocky.add(flap);
 }
 scene.add(rocky);
 
@@ -576,9 +597,12 @@ function frame(now) {
   rocky.position.y = p.y - (moving ? Math.abs(Math.sin(gaitT * 1.25)) * 0.012 : 0);
 
   // the satchel swells as the pockets fill: you can see how loaded he is
-  const carried = S.belt.filter(Boolean).length;
-  const fill = 0.62 + 0.38 * (carried / S.belt.length);
-  pouches[0].scale.set(0.18 * fill, 0.2 * fill, 0.26 * fill);
+  if (pouches[0]) {
+    const carried = S.belt.filter(Boolean).length;
+    const b = pouches[0].userData.base;
+    const fill = b * (0.6 + 0.4 * (carried / S.belt.length));
+    pouches[0].scale.set(fill * 0.8, fill, fill * 1.15);
+  }
   // he flashes when he shouts. you are never in any doubt about who made the sound.
   /* He flashes when he shouts: you are never in any doubt about who made the sound.
    * The carapace colours live in instanceColor, so the material's colour is a plain

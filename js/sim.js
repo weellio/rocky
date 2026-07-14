@@ -506,7 +506,7 @@
         if (b === 11) addBell(S, x, y, z);      // set a bell down and it starts listening
         cue(S, 'place');
         // it lands with a bang, and the bang is a sound like any other
-        emit(S, x + 0.5, y + 0.5, z + 0.5, S.cfg.sonar.placeAmp, 0, S.cfg.sonar.placeRange);
+        emit(S, x + 0.5, y + 0.5, z + 0.5, S.cfg.sonar.placeAmp, 0, S.cfg.sonar.placeRange);   // the block bangs on its own; the astrophage in his vest cannot muffle THAT
         return { ok: true, block: b, at: [x, y, z] };
       }
     }
@@ -541,12 +541,26 @@
     return want;
   }
 
+  /* HOW LOUD IS HE, RIGHT NOW?
+   * Astrophage eats everything that reaches it, and a pocketful of the stuff eats
+   * his own voice on the way out. Every sample in the vest muffles him. Carry three
+   * and he is down to a sixth of himself — whispering in the dark, holding the thing
+   * that is killing his star, and needing another way to be heard.
+   *
+   * ONE DOOR: everything he emits — his pulse, his feet, his landings — asks this,
+   * so there is no way to be quietly loud. */
+  function voice(S, amp) {
+    let n = 0;
+    for (const b of S.belt) if (b === 14) n++;
+    return amp * Math.pow(S.cfg.astro.muffle, n);
+  }
+
   /* Rocky pulses. Costs a cooldown, so you cannot simply hold the world lit. */
   function pulse(S) {
     if (S.pulseCd > 0) return { ok: false, why: 'cooling' };
     const p = S.player;
     S.pulseCd = S.cfg.sonar.cooldown;
-    const n = emit(S, p.x, p.y, p.z, S.cfg.sonar.pulseAmp, 0);
+    const n = emit(S, p.x, p.y, p.z, voice(S, S.cfg.sonar.pulseAmp), 0);
     S.pulses++;
     cue(S, 'pulse');
     return { ok: true, cells: n };
@@ -704,7 +718,7 @@
       if (p.vy < 0) {
         if (!p.onGround && p.vy < -8) {
           cue(S, 'land');
-          emit(S, p.x, p.y, p.z, son.landAmp, 0, son.landRange);  // a landing is a LOUD footfall
+          emit(S, p.x, p.y, p.z, voice(S, son.landAmp), 0, son.landRange);  // a landing is a LOUD footfall
         }
         p.onGround = true;
       }
@@ -723,7 +737,7 @@
     p.strideAcc += moved;
     if (p.strideAcc >= son.stride) {
       p.strideAcc = 0;
-      emit(S, p.x, p.y, p.z, son.footAmp, 0, son.footRange);
+      emit(S, p.x, p.y, p.z, voice(S, son.footAmp), 0, son.footRange);
       cue(S, 'step');
     }
   }
@@ -952,7 +966,7 @@
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
-    feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld,
+    feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED
   };
   return api;

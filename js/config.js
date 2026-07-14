@@ -50,8 +50,19 @@
        * come up again. A loose block of xenonite you can lift is a window you can
        * simply REMOVE and crawl through, which quietly unlocks every chamber in
        * the game that was supposed to be reachable only by sound. */
-      { id: 13, key: 'pane',     name: 'Cast xenonite',  solid: true,  color: '#c9a4ff', absorb: 0.02, cost: 1.4,  tex: 'pane',   carry: false }
+      { id: 13, key: 'pane',     name: 'Cast xenonite',  solid: true,  color: '#c9a4ff', absorb: 0.02, cost: 1.4,  tex: 'pane',   carry: false },
+      /* ASTROPHAGE.
+       * It eats light. Of course it eats sound — it eats everything that arrives,
+       * which is what it is FOR. It returns nothing at all, so Rocky cannot hear
+       * it: he can only hear the hole where it is. You find the thing that is
+       * killing your star by looking for the part of the room that is not there. */
+      { id: 14, key: 'astro',    name: 'Astrophage',     solid: true,  color: '#120a1c', absorb: 0.995, cost: 26.0, tex: 'void', carry: true }
     ],
+
+    /* And a pocketful of the stuff eats YOUR voice too. Every sample in the vest
+     * muffles him: carry three and he is down to a sixth of himself, whispering in
+     * the dark, and he has to find another way to be heard. */
+    astro: { muffle: 0.55 },
 
     /* ---------------------------------------------------------------
      * THE FORGE
@@ -605,6 +616,87 @@
           { at: 'craft', chord: '♪♪♩', text: 'Made.' },
           { at: 'all_doors', chord: '♩♩♪♪♩', text: 'A bell where there was no bell. This is the entire trade, and it is the whole reason we will reach that star: we make the thing that was not there.' }
         ]
+      },
+
+      /* ==============================================================
+       * ACT I.5 — THE PETROVA LINE
+       *
+       * The end of Act I, and the first time he touches the thing itself.
+       *
+       * Astrophage eats light. Of course it eats sound — it eats everything that
+       * arrives, which is what it is FOR. So it returns NOTHING, and Rocky cannot
+       * hear it. He can only hear the HOLE where it is: pulse into the deep bore
+       * and three patches of the wall simply do not come back.
+       *
+       * That is the whole hunt. You find the thing that is killing your star by
+       * looking for the part of the room that is not there.
+       *
+       * And then you have to carry it. A sample in the vest eats HIS voice too —
+       * one sample and he is muffled, three and he is down to a sixth of himself,
+       * whispering in the dark with the murderer of his sun in his pocket. The
+       * vault will not hear him. So he has to make something that CAN shout, and
+       * stand it where it will be heard — which is every verb the act has taught,
+       * used at once, in the dark, while going deaf.
+       * ============================================================== */
+      {
+        id: 'petrova',
+        name: 'The Petrova Line',
+        world: { w: 48, h: 18, d: 34 },
+        spawn: [8, 3, 17],
+        objective: 'Astrophage returns no echo. Find the three holes in the world, and carry them home.',
+        build: [
+          { op: 'fill', from: [0, 0, 0], to: [47, 17, 33], block: 1 },
+
+          // the bore: one long cavern, and everything in it answers except three patches
+          { op: 'room', from: [3, 1, 8], to: [34, 10, 27], floor: 2 },
+          { op: 'fill', from: [12, 1, 12], to: [16, 6, 16], block: 1 },     // pillars, to hide behind
+          { op: 'fill', from: [24, 1, 19], to: [28, 7, 23], block: 1 },
+          { op: 'fill', from: [20, 1, 9], to: [22, 5, 10], block: 3 },
+
+          /* THE THREE HOLES. Astrophage, sitting in the rock, giving nothing back. */
+          { op: 'set', at: [3, 5, 10], block: 14 },
+          { op: 'set', at: [28, 8, 25], block: 14 },
+          { op: 'set', at: [13, 2, 26], block: 14 },
+
+          // the forge, and enough grit and a girder to make ONE bell
+          { op: 'set', at: [5, 2, 20], block: 12 },
+          { op: 'set', at: [5, 2, 19], block: 5 },
+          { op: 'fill', from: [7, 2, 24], to: [9, 2, 24], block: 9 },
+          { op: 'fill', from: [7, 2, 26], to: [9, 2, 26], block: 9 },
+          { op: 'set', at: [10, 2, 12], block: 3 },
+
+          // THE VAULT, behind cast xenonite. He can never walk to it.
+          { op: 'room', from: [40, 1, 13], to: [45, 6, 21], floor: 2 },
+          { op: 'fill', from: [35, 3, 17], to: [39, 3, 17], block: 13 },
+          { op: 'fill', from: [35, 2, 17], to: [39, 2, 17], block: 8 }
+        ],
+        sources: [
+          { at: [5, 3, 19], kind: 'vent' }
+        ],
+        gauges: [],
+        forges: [{ at: [5, 2, 20] }],
+        /* MEASURED, and the threshold is where the level lives.
+         * NO PERSON IS LOUD ENOUGH FOR THIS DOOR. Empty-handed, from the closest he
+         * can stand, Rocky reaches it at 46% of the 55% it wants — so a bell is not
+         * a convenience, it is the only way in.
+         *
+         * And a bell has to be RUNG. With three samples of astrophage in his vest he
+         * is at 17% of his own voice and cannot even ring his own bell (it wants
+         * 30%). So either he rings it before he goes collecting... or he remembers
+         * that a DROPPED BLOCK bangs on its own, and the astrophage in his pocket
+         * cannot muffle a noise he did not make with his mouth. */
+        ears: [
+          { id: 'vaultear', at: [45, 3, 17], needs: 0.55, name: 'THE VAULT', opens: 'vault' }
+        ],
+        doors: [
+          { id: 'vault', cells: [[35, 2, 17], [36, 2, 17], [37, 2, 17], [38, 2, 17], [39, 2, 17]] }
+        ],
+        lines: [
+          { at: 'start', chord: '♪♩♪♪', text: 'Something in this bore does not answer me. I have pulsed at that wall a hundred times in my life and it has always come back. Today there is a piece of it that simply is not there.' },
+          { at: 'start', chord: '♩♩♪♩', text: 'It eats light. Of course it eats sound. It eats everything that arrives — that is what it is FOR. Question: how do you catch a thing you cannot hear.' },
+          { at: 'take', chord: '♪♩', text: 'Quiet. It is so quiet.' },
+          { at: 'all_doors', chord: '♩♪♩♪♩', text: 'Three samples of the thing that is killing my star, and I had to build a voice to be heard past it. Everything after today is engineering. The hard part was believing the gauges.' }
+        ]
       }
     ],
 
@@ -630,7 +722,8 @@
       'world:ear':    'how:ear',
       'world:bell':   'how:bell',
       'act:forge':    'how:forge',
-      'act:build':    'how:build'
+      'act:build':    'how:build',
+      'world:astro':  'how:astro'
     },
 
     how: [
@@ -651,6 +744,7 @@
       { marker: 'ear',      title: 'Resonators',  body: 'A resonator is a listener, and it opens a door when enough sound REACHES it. So a locked door is never a key hunt — it is a routing problem. Walk over and shout. Clear the grit. Bridge the gap with xenonite. Drop something heavy beside it. Open a vent and let a machine do it for you. Every one of those is a real answer.' },
       { marker: 'forge',    title: 'The forge',   body: 'Rocky is an engineer, and his people build everything out of xenonite. Stand at a forge with a block in your arms and press F to FEED it. He carries one block at a time — five arms and no pockets — so he does not carry a recipe about with him. He feeds the hopper, one trip at a time, and the forge remembers.' },
       { marker: 'build',    title: 'Making things', body: 'GRIT x3 makes XENONITE: the deafest stuff on Erid becomes the loudest, which nobody has ever explained to Rocky\'s satisfaction. XENONITE x2 and a GIRDER make a RELAY BELL — and a bell you build is a bell like any other. Stand it anywhere and it listens, and when it hears you it shouts back, further than you can shout yourself. That is the whole trade: you make the thing that was not there.' },
+      { marker: 'astro',    title: 'Astrophage',  body: 'It eats light. Of course it eats sound — it eats everything that arrives, which is what it is FOR. So it gives NOTHING back, and Rocky cannot hear it. He can only hear the HOLE where it is: pulse, and a patch of the wall simply does not come home. That is how you find the thing that is killing your star — you look for the part of the room that is not there. And a sample in your vest eats your own voice too: carry three and you are down to a sixth of yourself, whispering in the dark, and you will need to build something that can shout for you.' },
       { marker: 'bell',     title: 'Bells',       body: 'A BELL is a resonator that shouts back. Ring it and it answers, loudly, from where it stands — so a line of bells carries a sound clean across a warren far too big for one voice. And when a chain of them dies halfway, the bell it died at is telling you exactly where the blockage is. Do not go hunting for a switch. Fire the chain, and watch.' }
     ],
 

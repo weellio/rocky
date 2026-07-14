@@ -291,7 +291,7 @@ group('materials have voices', () => {
    * the repository). */
   for (const b of blocks) {
     ok(b.tex && b.tex !== 'none', b.name + ' has a grain');
-    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear|bell|forge|pane)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
+    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear|bell|forge|pane|void)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
   }
   ok(new Set(blocks.map((b) => b.tex)).size === blocks.length, 'no two materials share a grain either');
   for (const b of blocks) ok(new RegExp("'" + b.tex + "'").test(SRC.app), `app.js knows how to draw "${b.tex}"`);
@@ -1093,6 +1093,98 @@ group('THE FORGE: he makes the thing that was not there', () => {
   ok(gird >= 1, 'and at least one girder to hang the bell from');
 });
 
+group('THE PETROVA LINE: you cannot hear it, so listen for the hole', () => {
+  /* Act I.5, and the first time he touches the thing itself.
+   *
+   * Astrophage eats light. Of course it eats sound — it eats everything that
+   * ARRIVES, which is what it is for. So it returns nothing, and Rocky cannot hear
+   * it. He can only hear the HOLE where it is. You find the thing that is killing
+   * your star by looking for the part of the room that is not there.
+   */
+  const pet = () => R.create(CFG, { seed: 1, chapter: 'petrova' });
+  const steps4 = (S) => steps(S, 4);
+  const shout = (S, x, y, z) => { S.player.x = x; S.player.y = y; S.player.z = z; S.pulseCd = 0; R.pulse(S); steps4(S); };
+  const vaultEar = (S) => S.ears.find((e) => e.id === 'vaultear');
+
+  const A = CFG.blocks[14];
+  eq(A.key, 'astro', 'astrophage is a block in the world');
+  ok(A.absorb > 0.95, `it swallows ${(A.absorb * 100).toFixed(1)}% of everything that touches it`);
+
+  /* IT IS A HOLE IN THE WORLD. Pulse straight at it and nothing comes back — while
+   * the rock around it answers perfectly well. That difference IS the mechanic. */
+  const S = pet();
+  shout(S, 5, 5, 12);
+  eq(R.blockAt(S, 3, 5, 10), 14, 'a sample of it sits in the bore');
+  eq(R.blockAt(S, 2, 5, 12), 1, 'and the wall beside it is plain basalt');
+  const astro = S.heat[R.idx(S, 3, 5, 10)];
+  const rockBeside = S.heat[R.idx(S, 2, 5, 12)];
+  ok(rockBeside > 0.1, `the basalt beside it answers (${rockBeside.toFixed(2)})`);
+  ok(astro < rockBeside * 0.15, `and the astrophage does NOT (${astro.toFixed(3)}) — it is a HOLE IN THE WORLD, and that is the only way to find it`);
+
+  /* AND A POCKETFUL OF IT EATS HIS VOICE.
+   * ONE DOOR: everything he emits asks voice(), so there is no way to be quietly
+   * loud — not his pulse, not his feet, not the crash when he lands. */
+  const V = pet();
+  eq(R.voice(V, 1), 1, 'empty-handed he is himself');
+  V.belt = [14, 0, 0, 0, 0, 0];
+  near(R.voice(V, 1), CFG.astro.muffle, 0.001, 'one sample and he is muffled');
+  V.belt = [14, 14, 14, 0, 0, 0];
+  const three = R.voice(V, 1);
+  ok(three < 0.2, `three samples and he is down to ${(three * 100).toFixed(0)}% of himself — whispering in the dark with the murderer of his sun in his pocket`);
+  ok(three < CFG.bell.needs, `he cannot even RING HIS OWN BELL (it wants ${(CFG.bell.needs * 100).toFixed(0)}%)`);
+  const src = SRC.sim;
+  ok(/voice\(S, S\.cfg\.sonar\.pulseAmp\)/.test(src), 'his pulse is muffled');
+  ok(/voice\(S, son\.footAmp\)/.test(src), 'so are his feet');
+  ok(/voice\(S, son\.landAmp\)/.test(src), 'so is the crash when he lands');
+
+  /* NO PERSON IS LOUD ENOUGH FOR THIS DOOR.
+   * Empty-handed, from the closest he can stand, he reaches the vault at 46% of the
+   * 55% it wants. A bell is not a convenience here. It is the only way in. */
+  const P = pet();
+  for (const spot of [[33, 3, 17], [30, 3, 17], [20, 3, 17], [33, 8, 17], [10, 3, 17]]) shout(P, spot[0], spot[1], spot[2]);
+  ok(!vaultEar(P).open, `he shouts from everywhere he can stand and the vault hears ${(vaultEar(P).loudest * 100).toFixed(0)}% of the ${(vaultEar(P).needs * 100).toFixed(0)}% it wants`);
+  ok(R.isSolid(P, 37, 2, 17), 'the vault does not move');
+  eq(R.blockAt(P, 37, 3, 17), 13, 'and it is behind CAST xenonite — he can never walk to it, only be heard by it');
+
+  // BUILD A BELL, stand it at the far end, and shout at THAT.
+  const B = pet();
+  const feed = (b) => { R.setHeld(B, b); B.player.x = 6.2; B.player.y = 3; B.player.z = 20.5; return R.feedForge(B); };
+  feed(9); feed(9); feed(9); R.setHeld(B, 0);
+  feed(9); feed(9); feed(9); R.setHeld(B, 0);
+  feed(7); feed(7);
+  eq(feed(3).made, 'bell', 'six of grit and a girder make a bell — and there is exactly that much in the level');
+  B.player.x = 33.5; B.player.y = 3.5; B.player.z = 17.5; B.player.yaw = -Math.PI / 2;
+  ok(R.placeBlock(B).ok, 'he stands it at the far end of the bore');
+  shout(B, 32, 3, 17);
+  steps(B, 3);
+  ok(B.ears.some((e) => e.built && e.rang > 0), 'and shouts at it');
+  ok(vaultEar(B).open, `THE VAULT HEARS THE BELL (${(vaultEar(B).loudest * 100).toFixed(0)}%) where it never heard him`);
+  ok(!R.isSolid(B, 37, 2, 17), 'and it opens');
+
+  /* ...AND IF HIS ARMS ARE ALREADY FULL OF THE STUFF?
+   * He is at 17% and cannot ring anything with his mouth. But a DROPPED BLOCK bangs
+   * on its own, and the astrophage in his pocket cannot muffle a noise he did not
+   * make with his mouth. When your voice is gone, make the world make the noise. */
+  const C = pet();
+  C.ears.push(Object.assign({ open: false, lit: 0, loudest: 0, cd: 0, rang: 0, built: true },
+    { id: 'b', at: [34, 3, 17], name: 'HIS BELL', needs: CFG.bell.needs, rings: CFG.bell.rings, rearm: 2.5 }));
+  R.setBlock(C, 34, 3, 17, 11);
+  C.earAt[R.idx(C, 34, 3, 17)] = 'b';
+  R.rebuildSurface(C);
+
+  C.belt = [14, 14, 14, 9, 0, 0];                 // three samples, and a spare block of grit
+  C.slot = 0;
+  shout(C, 32, 3, 17);
+  ok(!C.ears.find((e) => e.id === 'b').rang, 'with three samples aboard he shouts at his own bell and it does not even hear him');
+
+  C.slot = 3;                                      // the grit
+  C.player.x = 32.5; C.player.y = 3.5; C.player.z = 17.5; C.player.yaw = -Math.PI / 2;
+  ok(R.placeBlock(C).ok, 'so he drops a block beside it instead');
+  steps(C, 3);
+  ok(C.ears.find((e) => e.id === 'b').rang > 0, 'THE BANG RINGS IT — the astrophage cannot muffle a noise he did not make with his mouth');
+  ok(vaultEar(C).open, 'and the vault opens while he is stone deaf and carrying all three samples');
+});
+
 group('doors', () => {
   const S = deep();
   ok(R.isSolid(S, 20, 3, 17), 'a shut door is solid');
@@ -1126,7 +1218,7 @@ group('curriculum', () => {
   const MECHANICS = ['move:walk', 'move:climb', 'move:jump', 'sense:pulse', 'sense:return',
     'sense:footfall', 'sense:decay', 'sense:through', 'sense:material', 'world:sources',
     'read:base6', 'act:gauge', 'act:carry', 'world:conduct', 'world:ear', 'world:bell',
-    'act:forge', 'act:build'];
+    'act:forge', 'act:build', 'world:astro'];
   for (const m of MECHANICS) ok(CFG.teach[m], 'mechanic "' + m + '" is on the curriculum');
   eq(Object.keys(CFG.teach).length, MECHANICS.length, 'and there are no orphan lessons teaching rules that do not exist');
 
