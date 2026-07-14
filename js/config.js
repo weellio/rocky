@@ -278,7 +278,7 @@
            * a solid girder — you could not stand in it, could not enter it, and the
            * only exit really was the way in. It is a LEDGE you climb onto and a crawl
            * two blocks tall that you can plainly walk into. */
-          { op: 'fill', from: [24, 5, 13], to: [26, 5, 17], block: 3 },   // the ledge
+          { op: 'fill', from: [25, 5, 14], to: [26, 5, 16], block: 3 },   // a step up to it
           { op: 'fill', from: [26, 6, 14], to: [29, 7, 16], block: 0 },   // and the crawl, walkable
 
           // ROOM 3 — GRIT IS DEAF. An ear behind a plug you must pull.
@@ -314,6 +314,7 @@
           { at: [20, 2, 19], block: 9, text: 'GRIT — deaf' },
           { at: [22, 2, 19], block: 13 },
           { at: [24, 2, 19], block: 11 },
+          { at: [26, 7, 15], block: 0, text: 'THE CRAWL — climb the step, go through', color: '#8fe36b' },
           { at: [32, 2, 12], block: 12, text: 'THE FORGE — F to feed it' },
           { at: [40, 3, 22], block: 9, text: 'GRIT — plugging the channel' },
           { at: [33, 3, 25], block: 10, text: 'RESONATOR — get a sound to it' },
@@ -352,7 +353,7 @@
             done: { pulse: 4 } },
           { say: 'The way out is up. Walk INTO a wall and hold forward — Eridians climb, and five legs never let go. (SHIFT walks you back down.)',
             done: { climbTo: 6.2 } },
-          { say: 'Good. Through the high crawl, into the last room.',
+          { say: 'The way on is a CRAWL, in the east wall, one step up from the ledge you just climbed — it is labelled. Go through it.',
             done: { reach: [34, 3, 15], within: 5 } },
           { say: 'That door is locked, and a locked door here is never a key hunt. It listens. Get a sound to the RESONATOR and it opens — but somebody has packed its channel with GRIT, and grit is deaf.',
             done: { pulse: 6 } },

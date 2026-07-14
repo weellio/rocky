@@ -937,7 +937,7 @@ function frame(now) {
 const labels = new THREE.Group();
 scene.add(labels);
 
-function makeLabel(text, color) {
+function makeLabel(text, color, seeThrough) {
   const pad = 12, fs = 30;
   const c = document.createElement('canvas');
   const g0 = c.getContext('2d');
@@ -961,8 +961,14 @@ function makeLabel(text, color) {
    * you fills the entire screen while the one across the room is unreadable — which
    * is exactly what happened. It stays the same size and simply fades in when you
    * are near enough for it to be any of your business. */
+  /* A LABEL IS OCCLUDED BY THE ROCK, like everything else.
+   * With depthTest off, the label on the forge in the NEXT ROOM hangs in the air in
+   * front of the wall you are looking at, and the player reads it as being right
+   * there. (It did. It is why the tutorial's geometry looked like nonsense.)
+   * The ONE exception is the way out, which is a beacon and is meant to be seen
+   * through the whole level — that is its entire job. */
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: tex, transparent: true, depthTest: false, depthWrite: false, fog: false,
+    map: tex, transparent: true, depthTest: !seeThrough, depthWrite: false, fog: false,
     sizeAttenuation: false
   }));
   sp.scale.set(c.width / c.height * 0.05, 0.05, 1);
@@ -974,7 +980,7 @@ function buildLabels() {
   labels.clear();
   // the way out labels itself, in every chapter, without anybody remembering to
   if (S.exit) {
-    const sp = makeLabel('THE WAY OUT', '#7cffb0');
+    const sp = makeLabel('THE WAY OUT', '#7cffb0', true);   // a beacon: seen through the rock
     sp.position.set(S.exit[0] + 0.5, S.exit[1] + 1.5, S.exit[2] + 0.5);
     sp.userData.exit = true;
     labels.add(sp);
@@ -982,7 +988,7 @@ function buildLabels() {
   const list = S.chapter.labels || [];
   for (const L of list) {
     const b = L.block != null ? CFG.blocks[L.block] : null;
-    const sp = makeLabel(L.text || (b ? b.name : '?'), L.color || (b ? b.color : '#8fe8ff'));
+    const sp = makeLabel(L.text || (b ? b.name : '?'), L.color || (b ? b.color : '#8fe8ff'), false);
     sp.position.set(L.at[0] + 0.5, L.at[1] + 1.35, L.at[2] + 0.5);
     labels.add(sp);
   }
