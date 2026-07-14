@@ -279,6 +279,12 @@
     #gate{padding-top:14px;gap:10px}
     #gate h1{font-size:clamp(22px,5vw,34px)}
   }
+  /* THE TRANSLATION GLITCH. An unsettled cell — the wavefront and the flicker-backs —
+     is painted cyan and split into red/blue ghosts, so a word visibly tears as it turns
+     from Rocky's dots into our letters. Settled letters inherit their normal colour. */
+  .glx{color:#8fe9ff;text-shadow:1.2px 0 rgba(255,59,107,.9),-1.2px 0 rgba(55,224,255,.9);}
+  .decoding{animation:decflick .09s steps(2) infinite;}
+  @keyframes decflick{50%{opacity:.86;filter:brightness(1.25)}}
 </style>
 </head>
 <body>
@@ -352,6 +358,7 @@
 <script src="js/acts/act3_voyage.js"></script>
 <script src="js/chapters.js"></script>
 <script src="js/model.js"></script>
+<script src="js/decode.js"></script>
 <script src="js/sim.js"></script>
 <script src="js/audio.js"></script>
 <script>

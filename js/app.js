@@ -351,6 +351,24 @@ function ringFrom(p) {
   ringMesh.visible = true;
 }
 
+/* THE AMBIENT SOUNDWAVE. The big ring belongs to a pulse you fire; this one belongs to
+ * nobody. Every several seconds a faint ring lifts off Rocky on its own, the way a room
+ * you are standing quietly in still has a sound to it. It is slower and dimmer than a
+ * pulse and lights nothing — it is a breath, not a question — but it keeps the truth of
+ * the game in front of you at all times: everything here is sound, even when you are still.
+ * It goes silent in vacuum, because out there a breath makes no ring at all. */
+const ambRing = new THREE.Mesh(
+  new THREE.RingGeometry(0.96, 1, 64),
+  new THREE.MeshBasicMaterial({
+    color: 0x8fe0d0, transparent: true, opacity: 0, side: THREE.DoubleSide,
+    fog: false, depthWrite: false, blending: THREE.AdditiveBlending
+  })
+);
+ambRing.rotation.x = -Math.PI / 2;
+ambRing.visible = false;
+scene.add(ambRing);
+let ambT0 = -99, ambX = 0, ambY = 0, ambZ = 0, ambNext = 3;
+
 /* ---------- input ---------- */
 const keys = Object.create(null);
 let yaw = 0, pitch = 0.22, locked = false;
@@ -573,20 +591,48 @@ function flash(msg) {
   void n.offsetWidth;
   n.classList.add('go');
 }
+/* THE TRANSLATION, on a piece of screen text.
+ *
+ * The word arrives in Braille and resolves to English in front of you. It is not a
+ * gimmick applied to everything — it is applied to the things that are NAMES and
+ * ANNOUNCEMENTS (a folk's line, a banner, the chapter's title), because those are the
+ * words that were never English to begin with. Body text of a menu is not translated;
+ * it was always ours.
+ *
+ * We build the frames with spans so the wavefront can wear the glitch colour, then hand
+ * the element its clean textContent at the end so the DOM is left honest (and a screen
+ * reader gets the real word, not a field of dots). */
+const Decode = window.ROCKY_DECODE;
+function decodeInto(node, text, dur) {
+  if (!Decode || !text) { node.textContent = text || ''; return; }
+  dur = dur || 620;
+  node.classList.add('decoding');
+  const start = performance.now();
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  function tick(now) {
+    const t = Math.min(1, (now - start) / dur);
+    node.innerHTML = Decode.frame(text, t)
+      .map((p) => (p.hot ? '<span class="glx">' + esc(p.c) + '</span>' : esc(p.c)))
+      .join('');
+    if (t < 1) requestAnimationFrame(tick);
+    else { node.classList.remove('decoding'); node.textContent = text; }
+  }
+  requestAnimationFrame(tick);
+}
 function say(chord, text) {
   el('chord').textContent = chord;
-  el('speech').textContent = text;
   const box = el('talk');
   box.classList.remove('go');
   void box.offsetWidth;
   box.classList.add('go');
+  decodeInto(el('speech'), text, 720);
 }
 function banner(text) {
   const b = el('banner');
-  b.textContent = text;
   b.classList.remove('go');
   void b.offsetWidth;
   b.classList.add('go');
+  decodeInto(b, text, 560);
 }
 function refreshGauges() {
   el('gcount').textContent = `${S.readCount} / ${S.gauges.length}`;
@@ -716,6 +762,24 @@ function frame(now) {
     }
   }
 
+  // the ambient ring: born of nothing, on its own clock, hushed in vacuum
+  const pl = S.player;
+  if (!ambRing.visible && S.t >= ambNext) {
+    const quiet = Sim.inVacuum && Sim.inVacuum(S);
+    if (!quiet) { ambT0 = S.t; ambX = pl.x; ambY = pl.y - 0.3; ambZ = pl.z; ambRing.visible = true; }
+    ambNext = S.t + 6 + Math.random() * 5;
+  }
+  if (ambRing.visible) {
+    const rad = (S.t - ambT0) * CFG.sonar.speed * 0.62;   // slower than a real pulse
+    const reach = CFG.sonar.maxDist * 0.7;
+    if (rad > reach) ambRing.visible = false;
+    else {
+      ambRing.position.set(ambX, ambY, ambZ);
+      ambRing.scale.setScalar(Math.max(0.001, rad));
+      ambRing.material.opacity = 0.16 * Math.pow(1 - rad / reach, 2);
+    }
+  }
+
   // Rocky, and the camera that trails him
   const p = S.player;
   rocky.position.set(p.x, p.y, p.z);
@@ -814,6 +878,21 @@ function frame(now) {
       sp.material.opacity = Math.max(0, Math.min(1, (16 - d) / 5));
     }
     sp.visible = sp.material.opacity > 0.02;
+
+    /* THE NAME TRANSLATES THE FIRST TIME YOU CAN READ IT. A label crossing into legible
+     * range boots the decode once; after that it is just its English self. THE WAY OUT is
+     * left alone — a beacon you need instantly is no place for a puzzle. */
+    if (sp.userData.paint && !sp.userData.exit) {
+      if (!sp.userData.done && sp.userData.decT0 < 0 && sp.material.opacity > 0.5) {
+        sp.userData.decT0 = now;
+      }
+      if (sp.userData.decT0 >= 0 && !sp.userData.done) {
+        const t = Math.min(1, (now - sp.userData.decT0) / 780);
+        sp.userData.paint(t);
+        sp.userData.tex.needsUpdate = true;
+        if (t >= 1) sp.userData.done = true;
+      }
+    }
   }
 
   // the satchel swells as the pockets fill: you can see how loaded he is
@@ -1032,19 +1111,39 @@ scene.add(labels);
 function makeLabel(text, color, seeThrough) {
   const pad = 12, fs = 30;
   const c = document.createElement('canvas');
-  const g0 = c.getContext('2d');
-  g0.font = `${fs}px ui-monospace, monospace`;
-  const w = Math.ceil(g0.measureText(text).width) + pad * 2;
-  c.width = w; c.height = fs + pad * 2;
   const g = c.getContext('2d');
-  g.fillStyle = 'rgba(4,10,18,0.82)';
-  g.fillRect(0, 0, c.width, c.height);
-  g.strokeStyle = color; g.lineWidth = 3;
-  g.strokeRect(1.5, 1.5, c.width - 3, c.height - 3);
   g.font = `${fs}px ui-monospace, monospace`;
-  g.textBaseline = 'middle';
-  g.fillStyle = color;
-  g.fillText(text, pad, c.height / 2 + 1);
+  /* Braille cells and Latin letters are both one monospace column wide, and the decode
+   * keeps one glyph per character — so the box sized to the English word also fits the
+   * word's alien spelling exactly, and nothing reflows as it resolves. */
+  const w = Math.ceil(g.measureText(text).width) + pad * 2;
+  c.width = w; c.height = fs + pad * 2;
+
+  /* Repaint the label at translation-progress t (0 native → 1 English). The wavefront and
+   * the flicker-backs are drawn in the glitch cyan; everything settled wears the label's
+   * own colour. Called every frame only while a label is mid-decode; otherwise never. */
+  function paint(t) {
+    g.clearRect(0, 0, c.width, c.height);
+    g.fillStyle = 'rgba(4,10,18,0.82)';
+    g.fillRect(0, 0, c.width, c.height);
+    g.strokeStyle = color; g.lineWidth = 3;
+    g.strokeRect(1.5, 1.5, c.width - 3, c.height - 3);
+    g.font = `${fs}px ui-monospace, monospace`;
+    g.textBaseline = 'middle';
+    let x = pad;
+    const y = c.height / 2 + 1;
+    if (t >= 1 || !Decode) {
+      g.fillStyle = color;
+      g.fillText(text, x, y);
+    } else {
+      for (const part of Decode.frame(text, t)) {
+        g.fillStyle = part.hot ? '#8fe9ff' : color;
+        g.fillText(part.c, x, y);
+        x += g.measureText(part.c).width;
+      }
+    }
+  }
+  paint(1);
 
   const tex = new THREE.CanvasTexture(c);
   tex.minFilter = THREE.LinearFilter;
@@ -1065,6 +1164,13 @@ function makeLabel(text, color, seeThrough) {
   }));
   sp.scale.set(c.width / c.height * 0.05, 0.05, 1);
   sp.renderOrder = 10;
+  /* Everything the fade loop needs to run the label's one-time translation the moment it
+   * first becomes readable: the repaint hook, the live texture, and a "have we done it
+   * yet" latch so a name decodes once — not every time you walk past it. */
+  sp.userData.paint = paint;
+  sp.userData.tex = tex;
+  sp.userData.decT0 = -1;    // -1 = not started; set to a timestamp while decoding
+  sp.userData.done = false;
   return sp;
 }
 
@@ -1097,9 +1203,9 @@ function load(id) {
   S.seedShown = seed;
   camDist = 5.4;
   const n = CFG.chapters.findIndex((c) => c.id === S.chapter.id) + 1;
-  el('chapname').textContent = chap && chap.reseed
+  decodeInto(el('chapname'), chap && chap.reseed
     ? `${S.chapter.name.split('  ')[0]} · warren #${seed}`
-    : `Chapter ${n} — ${S.chapter.name}`;
+    : `Chapter ${n} — ${S.chapter.name}`, 900);
   el('objective').textContent = S.chapter.objective;
   // the box holds the gauge count AND the resonator readout: hide it only when a
   // chapter has neither, or the ear goes invisible in every chapter without gauges.

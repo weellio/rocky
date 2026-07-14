@@ -2253,6 +2253,42 @@ group('the running order: a split that can lose a level is worse than the long f
   ok(/ORDER\.indexOf/.test(loader), 'and the loader is the thing that checks it');
 });
 
+group('the translation: gibberish resolves to the name Grace gave him', () => {
+  /* Nothing on screen was ever English. The decode is the moment a native word — Rocky's
+   * name, a planet's, a folk's — turns from Braille dots into the Latin we agreed to call
+   * it. The animation only reads right if its two ENDS are exact: it must BEGIN as pure
+   * alien script and END as the pure English word. Everything in between is allowed to
+   * flicker, which is why the engine takes an rng and the suite hands it a constant. */
+  const D = require(path.join(ROOT, 'js/decode.js'));
+  const off = () => 0.99;   // never shimmers, never glitches: only the wavefront moves
+
+  for (const w of ['ROCKY', 'VOTH', 'THE WAY OUT', 'Erid', 'Chapter 5 — The Astronomers']) {
+    eq(D.frameStr(w, 1, off), w, `"${w}" ends as itself, in English`);
+    eq(D.frameStr(w, 0, off), D.spell(w), `"${w}" begins in its own script`);
+    eq(D.spell(w).length, w.length, `and the alien spelling is the same length, so nothing reflows (${w})`);
+  }
+
+  /* The alien spelling is a real orthography, not noise: the same letter always wears the
+   * same cell, and DIFFERENT letters wear different cells (or "ROCKY" would translate from
+   * a row of identical dots and read as a redaction, not a language). */
+  eq(D.spell('AA'), D.glyphOf('A') + D.glyphOf('A'), 'a letter always wears the same cell');
+  eq(new Set('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(D.glyphOf)).size, 26,
+    'and all twenty-six letters wear DIFFERENT cells');
+
+  /* It is Braille, on purpose. Rocky reads by touch and counts in dots; his letters are
+   * dots too. Every non-space cell must live in the Braille block, or the theme is a lie. */
+  const cells = D.spell('THEQUICKBROWNFOX').split('');
+  ok(cells.every((c) => c.charCodeAt(0) >= 0x2801 && c.charCodeAt(0) <= 0x283f),
+    'every alien cell is a raised Braille pattern, the script of a creature that reads by touch');
+
+  // spaces are gaps between words in any language: they never become dots
+  eq(D.frameStr('A B', 0, off)[1], ' ', 'a space stays a space, so words still look like words');
+
+  // the wavefront is REAL: halfway through, the head has resolved and the tail has not
+  const mid = D.frame('ROCKY', 0.5, off).map((p) => p.c).join('');
+  ok(mid[0] === 'R' && mid[4] !== 'Y', 'halfway through, the front is English and the tail is still dots');
+});
+
 group('the model', () => {
   /* Rocky's body is baked from a reference sculpt: 258,432 triangles voxelised
    * ONCE, offline, into a couple of thousand cubes. The sculpt itself (13MB, and
