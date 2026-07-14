@@ -848,6 +848,7 @@
     if (d.forged) return S.forges.some((f) => f.made.indexOf(d.forged) >= 0);
     if (d.ear) { const e = S.ears.find((x) => x.id === d.ear); return !!(e && e.open); }
     if (d.rang) return S.ears.some((e) => e.built && e.rang > 0);
+    if (d.exit) return !!S.flags.done;
     return false;
   }
 
@@ -859,6 +860,61 @@
     S.stepDoneN++;
     cue(S, 'step:done');
     if (!stepNow(S)) { S.flags.walkthrough = true; cue(S, 'chapter'); }
+  }
+
+  /* ================================================================
+   * THE WAY OUT
+   *
+   * PLAYTEST: "there is not a clear exit to the room... each level needs a distinct
+   * similar finishing spot, or door, or portal." Fair — and in the tutorial it was
+   * worse than that: the only exit WAS the way in.
+   *
+   * So every chapter ends at the same thing, in the same way, and it is findable the
+   * way this game finds everything else: it HUMS. Solve the room and the arch starts
+   * calling, loud and far, so a pulse from anywhere will show you where to go. Before
+   * the room is solved it is a dead arch and it says nothing — you cannot leave a job
+   * half done by wandering into the door.
+   * ============================================================== */
+  function solved(S) {
+    const c = S.chapter;
+    if (c.walk && c.walk.length) {
+      /* A walkthrough whose LAST step is "walk into the way out" cannot wait for
+       * itself to finish before the way out will open. The room is solved when every
+       * step that is not about leaving is done. */
+      const leaveAt = c.walk.findIndex((w) => w.done && w.done.exit);
+      const need = leaveAt < 0 ? c.walk.length : leaveAt;
+      return S.stepI >= need;
+    }
+    if (S.doors.length) return S.doors.every((d) => d.open);
+    if (S.gauges.length) return S.gauges.every((g) => g.read);
+    return true;
+  }
+
+  function stepExit(S, dt) {
+    if (!S.exit) return;
+    const open = solved(S);
+    if (open && !S.flags.exitOpen) {
+      S.flags.exitOpen = true;
+      cue(S, 'exitopen');
+    }
+    if (!open) return;
+
+    // it calls, so you can always find it
+    S.exitCd -= dt;
+    if (S.exitCd <= 0) {
+      const k = S.cfg.sourceKinds.exit;
+      S.exitCd += k.period;
+      emit(S, S.exit[0] + 0.5, S.exit[1] + 0.5, S.exit[2] + 0.5, k.amp, 99, k.range);
+      cue(S, 'source:exit');
+    }
+
+    if (S.flags.done) return;
+    const p = S.player;
+    const d = Math.hypot(p.x - (S.exit[0] + 0.5), p.y - (S.exit[1] + 0.5), p.z - (S.exit[2] + 0.5));
+    if (d <= 1.6) {
+      S.flags.done = true;
+      cue(S, 'done');
+    }
   }
 
   /* ---------- cues: the engine says what happened; app.js decides how it sounds ---------- */
@@ -971,6 +1027,8 @@
       builtN: 0,
       stepI: 0,
       stepDoneN: 0,
+      exit: chapter.exit || null,
+      exitCd: 0,
       carryOf: cfg.blocks.map((b) => !!b.carry),
       flags: {},
       cueQ: [],
@@ -985,6 +1043,7 @@
     }
     for (const d of S.doors) for (const c of d.cells) setBlock(S, c[0], c[1], c[2], 8);
     for (const f of S.forges) setBlock(S, f.at[0], f.at[1], f.at[2], 12);
+    if (S.exit) setBlock(S, S.exit[0], S.exit[1], S.exit[2], 15);
     rebuildSurface(S);
     return S;
   }
@@ -1002,6 +1061,7 @@
       stepSources(S, FIXED);
       stepBells(S, FIXED);
       stepWalk(S);
+      stepExit(S, FIXED);
       updateHeat(S, FIXED);
     }
     return S;
@@ -1062,7 +1122,7 @@
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
-    stepNow, stepDone, stepWalk, chordOf,
+    stepNow, stepDone, stepWalk, chordOf, solved, stepExit,
     feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED
   };

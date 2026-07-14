@@ -56,7 +56,16 @@
        * which is what it is FOR. It returns nothing at all, so Rocky cannot hear
        * it: he can only hear the hole where it is. You find the thing that is
        * killing your star by looking for the part of the room that is not there. */
-      { id: 14, key: 'astro',    name: 'Astrophage',     solid: true,  color: '#120a1c', absorb: 0.995, cost: 26.0, tex: 'void', carry: true , note: 55 }
+      { id: 14, key: 'astro',    name: 'Astrophage',     solid: true,  color: '#120a1c', absorb: 0.995, cost: 26.0, tex: 'void', carry: true , note: 55 },
+      /* THE WAY OUT.
+       * PLAYTEST: "there is not a clear exit to the room... each level needs a
+       * distinct similar finishing spot, or door, or portal."  Fair, and it was worse
+       * than that: in the tutorial the only exit was the way in.
+       *
+       * So every chapter now ends at the same thing, and it is findable the way this
+       * game finds EVERYTHING: solve the room and the way out starts to HUM. Pulse
+       * anywhere and you will hear it calling. Walk into it and you are through. */
+      { id: 15, key: 'exit',     name: 'The way out',    solid: true,  color: '#7cffb0', absorb: 0.0,  cost: 2.0,  tex: 'arch',   carry: false, note: 988 }
     ],
 
     /* And a pocketful of the stuff eats YOUR voice too. Every sample in the vest
@@ -186,7 +195,11 @@
       vent:  { period: 2.2, amp: 0.85, range: 15, hue: '#ff6a2b' },
       gauge: { period: 3.1, amp: 0.55, range: 10, hue: '#ffd23c' },
       pipe:  { period: 4.0, amp: 0.40, range: 12, hue: '#3fd3c0' },
-      drip:  { period: 1.7, amp: 0.30, range: 8,  hue: '#8fd8ff' }
+      drip:  { period: 1.7, amp: 0.30, range: 8,  hue: '#8fd8ff' },
+      /* The way out calls, and it calls LOUD and far, because a player who cannot
+       * find the door is a player who is not playing. It only starts once the room is
+       * solved — before that it is a dead arch and it says nothing. */
+      exit:  { period: 1.4, amp: 1.0, range: 34, hue: '#7cffb0' }
     },
 
     audio: {
@@ -236,9 +249,10 @@
       {
         id: 'workshop',
         name: 'The Workshop  (start here)',
-        world: { w: 44, h: 16, d: 30 },
+        world: { w: 50, h: 16, d: 30 },
         spawn: [5, 3, 15],
         objective: 'Rocky teaches you how to hear.',
+        exit: [47, 3, 15],
         build: [
           { op: 'fill', from: [0, 0, 0], to: [43, 15, 29], block: 1 },
 
@@ -260,13 +274,15 @@
           { op: 'set', at: [24, 2, 19], block: 11 },                      // a bell
           { op: 'set', at: [24, 3, 10], block: 5 },                       // and a vent that hums
 
-          // the ledge you must CLIMB to leave the gallery
-          { op: 'fill', from: [25, 6, 12], to: [26, 6, 18], block: 3 },
-          { op: 'fill', from: [27, 6, 15], to: [29, 6, 15], block: 0 },   // the high crawl out
+          /* THE WAY OUT OF THE GALLERY. It used to be a 1x1 hole at head height above
+           * a solid girder — you could not stand in it, could not enter it, and the
+           * only exit really was the way in. It is a LEDGE you climb onto and a crawl
+           * two blocks tall that you can plainly walk into. */
+          { op: 'fill', from: [24, 5, 13], to: [26, 5, 17], block: 3 },   // the ledge
+          { op: 'fill', from: [26, 6, 14], to: [29, 7, 16], block: 0 },   // and the crawl, walkable
 
           // ROOM 3 — GRIT IS DEAF. An ear behind a plug you must pull.
           { op: 'room', from: [30, 1, 10], to: [41, 8, 20], floor: 2 },
-          { op: 'fill', from: [30, 6, 15], to: [30, 6, 15], block: 0 },
           { op: 'fill', from: [36, 3, 22], to: [40, 3, 22], block: 0 },   // the ear's channel
           { op: 'set', at: [40, 3, 22], block: 9 },                       // <- THE GRIT PLUG
           { op: 'fill', from: [33, 2, 24], to: [37, 5, 26], block: 0 },   // the ear's alcove
@@ -279,7 +295,10 @@
 
           // a gauge to read, and the door out
           { op: 'set', at: [41, 3, 16], block: 6 },
-          { op: 'fill', from: [42, 2, 15], to: [42, 4, 15], block: 8 }
+          { op: 'fill', from: [42, 2, 15], to: [42, 4, 15], block: 8 },
+
+          // and THE WAY OUT, behind it
+          { op: 'room', from: [43, 1, 12], to: [48, 6, 18], floor: 2 }
         ],
         /* THE LABELS. A name in a sentence and a lump of colour in a room are only
          * the same thing if somebody says so. They fade in when you are close enough
@@ -299,7 +318,8 @@
           { at: [40, 3, 22], block: 9, text: 'GRIT — plugging the channel' },
           { at: [33, 3, 25], block: 10, text: 'RESONATOR — get a sound to it' },
           { at: [41, 3, 16], block: 6, text: 'GAUGE — F to read it' },
-          { at: [42, 3, 15], block: 8 }
+          { at: [42, 3, 15], block: 8 },
+          { at: [47, 3, 15], block: 15 }
         ],
         sources: [
           { at: [24, 4, 10], kind: 'vent' },
@@ -347,7 +367,9 @@
           { say: 'Put the bell down anywhere (R) and shout at it. It will answer.',
             done: { rang: true } },
           { say: 'Last thing. There is a heat gauge on the east wall. Stand at it and press F to READ it. We count in sixes.',
-            done: { gauges: 1 } }
+            done: { gauges: 1 } },
+          { say: 'Listen. That hum is THE WAY OUT — every room in this warren has one, and it starts calling as soon as the room is done with you. Pulse if you cannot place it, and walk into it.',
+            done: { exit: true } }
         ],
         lines: [
           { at: 'start', chord: '♪♩♪♩', text: 'My workshop. I will show you how to hear. Do exactly as I say and you will be fine, and if you get lost, pulse — you can always pulse.' },
@@ -360,6 +382,7 @@
         name: 'The Cold',
         world: { w: 44, h: 22, d: 44 },
         spawn: [22, 6, 34],
+        exit: [34, 2, 10],
         objective: 'The warren is cooling. Find the heat gauges and read them.',
         /* The room is DATA. A level is a list of ops, not a hand-placed array. */
         build: [
@@ -385,7 +408,8 @@
           { op: 'set', at: [12, 3, 4], block: 5 },
           { op: 'set', at: [34, 6, 6], block: 7 },
           { op: 'set', at: [35, 6, 6], block: 7 },
-          { op: 'fill', from: [6, 4, 16], to: [10, 7, 16], block: 8 }
+          { op: 'fill', from: [6, 4, 16], to: [10, 7, 16], block: 8 },
+          { op: 'set', at: [34, 2, 10], block: 15 }
         ],
         sources: [
           { at: [24, 3, 39], kind: 'vent' },
@@ -434,6 +458,7 @@
         name: 'The Deep Hall',
         world: { w: 40, h: 20, d: 40 },
         spawn: [20, 3, 33],
+        exit: [20, 2, 8],
         objective: 'The council is behind that door. Get a sound to the resonator — any way you can.',
         build: [
           { op: 'fill', from: [0, 0, 0], to: [39, 19, 39], block: 1 },
@@ -469,7 +494,8 @@
           { op: 'set', at: [26, 5, 35], block: 7 },
 
           { op: 'fill', from: [16, 1, 36], to: [17, 3, 36], block: 4 },
-          { op: 'set', at: [24, 2, 37], block: 5 }
+          { op: 'set', at: [24, 2, 37], block: 5 },
+          { op: 'set', at: [20, 2, 8], block: 15 }
         ],
         sources: [
           { at: [24, 3, 37], kind: 'vent' },
@@ -526,6 +552,7 @@
         name: 'Consensus',
         world: { w: 44, h: 20, d: 44 },
         spawn: [22, 3, 36],
+        exit: [22, 2, 6],
         objective: 'Forty-one engineers, and not one of them can be ordered. All three must hear you.',
         build: [
           { op: 'fill', from: [0, 0, 0], to: [43, 19, 43], block: 1 },
@@ -570,7 +597,8 @@
           { op: 'set', at: [27, 5, 37], block: 7 },
           { op: 'set', at: [28, 5, 38], block: 7 },
           { op: 'set', at: [27, 5, 38], block: 7 },
-          { op: 'set', at: [16, 2, 39], block: 5 }
+          { op: 'set', at: [16, 2, 39], block: 5 },
+          { op: 'set', at: [22, 2, 6], block: 15 }
         ],
         sources: [
           { at: [16, 3, 39], kind: 'vent' }
@@ -617,6 +645,7 @@
         name: 'The Astronomers',
         world: { w: 60, h: 18, d: 30 },
         spawn: [5, 3, 15],
+        exit: [57, 2, 12],
         objective: 'The bore is warm and the instrument is a long way off. Ring the chain — and find where it dies.',
         /* A ROOM IS ONLY SEALED IF THE ROCK IS THICK.
          * Rock costs 6.5 a cell against a bell's 30-cell voice, so sound walks
@@ -654,7 +683,8 @@
           { op: 'fill', from: [52, 2, 12], to: [53, 2, 12], block: 8 },   // <- the door it opens
           { op: 'fill', from: [52, 3, 12], to: [53, 3, 12], block: 1 },
 
-          { op: 'set', at: [4, 2, 10], block: 5 }
+          { op: 'set', at: [4, 2, 10], block: 5 },
+          { op: 'set', at: [57, 2, 12], block: 15 }
         ],
         sources: [
           { at: [4, 3, 10], kind: 'vent' }
@@ -703,6 +733,7 @@
         name: 'The Forge',
         world: { w: 56, h: 16, d: 26 },
         spawn: [6, 3, 12],
+        exit: [30, 2, 12],
         objective: 'The gap is too wide for one voice and there is only one bell. Make another.',
         build: [
           { op: 'fill', from: [0, 0, 0], to: [55, 15, 25], block: 1 },
@@ -735,7 +766,8 @@
           { op: 'set', at: [11, 5, 9], block: 11 },
 
           // and the vault, sealed, at the far end
-          { op: 'fill', from: [49, 2, 11], to: [49, 4, 13], block: 8 }
+          { op: 'fill', from: [49, 2, 11], to: [49, 4, 13], block: 8 },
+          { op: 'set', at: [30, 2, 12], block: 15 }
         ],
         sources: [
           { at: [3, 3, 11], kind: 'vent' }
@@ -791,6 +823,7 @@
         name: 'The Petrova Line',
         world: { w: 48, h: 18, d: 34 },
         spawn: [8, 3, 17],
+        exit: [44, 2, 17],
         objective: 'Astrophage returns no echo. Find the three holes in the world, and carry them home.',
         build: [
           { op: 'fill', from: [0, 0, 0], to: [47, 17, 33], block: 1 },
@@ -816,7 +849,8 @@
           // THE VAULT, behind cast xenonite. He can never walk to it.
           { op: 'room', from: [40, 1, 13], to: [45, 6, 21], floor: 2 },
           { op: 'fill', from: [35, 3, 17], to: [39, 3, 17], block: 13 },
-          { op: 'fill', from: [35, 2, 17], to: [39, 2, 17], block: 8 }
+          { op: 'fill', from: [35, 2, 17], to: [39, 2, 17], block: 8 },
+          { op: 'set', at: [44, 2, 17], block: 15 }
         ],
         sources: [
           { at: [5, 3, 19], kind: 'vent' }

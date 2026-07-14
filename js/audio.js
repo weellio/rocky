@@ -102,6 +102,21 @@
         setTimeout(function () { ping(f, 0.5, 'sine', 0.16); }, i * 150);
       });
     },
+    /* the way out, calling: a soft open fifth, and it does not stop */
+    'source:exit': function () {
+      ping(659, 0.55, 'sine', 0.05);
+      ping(988, 0.45, 'sine', 0.035);
+    },
+    exitopen: function () {
+      [659, 988, 1319].forEach(function (f, i) {
+        setTimeout(function () { ping(f, 0.7, 'sine', 0.16); }, i * 130);
+      });
+    },
+    done: function () {
+      [523, 659, 784, 1046, 1319].forEach(function (f, i) {
+        setTimeout(function () { ping(f, 0.8, 'sine', 0.18); }, i * 120);
+      });
+    },
     'source:vent': function () { noise(0.32, 420, 0.05); },
     'source:pipe': function () { ping(320, 0.16, 'sine', 0.035); },
     'source:drip': function () { ping(1400, 0.05, 'sine', 0.03, 900); },

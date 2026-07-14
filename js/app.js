@@ -136,6 +136,15 @@ function tile(kind) {
     g.lineWidth = 1;
     g.beginPath(); g.moveTo(3, 3); g.lineTo(N - 3, N - 3); g.stroke();
     g.beginPath(); g.moveTo(N - 3, 3); g.lineTo(3, N - 3); g.stroke();
+  } else if (kind === 'arch') {                  // the way out
+    g.fillStyle = ink(0.18); g.fillRect(0, 0, N, N);
+    g.strokeStyle = lit(0.75); g.lineWidth = 3;
+    g.beginPath(); g.arc(N / 2, N - 4, 11, Math.PI, 0); g.stroke();
+    g.beginPath(); g.moveTo(N / 2 - 11, N - 4); g.lineTo(N / 2 - 11, N);
+    g.moveTo(N / 2 + 11, N - 4); g.lineTo(N / 2 + 11, N); g.stroke();
+    g.lineWidth = 2;
+    g.beginPath(); g.moveTo(N / 2, 6); g.lineTo(N / 2, 17);        // an arrow, going through
+    g.moveTo(N / 2 - 4, 12); g.lineTo(N / 2, 17); g.lineTo(N / 2 + 4, 12); g.stroke();
   } else if (kind === 'void') {                  // astrophage: it gives back nothing at all
     g.fillStyle = ink(0.86); g.fillRect(0, 0, N, N);
     for (let i = 0; i < 40; i++) {                // a few grains of something, and then nothing
@@ -625,6 +634,16 @@ function frame(now) {
 
   for (const id of Sim.takeCues(S)) {
     if (window.RockyAudio) window.RockyAudio.cue(id);
+    if (id === 'exitopen') {
+      banner('THE WAY OUT IS CALLING');
+      flash('pulse — you will hear it');
+    }
+    if (id === 'done') {
+      const n = CFG.chapters.findIndex((c) => c.id === S.chapter.id);
+      const next = CFG.chapters[n + 1];
+      banner(next ? 'CHAPTER COMPLETE' : 'THAT IS ALL OF IT — SO FAR');
+      if (next) setTimeout(() => load(next.id), 3400);
+    }
     if (id === 'ear') {
       const line = S.chapter.lines.find((l) => l.at === 'ear');
       if (line) say(line.chord, line.text);
@@ -753,10 +772,17 @@ function frame(now) {
   rocky.quaternion.slerp(qTarget, Math.min(1, dt * (onWall ? 9 : 12)));
   rocky.position.y = p.y - (moving && !onWall ? Math.abs(Math.sin(gaitT * 1.25)) * 0.012 : 0);
 
-  /* the labels: they turn to face you, and fade in when you are close enough to read */
+  /* the labels: they fade in when you are close enough for them to be your business.
+   * THE WAY OUT is the exception — once the room is solved it is visible from right
+   * across the level, because a player who cannot find the door is not playing. */
+  const wayOpen = !!S.flags.exitOpen;
   for (const sp of labels.children) {
     const d = sp.position.distanceTo(camera.position);
-    sp.material.opacity = Math.max(0, Math.min(1, (16 - d) / 5));
+    if (sp.userData.exit) {
+      sp.material.opacity = wayOpen ? Math.max(0.35, Math.min(1, (60 - d) / 20)) : 0;
+    } else {
+      sp.material.opacity = Math.max(0, Math.min(1, (16 - d) / 5));
+    }
     sp.visible = sp.material.opacity > 0.02;
   }
 
@@ -946,6 +972,13 @@ function makeLabel(text, color) {
 
 function buildLabels() {
   labels.clear();
+  // the way out labels itself, in every chapter, without anybody remembering to
+  if (S.exit) {
+    const sp = makeLabel('THE WAY OUT', '#7cffb0');
+    sp.position.set(S.exit[0] + 0.5, S.exit[1] + 1.5, S.exit[2] + 0.5);
+    sp.userData.exit = true;
+    labels.add(sp);
+  }
   const list = S.chapter.labels || [];
   for (const L of list) {
     const b = L.block != null ? CFG.blocks[L.block] : null;

@@ -293,7 +293,7 @@ group('materials have voices', () => {
    * the repository). */
   for (const b of blocks) {
     ok(b.tex && b.tex !== 'none', b.name + ' has a grain');
-    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear|bell|forge|pane|void)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
+    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear|bell|forge|pane|void|arch)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
   }
   ok(new Set(blocks.map((b) => b.tex)).size === blocks.length, 'no two materials share a grain either');
   for (const b of blocks) ok(new RegExp("'" + b.tex + "'").test(SRC.app), `app.js knows how to draw "${b.tex}"`);
@@ -429,6 +429,15 @@ group('the warren breathes', () => {
   for (const k of Object.keys(CFG.sourceKinds)) {
     const kind = CFG.sourceKinds[k];
     ok(kind.range > 0, `source "${k}" has a range`);
+    if (k === 'exit') {
+      /* THE ONE EXCEPTION, and it is deliberate. The way out is not a machine
+       * muttering to itself in a corner — it is a BEACON, and it is allowed to be
+       * heard across the whole level, because a player who cannot find the door is a
+       * player who is not playing. */
+      ok(kind.range >= CFG.sonar.maxDist,
+        `the WAY OUT carries ${kind.range} cells — further than Rocky can shout, because it is a beacon and not a machine`);
+      continue;
+    }
     ok(kind.range < CFG.sonar.maxDist * 0.5,
       `source "${k}" carries ${kind.range} cells — far less than Rocky's own ${CFG.sonar.maxDist}-cell pulse`);
   }
@@ -1211,7 +1220,7 @@ group('THE WALKTHROUGH: nobody should ever stand in a room wondering what the ga
   }
 
   // every kind of goal a step can name is one the engine can actually check
-  const KINDS = ['pulse', 'move', 'climbTo', 'reach', 'lift', 'gone', 'placed', 'gauges', 'forged', 'ear', 'rang'];
+  const KINDS = ['pulse', 'move', 'climbTo', 'reach', 'lift', 'gone', 'placed', 'gauges', 'forged', 'ear', 'rang', 'exit'];
   for (const w of W.chapter.walk)
     for (const k of Object.keys(w.done))
       ok(KINDS.includes(k) || k === 'within' || k === 'block', `a step asks for "${k}", and the engine knows how to check it`);
@@ -1293,6 +1302,22 @@ group('THE WALKTHROUGH: nobody should ever stand in a room wondering what the ga
   const rd = R.readGauge(S);
   ok(rd.ok, `he reads the gauge: ${rd.six} in base six, and it should be ${rd.sixNominal}`);
   tick(0.2);
+  ok(at() >= 14, 'step 14 done: he can read a gauge');
+
+  /* 15. AND THE WAY OUT.
+   * PLAYTEST: "there is not a clear exit to the room... each level needs a distinct
+   * similar finishing spot." Every chapter ends at the same arch, and it is findable
+   * the way this game finds everything: once the room is solved, IT HUMS. */
+  ok(R.solved(S), 'the room is solved');
+  tick(0.5);
+  ok(S.flags.exitOpen, 'and THE WAY OUT starts calling');
+  const beforeCalls = S.emits;
+  tick(2.0);
+  ok(S.emits > beforeCalls, 'it keeps calling, so a pulse from anywhere will show you where it is');
+
+  goto(S.exit[0] + 1.2, S.exit[1] + 0.5, S.exit[2] + 0.5);
+  tick(0.3);
+  ok(S.flags.done, 'he walks into it, and he is through');
 
   eq(R.stepNow(S), null, 'THE WALKTHROUGH IS FINISHED — every step, played to the end');
   ok(S.flags.walkthrough, 'and the engine knows it');
@@ -1399,6 +1424,68 @@ group('on a wall, the wall is the floor', () => {
   ok(q.y > 4, 'he climbs it');
   ok(!q.onGround, 'and he is NOT still standing on the floor, four blocks below him');
   ok(q.onWall && q.wallN, 'he is on the wall, and the engine knows which way it faces');
+});
+
+group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
+  /* PLAYTEST: "there is not a clear exit to the room. the tutorial says 7/14 good,
+   * through the high crawl into the last room — the only exit was the way in. each
+   * level needs a distinct similar finishing spot, or door, or portal."
+   *
+   * Fair, and it was worse than that: the tutorial's "high crawl" was a one-block
+   * hole at head height above a SOLID girder. You could not stand in it, could not
+   * enter it, and the only exit really was the way in.
+   *
+   * Every chapter now ends at the same arch, and it is findable the way this game
+   * finds everything else: SOLVE THE ROOM AND IT HUMS. Before that it says nothing,
+   * so you cannot wander out of a job half done. */
+  for (const c of CFG.chapters) {
+    const S = R.create(CFG, { seed: 1, chapter: c.id });
+    ok(S.exit, `${c.name}: has a way out`);
+    eq(R.blockAt(S, S.exit[0], S.exit[1], S.exit[2]), 15, `${c.name}: and it is a real arch in the world`);
+
+    // it must stand in open air, not be buried in the rock
+    const open = [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]]
+      .filter((d) => !R.isSolid(S, S.exit[0] + d[0], S.exit[1] + d[1], S.exit[2] + d[2]));
+    ok(open.length > 0, `${c.name}: you can actually walk up to it (${open.length} open sides)`);
+
+    // ...and it is SILENT until the room is done with you
+    ok(!R.solved(S), `${c.name}: the room is not solved at the start`);
+    const before = S.emits;
+    steps(S, 6);
+    ok(!S.flags.exitOpen, `${c.name}: and the way out says NOTHING until it is`);
+    ok(!S.flags.done, `${c.name}: you cannot wander out of a job half done`);
+  }
+
+  /* AND WHEN IT IS SOLVED, IT CALLS — loudly, from across the level. */
+  const S = R.create(CFG, { seed: 1, chapter: 'cold' });
+  for (const g of S.gauges) {
+    S.player.x = g.at[0] + 0.5; S.player.y = g.at[1] + 0.5; S.player.z = g.at[2] + 0.5;
+    R.readGauge(S);
+  }
+  ok(R.solved(S), 'every gauge read: The Cold is solved');
+  const quiet = S.emits;
+  steps(S, 4);
+  ok(S.flags.exitOpen, 'THE WAY OUT STARTS CALLING');
+  ok(S.emits > quiet + 1, `and it keeps calling (${S.emits - quiet} times in four seconds), so a pulse from anywhere finds it`);
+
+  // it is louder than anything else in the warren, on purpose
+  const k = CFG.sourceKinds.exit;
+  ok(k.range > CFG.sonar.maxDist, 'it carries further than Rocky can shout');
+  for (const other of ['vent', 'pipe', 'drip']) ok(k.amp > CFG.sourceKinds[other].amp, `and louder than the ${other}s`);
+
+  // walk into it
+  ok(!S.flags.done, 'he has not left yet');
+  S.player.x = S.exit[0] + 1.0; S.player.y = S.exit[1] + 0.5; S.player.z = S.exit[2] + 0.5;
+  steps(S, 0.3);
+  ok(S.flags.done, 'and he walks into it, and he is through');
+
+  /* THE TUTORIAL'S CRAWL IS A CRAWL YOU CAN GET INTO.
+   * It was a 1x1 hole at y=6 sitting directly above a solid girder. */
+  const W = R.create(CFG, { seed: 1, chapter: 'workshop' });
+  ok(R.isSolid(W, 25, 5, 15), 'there is a ledge to climb onto');
+  ok(!R.isSolid(W, 27, 6, 15) && !R.isSolid(W, 27, 7, 15), 'and the crawl beyond it is TWO blocks tall — he can stand up in it');
+  ok(!R.isSolid(W, 29, 6, 15), 'and it goes all the way through');
+  ok(!R.isSolid(W, 30, 6, 15), 'into the last room');
 });
 
 group('doors', () => {
