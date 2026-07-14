@@ -31,7 +31,9 @@ function eq(a, b, msg) { ok(a === b, msg + '  (got ' + JSON.stringify(a) + ', wa
 function near(a, b, tol, msg) { ok(Math.abs(a - b) <= tol, msg + '  (got ' + a + ', want ' + b + ' +/-' + tol + ')'); }
 function group(name, fn) { fn(); }
 
-const mk = (o) => R.create(CFG, Object.assign({ seed: 1 }, o));
+// the default chapter is 'cold' BY NAME. It used to be "whichever is first", and
+// then a tutorial was added in front of it and eight tests quietly changed meaning.
+const mk = (o) => R.create(CFG, Object.assign({ seed: 1, chapter: 'cold' }, o));
 const steps = (S, secs, input) => { for (let i = 0; i < Math.round(secs * 60); i++) R.step(S, R.FIXED, input || {}); };
 
 /* an empty sealed test world, so sonar can be measured in the open */
@@ -613,7 +615,8 @@ group('the gauges', () => {
   ok(S.flags.all_gauges, 'and the chapter turns');
 
   // every gauge has fallen. that is the plot: it is not one broken vent.
-  const ch = CFG.chapters[0];
+  // by ID, never by index: adding a chapter must not silently repoint a test
+  const ch = CFG.chapters.find((c) => c.id === 'cold');
   ok(ch.gauges.every((x) => x.reading < x.nominal), 'EVERY gauge has fallen — this is not one broken vent, it is the sky');
   ok(new Set(ch.gauges.map((x) => x.id)).size === ch.gauges.length, 'gauge ids are unique');
 });
@@ -765,7 +768,7 @@ group('THE DEEP HALL: a locked door is a routing problem', () => {
     return S.ears[0].loudest;
   };
   const pct = (v) => (v * 100).toFixed(0) + '%';
-  const NEEDS = CFG.chapters[1].ears[0].needs;
+  const NEEDS = CFG.chapters.find((c) => c.id === 'deep').ears[0].needs;
 
   // --- THE NEAR MISSES. These must all fail, or there is no puzzle. ---
   const miss = (name, fn) => {
@@ -1185,6 +1188,117 @@ group('THE PETROVA LINE: you cannot hear it, so listen for the hole', () => {
   ok(vaultEar(C).open, 'and the vault opens while he is stone deaf and carrying all three samples');
 });
 
+group('THE WALKTHROUGH: nobody should ever stand in a room wondering what the game wants', () => {
+  /* PLAYTEST: "I find myself just going in and out of rooms, not sure what I'm
+   * supposed to do." The worst sentence a player can say, and it was fair.
+   *
+   * Chapter Zero is a walkthrough, and the ENGINE decides when a step is done — no
+   * scripts, no timers, no trigger volumes somebody forgot to move. Each step names
+   * a thing that must become TRUE about the world.
+   *
+   * WHICH MEANS THE SUITE CAN PLAY IT. Below, the whole tutorial is played to the
+   * end, doing exactly what each step asks and nothing else. If any step ever
+   * becomes impossible — a block moved, a door resized, a recipe changed — this
+   * fails, instead of a player quietly giving up.
+   */
+  const ws = () => R.create(CFG, { seed: 1, chapter: 'workshop' });
+  const W = ws();
+  eq(CFG.chapters[0].id, 'workshop', 'the workshop is the FIRST chapter — you land in it');
+  ok(W.chapter.walk.length >= 10, `${W.chapter.walk.length} steps, one idea at a time`);
+  for (const w of W.chapter.walk) {
+    ok(w.say && w.say.length > 20, 'every step says what to do, in words');
+    ok(w.done && Object.keys(w.done).length, 'and every step names a thing that must become TRUE');
+  }
+
+  // every kind of goal a step can name is one the engine can actually check
+  const KINDS = ['pulse', 'move', 'climbTo', 'reach', 'lift', 'gone', 'placed', 'gauges', 'forged', 'ear', 'rang'];
+  for (const w of W.chapter.walk)
+    for (const k of Object.keys(w.done))
+      ok(KINDS.includes(k) || k === 'within' || k === 'block', `a step asks for "${k}", and the engine knows how to check it`);
+
+  /* ---- PLAY IT ---- */
+  const S = ws();
+  const tick = (secs) => steps(S, secs == null ? 0.2 : secs);
+  const at = () => S.stepI;
+  const shout = () => { S.pulseCd = 0; R.pulse(S); tick(1.4); };
+  const goto = (x, y, z) => { S.player.x = x; S.player.y = y; S.player.z = z; S.player.vy = 0; tick(0.2); };
+
+  eq(at(), 0, 'step 1: he has not pulsed yet');
+
+  shout();                                              // 1. pulse
+  ok(at() >= 1, 'step 1 done: he pulsed, and the room exists');
+
+  S.player.dist = 0;
+  steps(S, 2.0, { fwd: 1, yaw: 0 });                    // 2. walk
+  ok(at() >= 2, 'step 2 done: he walked');
+
+  goto(16, 3, 15); tick(0.3);                           // 3. into the gallery
+  ok(at() >= 3, 'step 3 done: he is in the gallery');
+
+  goto(24, 3, 15); tick(0.3);                           // 4. down the row of materials
+  ok(at() >= 4, 'step 4 done: he has walked the whole row of materials');
+
+  for (let i = 0; i < 4; i++) shout();                  // 5. look at them
+  ok(at() >= 5, 'step 5 done: he has heard every material Erid has');
+
+  goto(25.5, 7, 15); tick(0.4);                         // 6. climb
+  ok(at() >= 6, 'step 6 done: he climbed the wall');
+
+  goto(34, 3, 15); tick(0.3);                           // 7. into the last room
+  ok(at() >= 7, 'step 7 done: he is in the last room');
+
+  while (at() === 7) shout();                           // 8. pulse at the locked door
+  ok(at() >= 8, 'step 8 done: he has found the door, and it does not answer');
+
+  // 9. LIFT THE GRIT
+  S.player.x = 38.5; S.player.y = 3.5; S.player.z = 22.5; S.player.yaw = -Math.PI / 2;
+  const g = R.takeBlock(S);
+  ok(g.ok && g.block === 9, 'he lifts the grit plug out of the channel');
+  tick(0.2);
+  ok(at() >= 9, 'step 9 done: the grit is in his vest');
+
+  // 10. and now the resonator can hear him
+  goto(38, 3, 21);
+  for (let i = 0; i < 4 && at() === 9; i++) shout();
+  ok(S.ears[0].open, 'the resonator hears him');
+  ok(!R.isSolid(S, 42, 3, 15), 'AND THE DOOR OPENS');
+  ok(at() >= 10, 'step 10 done');
+
+  // 11. three grit -> xenonite  (there are three blocks of it on the bench)
+  const feed = (b) => { R.setHeld(S, b); S.player.x = 33.2; S.player.y = 3; S.player.z = 12.5; return R.feedForge(S); };
+  feed(9); feed(9);
+  const x = feed(9);
+  eq(x.made, 'xenonite', 'three of grit make one xenonite');
+  tick(0.2);
+  ok(at() >= 11, 'step 11 done: he has forged xenonite out of the deafest stuff on Erid');
+
+  // 12. two xenonite + a girder -> a bell
+  R.setHeld(S, 0);
+  feed(7); feed(7);
+  const bell = feed(3);
+  eq(bell.made, 'bell', 'two xenonite and a girder make a bell');
+  tick(0.2);
+  ok(at() >= 12, 'step 12 done: he has made a bell');
+
+  // 13. put it down and shout at it
+  S.player.x = 35.5; S.player.y = 3.5; S.player.z = 15.5; S.player.yaw = Math.PI / 2;
+  ok(R.placeBlock(S).ok, 'he stands the bell up');
+  goto(37, 3, 15);
+  for (let i = 0; i < 4 && at() === 12; i++) shout();
+  ok(S.ears.some((e) => e.built && e.rang > 0), 'and it answers him');
+  ok(at() >= 13, 'step 13 done');
+
+  // 14. read the gauge
+  goto(40, 3, 16);
+  const rd = R.readGauge(S);
+  ok(rd.ok, `he reads the gauge: ${rd.six} in base six, and it should be ${rd.sixNominal}`);
+  tick(0.2);
+
+  eq(R.stepNow(S), null, 'THE WALKTHROUGH IS FINISHED — every step, played to the end');
+  ok(S.flags.walkthrough, 'and the engine knows it');
+  eq(S.stepDoneN, S.chapter.walk.length, `all ${S.chapter.walk.length} steps done`);
+});
+
 group('doors', () => {
   const S = deep();
   ok(R.isSolid(S, 20, 3, 17), 'a shut door is solid');
@@ -1229,6 +1343,15 @@ group('curriculum', () => {
   ok(/id="prologue"/.test(gateMarkup), 'the gate holds the prologue');
   ok(!/id="how"/.test(gateMarkup), 'and the manual is NOT on the front door — it is in the codex');
   ok(/id="how"/.test((SRC.html.split('<div id="codex">')[1] || '').split('\n</div>')[0]), 'which is where the cards live now');
+
+  /* AND THE CODEX HAS THE MATERIALS TABLE.
+   * PLAYTEST: "add a tutorial that has all the different materials." Every block, its
+   * colour, how loud it answers and how well it CARRIES sound — read straight off the
+   * same table the engine plays by, so the chart and the world can never drift. */
+  ok(/id="mats"/.test(SRC.html), 'the codex lists every material');
+  ok(/CFG\.blocks\.filter/.test(SRC.html), 'and reads them off the ENGINE\'s own block table, not a retyped copy');
+  ok(/1 - b\.absorb/.test(SRC.html), 'showing how LOUD each one comes back');
+  ok(/b\.cost/.test(SRC.html), 'and how well it CARRIES sound, which is the whole puzzle game');
 
   // the cards are still generated FROM the config — the words and the rules cannot drift
   ok(/CFG\.how\.forEach|ROCKY_CFG\.how/.test(SRC.html), 'the codex is generated FROM the config, not retyped into the HTML');

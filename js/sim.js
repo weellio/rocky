@@ -796,6 +796,52 @@
     return { ok: true, fed: fed, made: r.id, gives: r.gives };
   }
 
+  /* ================================================================
+   * THE WALKTHROUGH
+   *
+   * PLAYTEST: "I find myself just going in and out of rooms, not sure what I'm
+   * supposed to do."  Which is the worst thing a player can say, and it was fair.
+   *
+   * So a chapter can carry a list of STEPS, and the ENGINE decides when a step is
+   * done — not a script, not a timer, not a trigger volume somebody remembered to
+   * put in the right place. Each step names a thing that must become TRUE about the
+   * world, and the engine checks whether it is true. That means the walkthrough is
+   * testable: the suite plays it and finishes it, so a step can never quietly
+   * become impossible.
+   * ============================================================== */
+  function stepNow(S) {
+    const t = S.chapter.walk;
+    if (!t || S.stepI >= t.length) return null;
+    return t[S.stepI];
+  }
+
+  function stepDone(S, w) {
+    const d = w.done;
+    const p = S.player;
+    if (d.pulse) return S.pulses >= d.pulse;
+    if (d.move) return p.dist >= d.move;
+    if (d.climbTo) return p.y >= d.climbTo;
+    if (d.reach) return Math.hypot(p.x - d.reach[0], p.y - d.reach[1], p.z - d.reach[2]) <= (d.within || 2.5);
+    if (d.lift) return S.belt.indexOf(d.lift) >= 0;
+    if (d.gone) return !isSolid(S, d.gone[0], d.gone[1], d.gone[2]);
+    if (d.placed) return blockAt(S, d.placed[0], d.placed[1], d.placed[2]) === d.block;
+    if (d.gauges) return S.readCount >= d.gauges;
+    if (d.forged) return S.forges.some((f) => f.made.indexOf(d.forged) >= 0);
+    if (d.ear) { const e = S.ears.find((x) => x.id === d.ear); return !!(e && e.open); }
+    if (d.rang) return S.ears.some((e) => e.built && e.rang > 0);
+    return false;
+  }
+
+  function stepWalk(S) {
+    const w = stepNow(S);
+    if (!w) return;
+    if (!stepDone(S, w)) return;
+    S.stepI++;
+    S.stepDoneN++;
+    cue(S, 'step:done');
+    if (!stepNow(S)) { S.flags.walkthrough = true; cue(S, 'chapter'); }
+  }
+
   /* ---------- cues: the engine says what happened; app.js decides how it sounds ---------- */
   function cue(S, id) { S.cueQ.push(id); if (S.cueQ.length > 64) S.cueQ.shift(); }
   function takeCues(S) { const q = S.cueQ; S.cueQ = []; return q; }
@@ -904,6 +950,8 @@
       fed: 0,
       made: 0,
       builtN: 0,
+      stepI: 0,
+      stepDoneN: 0,
       carryOf: cfg.blocks.map((b) => !!b.carry),
       flags: {},
       cueQ: [],
@@ -934,6 +982,7 @@
       stepPlayer(S, FIXED, input);
       stepSources(S, FIXED);
       stepBells(S, FIXED);
+      stepWalk(S);
       updateHeat(S, FIXED);
     }
     return S;
@@ -966,6 +1015,7 @@
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
+    stepNow, stepDone, stepWalk,
     feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED
   };

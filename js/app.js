@@ -805,6 +805,29 @@ function frame(now) {
     el('forge').style.opacity = '0';
   }
 
+  /* THE WALKTHROUGH PANEL. One thing to do, in words, all the time — and the
+   * ENGINE decides when it is done, so this can never tell you to do something the
+   * game has stopped caring about. */
+  const w = Sim.stepNow(S);
+  const wp = el('walk');
+  if (w) {
+    if (wp.dataset.i !== String(S.stepI)) {
+      wp.dataset.i = String(S.stepI);
+      wp.innerHTML = '<b>' + (S.stepI + 1) + ' / ' + S.chapter.walk.length + '</b>' + w.say;
+      wp.classList.remove('go');
+      void wp.offsetWidth;
+      wp.classList.add('go');
+    }
+    wp.style.opacity = '1';
+  } else if (S.chapter.walk) {
+    if (wp.dataset.i !== 'done') {
+      wp.dataset.i = 'done';
+      wp.innerHTML = '<b>DONE</b>That is everything Erid can teach you. Press C at any time for the codex.';
+    }
+  } else {
+    wp.style.opacity = '0';
+  }
+
   const g = Sim.nearestGauge(S);
   el('prompt').style.opacity = (g && !g.read) ? '1' : '0';
   if (g && !g.read) el('prompt').textContent = 'F — READ GAUGE';

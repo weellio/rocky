@@ -220,6 +220,121 @@
     },
 
     chapters: [
+      /* ==============================================================
+       * CHAPTER ZERO — THE WORKSHOP.  The walkthrough.
+       *
+       * PLAYTEST: "I find myself just going in and out of rooms, not sure what I'm
+       * supposed to do." Which is the worst sentence a player can say, and it was
+       * a fair one.
+       *
+       * So: one room at a time, one idea at a time, and the ENGINE decides when you
+       * have done it (see stepWalk in sim.js) — no scripts, no timers, no trigger
+       * volumes somebody forgot to move. It walks through every verb he has and
+       * every material in the world, and the suite PLAYS IT TO THE END, so a step
+       * can never quietly become impossible.
+       * ============================================================== */
+      {
+        id: 'workshop',
+        name: 'The Workshop  (start here)',
+        world: { w: 44, h: 16, d: 30 },
+        spawn: [5, 3, 15],
+        objective: 'Rocky teaches you how to hear.',
+        build: [
+          { op: 'fill', from: [0, 0, 0], to: [43, 15, 29], block: 1 },
+
+          // ROOM 1 — the dark. You pulse, and the world exists.
+          { op: 'room', from: [2, 1, 10], to: [11, 7, 20], floor: 2 },
+
+          // ROOM 2 — THE GALLERY. One block of every material, in a row, to hear.
+          { op: 'room', from: [14, 1, 9], to: [26, 8, 21], floor: 2 },
+          { op: 'fill', from: [12, 3, 15], to: [13, 3, 15], block: 0 },   // the crawl in
+          { op: 'set', at: [16, 2, 11], block: 1 },                       // basalt
+          { op: 'set', at: [18, 2, 11], block: 2 },                       // plate
+          { op: 'set', at: [20, 2, 11], block: 3 },                       // girder
+          { op: 'set', at: [22, 2, 11], block: 4 },                       // pipe
+          { op: 'set', at: [24, 2, 11], block: 5 },                       // vent
+          { op: 'set', at: [16, 2, 19], block: 6 },                       // gauge
+          { op: 'set', at: [18, 2, 19], block: 7 },                       // xenonite
+          { op: 'set', at: [20, 2, 19], block: 9 },                       // grit
+          { op: 'set', at: [22, 2, 19], block: 13 },                      // cast xenonite
+          { op: 'set', at: [24, 2, 19], block: 11 },                      // a bell
+          { op: 'set', at: [24, 3, 10], block: 5 },                       // and a vent that hums
+
+          // the ledge you must CLIMB to leave the gallery
+          { op: 'fill', from: [25, 6, 12], to: [26, 6, 18], block: 3 },
+          { op: 'fill', from: [27, 6, 15], to: [29, 6, 15], block: 0 },   // the high crawl out
+
+          // ROOM 3 — GRIT IS DEAF. An ear behind a plug you must pull.
+          { op: 'room', from: [30, 1, 10], to: [41, 8, 20], floor: 2 },
+          { op: 'fill', from: [30, 6, 15], to: [30, 6, 15], block: 0 },
+          { op: 'fill', from: [36, 3, 22], to: [40, 3, 22], block: 0 },   // the ear's channel
+          { op: 'set', at: [40, 3, 22], block: 9 },                       // <- THE GRIT PLUG
+          { op: 'fill', from: [33, 2, 24], to: [37, 5, 26], block: 0 },   // the ear's alcove
+
+          // the forge, and stock: grit to make xenonite, and a girder for the bell
+          { op: 'set', at: [32, 2, 12], block: 12 },
+          { op: 'set', at: [32, 2, 11], block: 5 },
+          { op: 'fill', from: [34, 2, 12], to: [36, 2, 12], block: 9 },
+          { op: 'set', at: [38, 2, 12], block: 3 },
+
+          // a gauge to read, and the door out
+          { op: 'set', at: [41, 3, 16], block: 6 },
+          { op: 'fill', from: [42, 2, 15], to: [42, 4, 15], block: 8 }
+        ],
+        sources: [
+          { at: [24, 4, 10], kind: 'vent' },
+          { at: [32, 3, 11], kind: 'vent' }
+        ],
+        gauges: [
+          { id: 'g1', at: [41, 3, 16], name: 'Workshop', nominal: 96, reading: 91 }
+        ],
+        forges: [{ at: [32, 2, 12] }],
+        ears: [
+          { id: 'e1', at: [33, 3, 25], needs: 0.35, name: 'THE DOOR', opens: 'out' }
+        ],
+        doors: [
+          { id: 'out', cells: [[42, 2, 15], [42, 3, 15], [42, 4, 15]] }
+        ],
+
+        /* THE WALKTHROUGH. Every step names a thing that must become TRUE, and the
+         * engine checks it. One idea at a time, and you are never once left standing
+         * in a room wondering what the game wants. */
+        walk: [
+          { say: 'You cannot see. Nobody on Erid ever could. PULSE — press E, or the PULSE button — and listen to what comes back.',
+            done: { pulse: 1 } },
+          { say: 'That is the room. It is already fading, because an echo is a memory. Pulse whenever you want it back. Now WALK — WASD, the arrows, or the stick.',
+            done: { move: 6 } },
+          { say: 'There is a crawl in the east wall. Go through it, into the gallery.',
+            done: { reach: [16, 3, 15], within: 3.5 } },
+          { say: 'THE GALLERY. One block of every material Erid has. Pulse, and look at the colours — the colour you see IS the sound it gives back. Walk down the row.',
+            done: { reach: [24, 3, 15], within: 3.5 } },
+          { say: 'The BLACK one is grit: it swallows sound and shows you almost nothing. The VIOLET one is xenonite: it does not scatter sound, it carries it. Remember those two. They are the whole game.',
+            done: { pulse: 4 } },
+          { say: 'The way out is up. Walk INTO a wall and hold forward — Eridians climb, and five legs never let go. (SHIFT walks you back down.)',
+            done: { climbTo: 6.2 } },
+          { say: 'Good. Through the high crawl, into the last room.',
+            done: { reach: [34, 3, 15], within: 5 } },
+          { say: 'That door is locked, and a locked door here is never a key hunt. It listens. Get a sound to the RESONATOR and it opens — but somebody has packed its channel with GRIT, and grit is deaf.',
+            done: { pulse: 6 } },
+          { say: 'So take the grit out. Face it and press Q to LIFT it — it goes in a pocket of your vest.',
+            done: { lift: 9 } },
+          { say: 'The channel is open. Now pulse, and let the resonator hear you.',
+            done: { ear: 'e1' } },
+          { say: 'THE DOOR IS OPEN. Now the other half of the trade: you are an engineer. Take the grit to the FORGE and press F to feed it. Three of grit make one XENONITE.',
+            done: { forged: 'xenonite' } },
+          { say: 'That is xenonite — the loudest thing we know, made from the deafest. Now feed it two xenonite and a GIRDER, and it will make you a BELL: a resonator that shouts BACK, further than you can shout yourself.',
+            done: { forged: 'bell' } },
+          { say: 'Put the bell down anywhere (R) and shout at it. It will answer.',
+            done: { rang: true } },
+          { say: 'Last thing. There is a heat gauge on the east wall. Stand at it and press F to READ it. We count in sixes.',
+            done: { gauges: 1 } }
+        ],
+        lines: [
+          { at: 'start', chord: '♪♩♪♩', text: 'My workshop. I will show you how to hear. Do exactly as I say and you will be fine, and if you get lost, pulse — you can always pulse.' },
+          { at: 'walkthrough', chord: '♩♪♪♩♩', text: 'That is everything. Sound, stone, grit, xenonite, a forge and a bell. Now: something is wrong with the heat, and I need you to help me prove it.' }
+        ]
+      },
+
       {
         id: 'cold',
         name: 'The Cold',

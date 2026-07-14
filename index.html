@@ -20,6 +20,7 @@
   .hud{position:fixed;pointer-events:none;z-index:5;text-shadow:0 2px 10px #000}
 
   #top{top:0;left:0;right:0;padding:14px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+  #top > div:first-child{max-width:26ch}
   #chapname{font-size:13px;letter-spacing:.24em;color:var(--amber);text-transform:uppercase}
   #objective{font-size:13px;color:#9fb6cc;margin-top:5px;max-width:52ch;line-height:1.5}
   #gbox{text-align:right;font-size:12px;color:var(--dim);letter-spacing:.14em}
@@ -55,6 +56,19 @@
   #hud2{bottom:12px;left:18px;font-size:11px;color:#4c5f77;letter-spacing:.1em}
   #keys{bottom:12px;right:18px;font-size:11px;color:#4c5f77;letter-spacing:.08em;text-align:right;line-height:1.7}
   #keys b{color:#8fa6be;font-weight:400}
+
+  /* THE WALKTHROUGH. One thing to do, in words, always on screen — because a player
+     who does not know what the game wants is a player who quietly stops playing. */
+  #walk{left:50%;transform:translateX(-50%);top:14px;max-width:min(760px,88vw);
+    background:linear-gradient(180deg,rgba(4,14,10,.94),rgba(3,10,8,.9));
+    border:1px solid rgba(143,227,107,.45);border-left:3px solid #8fe36b;
+    padding:11px 16px;border-radius:3px;font-size:14px;line-height:1.55;color:#dff3e2;
+    opacity:0;transition:opacity .4s}
+  #walk.go{animation:pop .5s ease-out}
+  @keyframes pop{0%{transform:translateX(-50%) scale(.97);border-color:#fff}100%{transform:translateX(-50%) scale(1)}}
+  #walk b{display:inline-block;color:#8fe36b;font-weight:400;font-size:10px;letter-spacing:.2em;
+    margin-right:10px;padding:2px 7px;border:1px solid rgba(143,227,107,.4);border-radius:2px;
+    vertical-align:middle}
 
   /* Rocky speaks in chords. You are reading a translation. */
   #talk{left:50%;transform:translateX(-50%);bottom:78px;max-width:min(700px,86vw);
@@ -121,7 +135,9 @@
 
   /* THE CODEX — the manual, one key away, and generated from the same table the
      suite checks. It is not on the front door any more. */
-  #codex{position:fixed;inset:0;z-index:30;background:rgba(2,5,12,.96);overflow-y:auto;
+  /* opaque, not nearly-opaque: the game bleeding through a reference chart makes the
+     chart hard to read, which defeats the point of having one. */
+  #codex{position:fixed;inset:0;z-index:30;background:#020509;overflow-y:auto;
     padding:34px 24px 60px;display:none}
   #codex.open{display:block}
   #codex h2{text-align:center;color:var(--amber);font-size:13px;letter-spacing:.3em;font-weight:400;
@@ -135,6 +151,22 @@
     border-radius:3px;text-align:left}
   .card h3{font-size:11px;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase;font-weight:400;margin-bottom:5px}
   .card p{font-size:12.5px;line-height:1.6;color:#8fa6be}
+  /* THE MATERIALS. Every block in the game, its colour, how loud it answers and how
+     well it carries — straight out of the same table the engine plays by, so the
+     chart and the world cannot drift apart. */
+  #mats{width:100%;border-collapse:collapse;font-size:12px}
+  #mats th{text-align:left;color:#5d708a;font-weight:400;font-size:10px;letter-spacing:.2em;
+    text-transform:uppercase;padding:0 10px 7px 0;border-bottom:1px solid rgba(93,112,138,.2)}
+  #mats td{padding:7px 10px 7px 0;color:#8fa6be;border-bottom:1px solid rgba(93,112,138,.08)}
+  #mats td.n{color:#dff1ff}
+  #mats i{display:inline-block;width:15px;height:15px;border-radius:2px;margin-right:9px;
+    vertical-align:-3px;border:1px solid rgba(255,255,255,.16)}
+  #mats .bar{display:inline-block;height:5px;border-radius:3px;vertical-align:middle;min-width:2px}
+  #mats .loud{background:linear-gradient(90deg,#3a4a5e,#8fe8ff)}
+  #mats .carry{background:linear-gradient(90deg,#3a4a5e,#b46bff)}
+  #mats td small{color:#5d708a;margin-left:7px;font-size:10px}
+  #codex .note{color:#5d708a;font-size:11px;line-height:1.6;margin-top:10px}
+  #codex .note b{color:#8fa6be;font-weight:400}
   #shut{display:block;margin:8px auto 0;background:transparent;border:1px solid var(--dim);color:var(--dim);
     font:inherit;font-size:12px;letter-spacing:.2em;padding:9px 26px;border-radius:2px;cursor:pointer}
   #shut:hover{border-color:var(--cyan);color:var(--cyan)}
@@ -189,6 +221,9 @@
   body.touch #ear{font-size:9px;line-height:1.7}
 
   /* his voice goes across the TOP, between the thumbs, where nothing else is */
+  body.touch #walk{top:auto;bottom:12px;left:50%;max-width:52vw;font-size:11px;
+    line-height:1.4;padding:7px 10px}
+  body.touch #walk b{font-size:8px;margin-right:6px;padding:1px 5px}
   body.touch #talk{left:50%;bottom:auto;top:12px;transform:translateX(-50%);
     max-width:42vw;padding:7px 11px;border-radius:3px}
   body.touch #chord{font-size:13px;margin-bottom:2px}
@@ -250,6 +285,7 @@
 <div class="hud" id="belt"></div>
 <div class="hud" id="forge"></div>
 
+<div class="hud" id="walk"></div>
 <div class="hud" id="talk"><div id="chord">♪♩♪</div><div id="speech"></div></div>
 <div class="hud" id="flash"></div>
 <div class="hud" id="prompt">F — READ GAUGE</div>
@@ -279,6 +315,13 @@
 <div id="codex">
   <h2>The Codex</h2>
   <div class="hint">everything Erid has taught him</div>
+  <div class="grp" id="matgrp">
+    <h3>The materials</h3>
+    <table id="mats"></table>
+    <div class="note">The colour you see IS the sound it gives back. <b>Loudness</b> is how much
+      of your pulse comes home off it. <b>Carries</b> is how easily sound passes THROUGH it — and
+      that column is the whole puzzle game.</div>
+  </div>
   <div id="how"></div>
   <button id="shut">Close</button>
 </div>
@@ -312,6 +355,27 @@
         .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
         .replace(/\*(.+?)\*/g, '<em>$1</em>') + '</p>';
     }).join('');
+
+    /* THE MATERIALS TABLE. Read straight off the block table the ENGINE plays by, so
+       the chart and the world can never drift apart. `absorb` is how much a material
+       EATS, so loudness is what is left of it; `cost` is what it charges sound to pass
+       through, so carrying is the inverse. Both are drawn as bars because a number
+       nobody can compare is a number nobody reads. */
+    const solids = CFG.blocks.filter(function (b) { return b.solid; });
+    const maxCost = Math.max.apply(null, solids.map(function (b) { return b.cost; }));
+    document.getElementById('mats').innerHTML =
+      '<tr><th>Material</th><th>Loudness</th><th>Carries sound</th><th></th></tr>' +
+      solids.map(function (b) {
+        const loud = Math.round((1 - b.absorb) * 100);
+        const carry = Math.round((1 - (b.cost - 1) / (maxCost - 1)) * 100);
+        const note = b.carry ? 'you can lift it' : '';
+        return '<tr>' +
+          '<td class="n"><i style="background:' + b.color + '"></i>' + b.name + '</td>' +
+          '<td><span class="bar loud" style="width:' + Math.max(2, loud * 0.9) + 'px"></span><small>' + loud + '%</small></td>' +
+          '<td><span class="bar carry" style="width:' + Math.max(2, carry * 0.9) + 'px"></span><small>' + carry + '%</small></td>' +
+          '<td><small>' + note + '</small></td>' +
+          '</tr>';
+      }).join('');
 
     // the codex, grouped, straight out of the same table
     const groups = [];

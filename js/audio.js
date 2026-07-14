@@ -92,6 +92,11 @@
       noise(0.6, 200, 0.3);
       [220, 165, 110].forEach(function (f, i) { setTimeout(function () { ping(f, 0.35, 'sawtooth', 0.1); }, i * 90); });
     },
+    /* a step of the walkthrough falls into place */
+    'step:done': function () {
+      ping(880, 0.14, 'sine', 0.18);
+      setTimeout(function () { ping(1320, 0.22, 'sine', 0.14); }, 90);
+    },
     chapter: function () {
       [523, 659, 784, 1046].forEach(function (f, i) {
         setTimeout(function () { ping(f, 0.5, 'sine', 0.16); }, i * 150);
