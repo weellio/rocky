@@ -634,6 +634,11 @@ function frame(now) {
 
   for (const id of Sim.takeCues(S)) {
     if (window.RockyAudio) window.RockyAudio.cue(id);
+    if (id === 'pressure') {
+      banner('THE AIR CAME BACK');
+      const line = S.chapter.lines.find((l) => l.at === 'pressure');
+      if (line) setTimeout(() => say(line.chord, line.text), 1200);
+    }
     if (id === 'exitopen') {
       banner('THE WAY OUT IS CALLING');
       flash('pulse — you will hear it');
@@ -919,6 +924,17 @@ function frame(now) {
   } else {
     wp.style.opacity = '0';
   }
+
+  /* VACUUM. He is not quiet in here. He is DEAF, and he should be told so, because a
+   * player whose game has stopped answering needs to know it is the game and not a
+   * bug. The engine decides whether he is standing in it. */
+  const vac = Sim.inVacuum(S);
+  const vp = el('vac');
+  vp.style.opacity = vac ? '1' : '0';
+  if (vac && !vp.dataset.on) {
+    vp.dataset.on = '1';
+    vp.textContent = 'VACUUM — there is no air here. You can only hear what you are touching.';
+  } else if (!vac) { delete vp.dataset.on; }
 
   const g = Sim.nearestGauge(S);
   el('prompt').style.opacity = (g && !g.read) ? '1' : '0';

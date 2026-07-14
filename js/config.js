@@ -65,7 +65,18 @@
        * So every chapter now ends at the same thing, and it is findable the way this
        * game finds EVERYTHING: solve the room and the way out starts to HUM. Pulse
        * anywhere and you will hear it calling. Walk into it and you are through. */
-      { id: 15, key: 'exit',     name: 'The way out',    solid: true,  color: '#7cffb0', absorb: 0.0,  cost: 2.0,  tex: 'arch',   carry: false, note: 988 }
+      { id: 15, key: 'exit',     name: 'The way out',    solid: true,  color: '#7cffb0', absorb: 0.0,  cost: 2.0,  tex: 'arch',   carry: false, note: 988 },
+      /* VACUUM.
+       * SOUND NEEDS SOMETHING TO BE SOUND IN. Erid is twenty-nine atmospheres of hot
+       * ammonia and no Eridian has ever been anywhere that was not — they have no word
+       * for this and no reason to have invented one.
+       *
+       * It is not solid: he can WALK straight through it. It just costs 240 to cross,
+       * which is to say sound does not cross it at all. Stand in a vacuum and you are
+       * blind — except for what you are TOUCHING, because the wave still runs out of
+       * your feet into the hull, and the hull still rings. In space you hear through
+       * the structure or you hear nothing. */
+      { id: 16, key: 'vac',      name: 'Vacuum',         solid: false, color: '#000000', absorb: 0.0,  cost: 240.0, tex: 'none', carry: false, note: 0 }
     ],
 
     /* And a pocketful of the stuff eats YOUR voice too. Every sample in the vest
@@ -894,6 +905,107 @@
           { at: 'take', chord: '♪♩', text: 'Quiet. It is so quiet.' },
           { at: 'all_doors', chord: '♩♪♩♪♩', text: 'Three samples of the thing that is killing my star, and I had to build a voice to be heard past it. Everything after today is engineering. The hard part was believing the gauges.' }
         ]
+      },
+
+      /* ==============================================================
+       * ACT II.2 — THE HULL
+       *
+       * A species with no word for vacuum is building a ship.
+       *
+       * SOUND NEEDS SOMETHING TO BE SOUND IN. Erid is twenty-nine atmospheres of hot
+       * ammonia, and no Eridian has ever in their history been anywhere that was not,
+       * so nobody has ever needed the concept and nobody has got one. Rocky is about
+       * to get one, standing in it, in the dark, in the middle of a job.
+       *
+       * There is a BREACH in the outer hull. Everything the breach can reach has no
+       * air in it — and where there is no air, HE IS DEAF. Not quiet: deaf. He walks
+       * into the forward compartment and the world simply stops existing, except for
+       * the hull he is touching, because the wave still runs out of his feet into the
+       * structure and the structure still rings. In space you hear through what you
+       * are standing on, or you hear nothing at all.
+       *
+       * So: find the hole by walking the ringing metal until it ends. Seal it with
+       * xenonite. And the moment it is sealed, the compartment is no longer connected
+       * to the outside, and the air comes back, and the room comes back with it.
+       *
+       * Nothing in the code knows what a "compartment" is. Pressure is not a flag —
+       * it is a fact about what is connected to what.
+       * ============================================================== */
+      {
+        id: 'hull',
+        name: 'The Hull',
+        world: { w: 46, h: 18, d: 30 },
+        spawn: [6, 3, 15],
+        objective: 'There is a hole in the ship. Find it in the dark, and close it.',
+        exit: [42, 3, 15],
+
+        /* THE SHIP IS IN A VACUUM CHAMBER, because a species that has never met vacuum
+         * has to build one before it can build a ship — and Rocky is the engineer who
+         * has to stand in it. `space` is where the nothing starts. Everything the
+         * nothing can REACH has no air in it. */
+        space: [[2, 14, 2]],
+        build: [
+          { op: 'fill', from: [0, 0, 0], to: [45, 17, 29], block: 1 },
+          { op: 'fill', from: [1, 1, 1], to: [44, 16, 28], block: 0 },     // the test chamber: evacuated
+
+          // THE SHIP: a cast xenonite hull, two compartments and a way out
+          { op: 'fill', from: [3, 1, 8], to: [44, 10, 22], block: 13 },
+          { op: 'room', from: [4, 2, 9], to: [20, 9, 21], floor: 2 },      // AFT: sealed, and it rings
+          { op: 'room', from: [24, 2, 9], to: [39, 9, 21], floor: 2 },     // FORWARD: breached, and it does not
+          { op: 'room', from: [41, 2, 13], to: [43, 8, 17], floor: 2 },    // the way out, beyond a door
+          /* THE HATCH. One cell, plugged with ONE BLOCK OF XENONITE — and pulling it
+           * out is how you get forward, and also how you kill your own ship. The moment
+           * the hatch is open, aft is connected to forward, forward is connected to the
+           * hole, and the hole is connected to the dark. The air in the room you are
+           * standing in goes with it.
+           *
+           * And that same block is the patch. There is exactly one, and it belongs in
+           * two places, and you have to choose which. */
+          { op: 'fill', from: [21, 3, 15], to: [23, 3, 15], block: 0 },
+          { op: 'set', at: [22, 3, 15], block: 7 },                        // <- THE PLUG
+          { op: 'fill', from: [40, 2, 15], to: [40, 4, 15], block: 8 },    // <- the door the resonator opens
+
+          /* THE BREACH. One cell of hull, missing — and everything it can reach has
+           * emptied out into the dark. It sits at head height, where a creature standing
+           * on the deck can put a block into it, because a hole you have to fight the
+           * wall to reach is a hole nobody patches. */
+          { op: 'set', at: [36, 4, 22], block: 0 },
+
+          // stock, AFT, where he can still hear himself think
+          { op: 'set', at: [6, 2, 12], block: 12 },
+          { op: 'set', at: [6, 2, 11], block: 5 },
+          { op: 'fill', from: [8, 2, 12], to: [10, 2, 12], block: 9 },
+          { op: 'fill', from: [8, 2, 14], to: [10, 2, 14], block: 9 },
+          { op: 'set', at: [12, 2, 12], block: 3 },
+          { op: 'fill', from: [8, 2, 16], to: [10, 2, 16], block: 9 }      // and more grit, if he wastes the plug
+        ],
+        sources: [
+          { at: [6, 3, 11], kind: 'vent' },
+          { at: [10, 3, 19], kind: 'pipe' }
+        ],
+        gauges: [],
+        forges: [{ at: [6, 2, 12] }],
+        labels: [
+          { at: [22, 3, 15], block: 7, text: 'THE HATCH — one block of xenonite (Q)' },
+          { at: [36, 4, 22], block: 0, text: 'THE BREACH — put it here (R)', color: '#ff4fa3' },
+          { at: [6, 2, 12], block: 12, text: 'THE FORGE — 3 grit make more xenonite' },
+          { at: [39, 3, 15], block: 10, text: 'RESONATOR — it cannot hear you in a vacuum' }
+        ],
+        /* MEASURED. In the vacuum his voice cannot cross the room — it can only run
+         * out of his feet and along the hull — and the hull alone does not carry it
+         * loudly enough. Seal the breach, get the AIR back, and the room is his again. */
+        ears: [
+          { id: 'e1', at: [39, 3, 15], needs: 0.42, name: 'THE HATCH', opens: 'out' }
+        ],
+        doors: [
+          { id: 'out', cells: [[40, 2, 15], [40, 3, 15], [40, 4, 15]] }
+        ],
+        lines: [
+          { at: 'start', chord: '♪♩♩♪', text: 'The forward compartment has gone quiet. Not quiet like grit. Quiet like NOTHING. I pulse and nothing comes back, not one stone of it, and I have never in my life met a room that did not answer.' },
+          { at: 'start', chord: '♩♩♪', text: 'There is a hole in my ship, and everything the hole can reach has emptied out into the dark. I cannot hear the air because there is no air. I can only hear what I am STANDING ON. So I will walk the hull until the ringing stops, and that is where the hole will be.' },
+          { at: 'pressure', chord: '♪♪♩♩♪', text: 'AIR. The room came back. Twenty-nine atmospheres of it, all at once, and I have never been so pleased to be shouted at by a wall.' },
+          { at: 'all_doors', chord: '♩♪♪♩', text: 'We have no word for what was in that room. We will need one. I am going to have to go OUT there, and so is everyone I know.' }
+        ]
       }
     ],
 
@@ -920,7 +1032,8 @@
       'world:bell':   'how:bell',
       'act:forge':    'how:forge',
       'act:build':    'how:build',
-      'world:astro':  'how:astro'
+      'world:astro':  'how:astro',
+      'world:vacuum': 'how:vacuum'
     },
 
     how: [
@@ -941,6 +1054,7 @@
       { marker: 'ear', group: 'Making',      title: 'Resonators',  body: 'A resonator is a listener, and it opens a door when enough sound REACHES it. So a locked door is never a key hunt — it is a routing problem. Walk over and shout. Clear the grit. Bridge the gap with xenonite. Drop something heavy beside it. Open a vent and let a machine do it for you. Every one of those is a real answer.' },
       { marker: 'forge', group: 'Making',    title: 'The forge',   body: 'Rocky is an engineer, and his people build everything out of xenonite. Stand at a forge with a block in your arms and press F to FEED it. He carries one block at a time — five arms and no pockets — so he does not carry a recipe about with him. He feeds the hopper, one trip at a time, and the forge remembers.' },
       { marker: 'build', group: 'Making',    title: 'Making things', body: 'GRIT x3 makes XENONITE: the deafest stuff on Erid becomes the loudest, which nobody has ever explained to Rocky\'s satisfaction. XENONITE x2 and a GIRDER make a RELAY BELL — and a bell you build is a bell like any other. Stand it anywhere and it listens, and when it hears you it shouts back, further than you can shout yourself. That is the whole trade: you make the thing that was not there.' },
+      { marker: 'vacuum',   group: 'Hearing',    title: 'Vacuum',      body: 'SOUND NEEDS SOMETHING TO BE SOUND IN. Erid is twenty-nine atmospheres of hot ammonia and no Eridian has ever been anywhere that was not, so we have no word for this. Where there is no air you are not quiet — you are DEAF. You can still WALK through it. You just cannot hear across it: all you can hear is what you are TOUCHING, because the sound still runs out of your feet into the hull and the hull still rings. And pressure is not a switch. Any space that can reach the hole has already emptied out. Close the hole and the air comes back, all of it, at once.' },
       { marker: 'astro', group: 'Hearing',    title: 'Astrophage',  body: 'It eats light. Of course it eats sound — it eats everything that arrives, which is what it is FOR. So it gives NOTHING back, and Rocky cannot hear it. He can only hear the HOLE where it is: pulse, and a patch of the wall simply does not come home. That is how you find the thing that is killing your star — you look for the part of the room that is not there. And a sample in your vest eats your own voice too: carry three and you are down to a sixth of yourself, whispering in the dark, and you will need to build something that can shout for you.' },
       { marker: 'bell', group: 'Making',     title: 'Bells',       body: 'A BELL is a resonator that shouts back. Ring it and it answers, loudly, from where it stands — so a line of bells carries a sound clean across a warren far too big for one voice. And when a chain of them dies halfway, the bell it died at is telling you exactly where the blockage is. Do not go hunting for a switch. Fire the chain, and watch.' }
     ],

@@ -117,6 +117,13 @@
         setTimeout(function () { ping(f, 0.8, 'sine', 0.18); }, i * 120);
       });
     },
+    /* the air comes back: a rush, and then the room is loud again */
+    pressure: function () {
+      noise(1.2, 900, 0.30);
+      [131, 196, 262, 392].forEach(function (f, i) {
+        setTimeout(function () { ping(f, 0.9, 'sine', 0.16); }, 260 + i * 110);
+      });
+    },
     'source:vent': function () { noise(0.32, 420, 0.05); },
     'source:pipe': function () { ping(320, 0.16, 'sine', 0.035); },
     'source:drip': function () { ping(1400, 0.05, 'sine', 0.03, 900); },

@@ -79,6 +79,12 @@
   #chord{color:var(--amber);font-size:18px;letter-spacing:.24em;margin-bottom:5px}
   #speech{font-size:15px;line-height:1.6;color:#e7f4ff}
 
+  /* there is no air in here, and he should be told so */
+  #vac{left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;
+    font-size:13px;letter-spacing:.22em;color:#ff4fa3;opacity:0;transition:opacity .5s;
+    text-shadow:0 0 20px rgba(255,79,163,.6);max-width:60vw;line-height:1.9;
+    border-top:1px solid rgba(255,79,163,.35);border-bottom:1px solid rgba(255,79,163,.35);
+    padding:10px 0}
   #flash{left:50%;top:52%;transform:translateX(-50%);font-size:13px;letter-spacing:.2em;
     color:#7d93aa;opacity:0}
   #flash.go{animation:fade 1.1s ease-out}
@@ -286,6 +292,7 @@
 <div class="hud" id="forge"></div>
 
 <div class="hud" id="walk"></div>
+<div class="hud" id="vac"></div>
 <div class="hud" id="talk"><div id="chord">♪♩♪</div><div id="speech"></div></div>
 <div class="hud" id="flash"></div>
 <div class="hud" id="prompt">F — READ GAUGE</div>

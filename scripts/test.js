@@ -281,7 +281,8 @@ group('materials have voices', () => {
   ok(grit > 0 && xeno > 0, 'both blocks answered the pulse');
   ok(xeno > grit * 2, `xenonite sings and grit swallows: ${xeno.toFixed(3)} vs ${grit.toFixed(3)} at the same distance`);
 
-  const blocks = CFG.blocks.filter((b) => b.id !== 0);
+  // only the SOLID materials: air and vacuum are things you hear THROUGH, not off
+  const blocks = CFG.blocks.filter((b) => b.solid);
   for (const b of blocks) ok(/^#[0-9a-f]{6}$/i.test(b.color), b.name + ' has an echo colour');
   ok(new Set(blocks.map((b) => b.color)).size === blocks.length, 'no two materials return the same colour (or you could not tell them apart)');
 
@@ -1459,6 +1460,77 @@ group('on a wall, the wall is the floor', () => {
   ok(q.onWall && q.wallN, 'he is on the wall, and the engine knows which way it faces');
 });
 
+group('CAN HE ACTUALLY GET THERE? (the flood-fill that would have caught it)', () => {
+  /* The tutorial shipped with its grit plug three cells of solid rock behind a wall,
+   * where no player could ever reach it, and NOTHING noticed. So: flood the level from
+   * where he starts, through every space he can walk, crawl or climb into — he climbs
+   * anything and clings to anything, so an air cell connected to another air cell is
+   * an air cell he can get to — and then ask the level's own demands whether they are
+   * standing inside that flood.
+   *
+   * Doors are treated as OPEN, because they open. Everything else must be reachable
+   * as the level ships. */
+  const flood = (S) => {
+    const seen = new Uint8Array(S.w * S.h * S.d);
+    /* What can he get through? Air, obviously. A DOOR, because doors open. And
+     * anything he can LIFT — a block of grit in his way is not a barrier, it is a
+     * delay. Rock is a barrier, and that is the whole point: the tutorial's plug sat
+     * behind three cells of rock, and rock is the one thing he cannot dig. */
+    const passable = (x, y, z) => {
+      if (!R.inside(S, x, y, z)) return false;
+      const b = R.blockAt(S, x, y, z);
+      return b === 0 || b === 8 || b === 16 || (CFG.blocks[b] && CFG.blocks[b].carry);   // 16 = vacuum: he walks through it, he just cannot hear in it
+    };
+    const start = [Math.floor(S.player.x), Math.floor(S.player.y), Math.floor(S.player.z)];
+    const q = [start];
+    seen[R.idx(S, start[0], start[1], start[2])] = 1;
+    const NB = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+    while (q.length) {
+      const [x, y, z] = q.pop();
+      for (const [dx, dy, dz] of NB) {
+        const nx = x + dx, ny = y + dy, nz = z + dz;
+        if (!passable(nx, ny, nz)) continue;
+        const i = R.idx(S, nx, ny, nz);
+        if (seen[i]) continue;
+        seen[i] = 1;
+        q.push([nx, ny, nz]);
+      }
+    }
+    return seen;
+  };
+  const canTouch = (S, seen, cell) => {
+    // he can reach a block if he can stand in any cell beside it
+    const NB = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+    return NB.some(([dx, dy, dz]) => {
+      const x = cell[0] + dx, y = cell[1] + dy, z = cell[2] + dz;
+      return R.inside(S, x, y, z) && seen[R.idx(S, x, y, z)];
+    });
+  };
+
+  for (const c of CFG.chapters) {
+    const S = R.create(CFG, { seed: 1, chapter: c.id });
+    const seen = flood(S);
+
+    // THE WAY OUT must be somewhere he can get to
+    ok(canTouch(S, seen, S.exit), `${c.name}: he can actually WALK to the way out`);
+
+    // every forge, every gauge, every ear he must reach
+    for (const f of S.forges) ok(canTouch(S, seen, f.at), `${c.name}: he can reach the forge`);
+    for (const g of S.gauges) ok(canTouch(S, seen, g.at), `${c.name}: he can reach the gauge "${g.name}"`);
+
+    /* every LIFTABLE block: if it is in the level, he had better be able to get his
+     * hands on it, because a level's stock is not stock if it is buried in a wall */
+    let liftable = 0, stranded = 0;
+    for (let x = 0; x < S.w; x++) for (let y = 0; y < S.h; y++) for (let z = 0; z < S.d; z++) {
+      const b = R.blockAt(S, x, y, z);
+      if (!CFG.blocks[b] || !CFG.blocks[b].carry) continue;
+      liftable++;
+      if (!canTouch(S, seen, [x, y, z])) stranded++;
+    }
+    eq(stranded, 0, `${c.name}: not one of its ${liftable} liftable blocks is buried where he cannot reach it`);
+  }
+});
+
 group('A LEVEL THAT ASKS FOR A BELL MUST CONTAIN A BELL\'S WORTH OF GRIT', () => {
   /* PLAYTEST: "I've fed everything into the forge and I'm stuck in a room."
    *
@@ -1577,6 +1649,84 @@ group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
   ok(!R.isSolid(W, 30, 6, 15), 'into the last room');
 });
 
+group('THE HULL: sound needs something to be sound in', () => {
+  /* Act II.2. A species with no word for vacuum is building a ship.
+   *
+   * PRESSURE IS NOT A FLAG. It is a fact about what is connected to what: if a space
+   * can reach the hole, its air has already gone. So nothing in this engine knows what
+   * a "compartment" is — we flood from SPACE through everything that is not solid, and
+   * whatever the flood touches has no air in it. Seal a breach with one block and the
+   * whole compartment re-pressurises, instantly, and nobody wrote that. It is just true.
+   */
+  const hull = () => R.create(CFG, { seed: 1, chapter: 'hull' });
+  // a clean listen: let the room go quiet, then ONE pulse, then count what came home
+  const listen = (S, x, y, z) => {
+    S.player.x = x; S.player.y = y; S.player.z = z;
+    steps(S, 14);
+    S.pulseCd = 0; R.pulse(S); steps(S, 2.4);
+    return R.litCells(S, []).length;
+  };
+
+  const V = CFG.blocks[16];
+  eq(V.key, 'vac', 'vacuum is a thing in the world');
+  eq(V.solid, false, 'and he can WALK straight through it — it is not a wall');
+  ok(V.cost > CFG.sonar.maxDist * 5, `but it costs ${V.cost} to cross, which is to say sound does not cross it AT ALL`);
+
+  const S = hull();
+  ok(S.vacN > 1000, `at the start, ${S.vacN} cells of the world have no air in them`);
+  eq(R.blockAt(S, 10, 3, 15), 0, 'AFT is sealed, and it is full of air');
+  eq(R.blockAt(S, 32, 3, 15), 16, 'FORWARD is breached, and it is full of nothing');
+
+  const aftLoud = listen(hull(), 10, 3, 15);
+  ok(aftLoud > 400, `he pulses aft and ${aftLoud} echoes come home — the room answers`);
+
+  /* PULL THE PLUG AND YOU KILL YOUR OWN SHIP.
+   * The hatch is one block of xenonite, and the moment it is out, aft is connected to
+   * forward, forward is connected to the hole, and the hole is connected to the dark. */
+  const P = hull();
+  P.player.x = 20.5; P.player.y = 3.5; P.player.z = 15.5; P.player.yaw = -Math.PI / 2;
+  const plug = R.takeBlock(P);
+  ok(plug.ok && plug.block === 7, 'he pulls the hatch plug — one block of xenonite');
+  eq(R.blockAt(P, 10, 3, 15), 16, 'and the air in the room BEHIND him goes with it');
+  ok(P.vacN > S.vacN, 'more of the world is nothing than was before');
+
+  const dead = listen(P, 10, 3, 15);
+  ok(dead < 20, `he pulses in the same room he could hear a minute ago and ${dead} echoes come home. His ship has gone silent.`);
+  ok(aftLoud > dead * 20, `${aftLoud} echoes with air, ${dead} without — that is what vacuum sounds like`);
+
+  /* AND YET HE IS NOT BLIND. The wave still runs out of his feet into the hull, and
+   * the hull still rings. In space you hear through what you are standing on. */
+  const fwd = listen(P, 32, 3, 15);
+  ok(R.inVacuum(P), 'he is standing in the vacuum');
+  ok(fwd > 40, `and ${fwd} echoes still come home — every one of them something he is TOUCHING`);
+  const lit = R.litCells(P, []);
+  ok(lit.every((c) => CFG.blocks[c.b].solid || c.b === 16), 'he hears the structure, and nothing else');
+
+  ok(!P.ears[0].open, 'the resonator across that room cannot hear him at all');
+
+  /* SEAL IT, AND THE AIR COMES BACK. ONE BLOCK. */
+  P.player.x = 36.5; P.player.y = 3.34; P.player.z = 21.4; P.player.yaw = Math.PI;   // stood on the deck
+  const patch = R.placeBlock(P);
+  ok(patch.ok && patch.block === 7, 'he puts the very same block into the hole');
+  eq(R.blockAt(P, 32, 3, 15), 0, 'AND THE AIR COMES BACK — the whole compartment, at once');
+  eq(R.blockAt(P, 10, 3, 15), 0, 'and aft with it, because they are one volume now');
+  ok(P.vacN < S.vacN, 'there is less nothing in the world than there was');
+
+  const alive = listen(P, 32, 3, 15);
+  ok(alive > 400, `he pulses forward and ${alive} echoes come home. The room came back.`);
+  steps(P, 3);
+  ok(P.ears[0].open, `and the resonator hears him (${(P.ears[0].loudest * 100).toFixed(0)}% of ${(P.ears[0].needs * 100).toFixed(0)}%)`);
+  ok(!R.isSolid(P, 40, 3, 15), 'THE DOOR OPENS');
+
+  // ...and put the block back where it was, and the ship dies again. Nothing is scripted.
+  P.player.x = 36.5; P.player.y = 3.34; P.player.z = 21.4; P.player.yaw = Math.PI;
+  R.takeBlock(P);
+  eq(R.blockAt(P, 32, 3, 15), 16, 'pull the patch out again and the air goes straight back out of it — nobody wrote that, it is just what being connected to a hole MEANS');
+
+  ok(/repressurize/.test(SRC.sim), 'pressure is computed, not stored');
+  ok(!/vacuum = true|isPressurised/.test(SRC.sim), 'and there is no flag anywhere claiming to know');
+});
+
 group('doors', () => {
   const S = deep();
   ok(R.isSolid(S, 20, 3, 17), 'a shut door is solid');
@@ -1642,7 +1792,7 @@ group('curriculum', () => {
   const MECHANICS = ['move:walk', 'move:climb', 'move:jump', 'sense:pulse', 'sense:return',
     'sense:footfall', 'sense:decay', 'sense:through', 'sense:material', 'world:sources',
     'read:base6', 'act:gauge', 'act:carry', 'world:conduct', 'world:ear', 'world:bell',
-    'act:forge', 'act:build', 'world:astro'];
+    'act:forge', 'act:build', 'world:astro', 'world:vacuum'];
   for (const m of MECHANICS) ok(CFG.teach[m], 'mechanic "' + m + '" is on the curriculum');
   eq(Object.keys(CFG.teach).length, MECHANICS.length, 'and there are no orphan lessons teaching rules that do not exist');
 

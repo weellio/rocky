@@ -478,6 +478,7 @@
           removeBell(S, x, y, z);
         }
         setBlock(S, x, y, z, 0);
+        repressurize(S);            // pull a block out of a hull and the air goes with it
         rebuildSurface(S);
         S.slot = slot;
         S.belt[slot] = b;
@@ -501,6 +502,7 @@
         if (x === pb[0] && z === pb[2] && (y === pb[1] || y === pb[1] - 1)) continue;
         const b = held(S);
         setBlock(S, x, y, z, b);
+        repressurize(S);            // ...and seal a breach and it comes straight back
         rebuildSurface(S);
         setHeld(S, 0);
         if (b === 11) addBell(S, x, y, z);      // set a bell down and it starts listening
@@ -863,6 +865,67 @@
   }
 
   /* ================================================================
+   * PRESSURE
+   *
+   * PRESSURE IS NOT A FLAG. It is a fact about what is connected to what.
+   *
+   * If a space can reach OUT — to the hole in the hull, to the sky, to the vacuum —
+   * then its air has already gone, and it is vacuum too. If it cannot, it is holding
+   * twenty-nine atmospheres of hot ammonia and it rings like a bell. So we do not
+   * "set a room to vacuum" anywhere: we flood from SPACE, through everything that is
+   * not solid, and whatever the flood touches has no air in it.
+   *
+   * Which means sealing a breach with a single block re-pressurises the whole
+   * compartment, instantly, with no code that knows anything about compartments. Put
+   * the block back and the air goes out again. Nobody wrote that. It is just true.
+   * ============================================================== */
+  function repressurize(S) {
+    if (!S.space || !S.space.length) return;
+    const N = S.w * S.h * S.d;
+    const out = new Uint8Array(N);
+    const q = [];
+    for (const c of S.space) {
+      if (!inside(S, c[0], c[1], c[2])) continue;
+      const i = idx(S, c[0], c[1], c[2]);
+      if (S.solidOf[S.vox[i]]) continue;
+      out[i] = 1;
+      q.push(i);
+    }
+    while (q.length) {
+      const i = q.pop();
+      const x = i % S.w, z = ((i / S.w) | 0) % S.d, y = (i / (S.w * S.d)) | 0;
+      for (let n = 0; n < FACES; n++) {
+        const nx = x + NB[n][0], ny = y + NB[n][1], nz = z + NB[n][2];
+        if (!inside(S, nx, ny, nz)) continue;
+        const j = idx(S, nx, ny, nz);
+        if (out[j] || S.solidOf[S.vox[j]]) continue;   // solid holds the air in
+        out[j] = 1;
+        q.push(j);
+      }
+    }
+
+    let vac = 0, air = 0;
+    for (let i = 0; i < N; i++) {
+      const b = S.vox[i];
+      if (b !== 0 && b !== 16) continue;               // only air and vacuum change
+      if (out[i]) { if (b !== 16) S.vox[i] = 16; vac++; }
+      else { if (b !== 0) S.vox[i] = 0; air++; }
+    }
+    const was = S.vacN;
+    S.vacN = vac;
+    S.airN = air;
+    S.dirty = true;
+    if (was != null && was > 0 && vac === 0) cue(S, 'pressure');   // the air comes back
+    return vac;
+  }
+
+  /* Is he standing in it? He is deaf if he is. */
+  function inVacuum(S) {
+    const p = S.player;
+    return blockAt(S, Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)) === 16;
+  }
+
+  /* ================================================================
    * THE WAY OUT
    *
    * PLAYTEST: "there is not a clear exit to the room... each level needs a distinct
@@ -1029,6 +1092,9 @@
       stepDoneN: 0,
       exit: chapter.exit || null,
       exitCd: 0,
+      space: chapter.space || null,
+      vacN: null,
+      airN: 0,
       carryOf: cfg.blocks.map((b) => !!b.carry),
       flags: {},
       cueQ: [],
@@ -1044,6 +1110,7 @@
     for (const d of S.doors) for (const c of d.cells) setBlock(S, c[0], c[1], c[2], 8);
     for (const f of S.forges) setBlock(S, f.at[0], f.at[1], f.at[2], 12);
     if (S.exit) setBlock(S, S.exit[0], S.exit[1], S.exit[2], 15);
+    repressurize(S);
     rebuildSurface(S);
     return S;
   }
@@ -1122,7 +1189,7 @@
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
-    stepNow, stepDone, stepWalk, chordOf, solved, stepExit,
+    stepNow, stepDone, stepWalk, chordOf, solved, stepExit, repressurize, inVacuum,
     feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED
   };
