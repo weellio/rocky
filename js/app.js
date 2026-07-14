@@ -1012,10 +1012,18 @@ function buildLabels() {
 
 /* ---------- open ---------- */
 function load(id) {
-  S = Sim.create(CFG, { seed: 1, chapter: id });
+  /* A GENERATED chapter gets a NEW SEED every time you walk into it — that is the
+   * entire point of it — and the seed goes on the screen, because a warren nobody has
+   * ever seen is a better story if you can hand it to somebody else. */
+  const chap = CFG.chapters.find((c) => c.id === id);
+  const seed = chap && chap.reseed ? (Math.random() * 1e9) | 0 : 1;
+  S = Sim.create(CFG, { seed, chapter: id });
+  S.seedShown = seed;
   camDist = 5.4;
   const n = CFG.chapters.findIndex((c) => c.id === S.chapter.id) + 1;
-  el('chapname').textContent = `Chapter ${n} — ${S.chapter.name}`;
+  el('chapname').textContent = chap && chap.reseed
+    ? `${S.chapter.name.split('  ')[0]} · warren #${seed}`
+    : `Chapter ${n} — ${S.chapter.name}`;
   el('objective').textContent = S.chapter.objective;
   // the box holds the gauge count AND the resonator readout: hide it only when a
   // chapter has neither, or the ear goes invisible in every chapter without gauges.

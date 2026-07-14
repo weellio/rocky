@@ -170,6 +170,183 @@
       return;
     }
 
+    if (op.op === 'smooth') {
+      /* ROUNDER. Noise makes a lumpy wall; it does not make a CAVE. A cave is smooth
+       * because it was worn smooth — so run the old cellular-automaton trick over it:
+       * a cell becomes whatever most of its neighbours are. Spikes and single blocks
+       * dissolve, and what is left has shoulders on it. */
+      const [x0, y0, z0] = op.from, [x1, y1, z1] = op.to;
+      const passes = op.passes || 2;
+      for (let pass = 0; pass < passes; pass++) {
+        const flip = [];
+        for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++)
+          for (let z = Math.min(z0, z1); z <= Math.max(z0, z1); z++)
+            for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) {
+              const here = blockAt(S, x, y, z);
+              if (here !== 0 && here !== 1) continue;         // only rock and air
+              if (!free(x, y, z)) continue;
+              let rock = 0, n = 0;
+              for (let dy = -1; dy <= 1; dy++)
+                for (let dz = -1; dz <= 1; dz++)
+                  for (let dx = -1; dx <= 1; dx++) {
+                    if (!dx && !dy && !dz) continue;
+                    n++;
+                    if (isSolid(S, x + dx, y + dy, z + dz)) rock++;
+                  }
+              if (here === 0 && rock >= 17) flip.push([x, y, z, 1]);        // a pocket fills in
+              else if (here === 1 && rock <= 9) flip.push([x, y, z, 0]);    // a spur wears away
+            }
+        for (const f of flip) setBlock(S, f[0], f[1], f[2], f[3]);
+      }
+      return;
+    }
+
+    if (op.op === 'warren') {
+      /* ================================================================
+       * A WARREN NOBODY HAS MAPPED.
+       *
+       * The old games all had map generators, and this is what one is FOR here: a
+       * cave you have never seen, which you can only know by shouting at it. Random
+       * rock, then a cellular automaton wears it into caverns and throats, then we
+       * keep the biggest single connected space and throw the rest away — because a
+       * cave you cannot walk to is not part of the cave.
+       *
+       * Then the two most distant points in what is left become where you START and
+       * where you GET OUT. Not "far apart" by eye: the actual graph diameter, found by
+       * flooding twice. So every seed is a real journey, and every seed is solvable,
+       * and the suite proves both across forty of them.
+       * ============================================================== */
+      const [x0, y0, z0] = op.from, [x1, y1, z1] = op.to;
+      const lo = [Math.min(x0, x1), Math.min(y0, y1), Math.min(z0, z1)];
+      const hi = [Math.max(x0, x1), Math.max(y0, y1), Math.max(z0, z1)];
+      const density = op.density == null ? 0.47 : op.density;
+      const passes = op.passes == null ? 5 : op.passes;
+
+      const at3 = (x, y, z) => idx(S, x, y, z);
+      const inBox = (x, y, z) => x >= lo[0] && x <= hi[0] && y >= lo[1] && y <= hi[1] && z >= lo[2] && z <= hi[2];
+
+      // 1. static
+      for (let y = lo[1]; y <= hi[1]; y++)
+        for (let z = lo[2]; z <= hi[2]; z++)
+          for (let x = lo[0]; x <= hi[0]; x++) {
+            const edge = x === lo[0] || x === hi[0] || y === lo[1] || y === hi[1] || z === lo[2] || z === hi[2];
+            setBlock(S, x, y, z, edge || rnd() < density ? 1 : 0);
+          }
+
+      // 2. wear it into caverns
+      for (let pass = 0; pass < passes; pass++) {
+        const next = [];
+        for (let y = lo[1] + 1; y < hi[1]; y++)
+          for (let z = lo[2] + 1; z < hi[2]; z++)
+            for (let x = lo[0] + 1; x < hi[0]; x++) {
+              let rock = 0;
+              for (let dy = -1; dy <= 1; dy++)
+                for (let dz = -1; dz <= 1; dz++)
+                  for (let dx = -1; dx <= 1; dx++) {
+                    if (!dx && !dy && !dz) continue;
+                    if (isSolid(S, x + dx, y + dy, z + dz)) rock++;
+                  }
+              // gravity in the rule: the roof stays up, the floor stays down
+              const high = (y - lo[1]) / (hi[1] - lo[1]);
+              const bias = high > 0.72 ? -2 : (high < 0.16 ? -3 : 0);
+              next.push([x, y, z, rock + bias >= 14 ? 1 : 0]);
+            }
+        for (const c of next) setBlock(S, c[0], c[1], c[2], c[3]);
+      }
+
+      /* 2b. WEAR THE EDGES OFF, and do it BEFORE anything is decided.
+       * Smoothing fills pockets and dissolves spurs — which means it can seal a throat,
+       * bury the arch, or wall the player into a cupboard. Run it after we have chosen
+       * where the exit goes and seventeen warrens out of forty are unwinnable, which is
+       * exactly what happened. Shape the cave first. Choose the journey second. */
+      for (let pass = 0; pass < (op.smooth == null ? 1 : op.smooth); pass++) {
+        const flip = [];
+        for (let y = lo[1] + 1; y < hi[1]; y++)
+          for (let z = lo[2] + 1; z < hi[2]; z++)
+            for (let x = lo[0] + 1; x < hi[0]; x++) {
+              const here = blockAt(S, x, y, z);
+              let rock = 0;
+              for (let dy = -1; dy <= 1; dy++)
+                for (let dz = -1; dz <= 1; dz++)
+                  for (let dx = -1; dx <= 1; dx++) {
+                    if (!dx && !dy && !dz) continue;
+                    if (isSolid(S, x + dx, y + dy, z + dz)) rock++;
+                  }
+              if (here === 0 && rock >= 20) flip.push([x, y, z, 1]);
+              else if (here === 1 && rock <= 8) flip.push([x, y, z, 0]);
+            }
+        for (const f of flip) setBlock(S, f[0], f[1], f[2], f[3]);
+      }
+
+      // 3. keep only the biggest connected space. A cave you cannot walk to is not cave.
+      const seen = new Uint8Array(S.w * S.h * S.d);
+      let best = null;
+      for (let y = lo[1]; y <= hi[1]; y++)
+        for (let z = lo[2]; z <= hi[2]; z++)
+          for (let x = lo[0]; x <= hi[0]; x++) {
+            const i0 = at3(x, y, z);
+            if (seen[i0] || isSolid(S, x, y, z)) continue;
+            const cells = [[x, y, z]];
+            seen[i0] = 1;
+            for (let h = 0; h < cells.length; h++) {
+              const [cx, cy, cz] = cells[h];
+              for (let n = 0; n < FACES; n++) {
+                const nx = cx + NB[n][0], ny = cy + NB[n][1], nz = cz + NB[n][2];
+                if (!inBox(nx, ny, nz) || isSolid(S, nx, ny, nz)) continue;
+                const j = at3(nx, ny, nz);
+                if (seen[j]) continue;
+                seen[j] = 1;
+                cells.push([nx, ny, nz]);
+              }
+            }
+            if (!best || cells.length > best.length) best = cells;
+          }
+      if (!best) return;
+
+      const keep = new Uint8Array(S.w * S.h * S.d);
+      for (const c of best) keep[at3(c[0], c[1], c[2])] = 1;
+      for (let y = lo[1]; y <= hi[1]; y++)
+        for (let z = lo[2]; z <= hi[2]; z++)
+          for (let x = lo[0]; x <= hi[0]; x++)
+            if (!isSolid(S, x, y, z) && !keep[at3(x, y, z)]) setBlock(S, x, y, z, 1);
+
+      // 4. the two ends of the longest walk in it: where you start, and where you get out
+      const farthestFrom = (start) => {
+        const dist = new Int32Array(S.w * S.h * S.d).fill(-1);
+        const q = [start];
+        dist[at3(start[0], start[1], start[2])] = 0;
+        let far = start, fd = 0;
+        for (let h = 0; h < q.length; h++) {
+          const [cx, cy, cz] = q[h];
+          const d = dist[at3(cx, cy, cz)];
+          if (d > fd) { fd = d; far = [cx, cy, cz]; }
+          for (let n = 0; n < FACES; n++) {
+            const nx = cx + NB[n][0], ny = cy + NB[n][1], nz = cz + NB[n][2];
+            if (!inBox(nx, ny, nz) || isSolid(S, nx, ny, nz)) continue;
+            const j = at3(nx, ny, nz);
+            if (dist[j] !== -1) continue;
+            dist[j] = d + 1;
+            q.push([nx, ny, nz]);
+          }
+        }
+        return { at: far, d: fd };
+      };
+      const a = farthestFrom(best[0]).at;
+      const b = farthestFrom(a);
+
+      // stand him on something, and put the arch on something
+      const ground = (c) => {
+        let y = c[1];
+        while (y > lo[1] + 1 && !isSolid(S, c[0], y - 1, c[2])) y--;
+        return [c[0], y, c[2]];
+      };
+      const sp = ground(a), ex = ground(b.at);
+      S.player.x = sp[0] + 0.5; S.player.y = sp[1] + 0.5; S.player.z = sp[2] + 0.5;
+      S.exit = ex;
+      S.warrenWalk = b.d;      // how long the journey actually is, in cells
+      return;
+    }
+
     if (op.op === 'tunnel') {
       // a wandering worm of nothing: a passage nobody surveyed
       const a = op.from, b = op.to;

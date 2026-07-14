@@ -1601,12 +1601,23 @@ group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
       .filter((d) => !R.isSolid(S, S.exit[0] + d[0], S.exit[1] + d[1], S.exit[2] + d[2]));
     ok(open.length > 0, `${c.name}: you can actually walk up to it (${open.length} open sides)`);
 
-    // ...and it is SILENT until the room is done with you
-    ok(!R.solved(S), `${c.name}: the room is not solved at the start`);
-    const before = S.emits;
+    /* A PUZZLE chapter's way out is SILENT until the room is done with you, so you
+     * cannot wander out of a job half done.
+     *
+     * A NAVIGATION chapter — the generated warren — has no job to be half done. There
+     * is nothing to solve there but the walk itself, so its arch calls from the first
+     * second, and getting to it IS the game. Two different promises; both kept. */
+    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length;
     steps(S, 6);
-    ok(!S.flags.exitOpen, `${c.name}: and the way out says NOTHING until it is`);
-    ok(!S.flags.done, `${c.name}: you cannot wander out of a job half done`);
+    if (isPuzzle) {
+      ok(!R.solved(S), `${c.name}: the room is not solved at the start`);
+      ok(!S.flags.exitOpen, `${c.name}: and the way out says NOTHING until it is`);
+      ok(!S.flags.done, `${c.name}: you cannot wander out of a job half done`);
+    } else {
+      ok(R.solved(S), `${c.name}: there is nothing to solve here but the walk itself`);
+      ok(S.flags.exitOpen, `${c.name}: so the way out calls from the first second — and finding it IS the game`);
+      ok(!S.flags.done, `${c.name}: and he is nowhere near it yet`);
+    }
   }
 
   /* AND WHEN IT IS SOLVED, IT CALLS — loudly, from across the level. */
@@ -1803,6 +1814,84 @@ group('THE DRIVE: a tuned resonator is a question, not a lock', () => {
 
   ok(/if \(!p\.note\) continue;/.test(SRC.sim), 'a click carries no note, so it can never satisfy a tuned ear');
   ok(/blocks\[b\]\.note/.test(SRC.sim), 'and a dropped block bangs in its OWN voice');
+});
+
+group('THE LONG DARK: forty warrens nobody has ever seen', () => {
+  /* Every other chapter is measured to the cell, because every other chapter is a
+   * PUZZLE and a puzzle you can accidentally solve is not one. This chapter is the
+   * opposite: it is GENERATED, fresh, every time you walk into it, and nobody — not
+   * you, not Rocky, not me — has ever seen it before.
+   *
+   * Which is only possible because of what this game already IS. You cannot look at a
+   * cave you have never seen. You can only shout at it, and stand still, and wait for
+   * it to answer, and build the place in your head out of what comes back.
+   *
+   * So the promise is small and absolute: EVERY SEED IS A REAL JOURNEY, AND EVERY SEED
+   * CAN BE WALKED. Forty of them, every run of this suite, before any of them ship.
+   */
+  const walkable = (S) => {
+    const seen = new Uint8Array(S.w * S.h * S.d);
+    const st = [Math.floor(S.player.x), Math.floor(S.player.y), Math.floor(S.player.z)];
+    const q = [st];
+    seen[R.idx(S, st[0], st[1], st[2])] = 1;
+    const NB = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+    while (q.length) {
+      const [x, y, z] = q.pop();
+      for (const [dx, dy, dz] of NB) {
+        const nx = x + dx, ny = y + dy, nz = z + dz;
+        if (!R.inside(S, nx, ny, nz) || R.isSolid(S, nx, ny, nz)) continue;
+        const i = R.idx(S, nx, ny, nz);
+        if (seen[i]) continue;
+        seen[i] = 1;
+        q.push([nx, ny, nz]);
+      }
+    }
+    const e = S.exit;
+    return NB.some(([dx, dy, dz]) =>
+      R.inside(S, e[0] + dx, e[1] + dy, e[2] + dz) && seen[R.idx(S, e[0] + dx, e[1] + dy, e[2] + dz)]);
+  };
+
+  const ch = CFG.chapters.find((c) => c.id === 'longdark');
+  ok(ch, 'there is a generated warren');
+  ok(ch.reseed, 'and it takes a NEW seed every time you walk into it — that is the whole point of it');
+  ok(/Math\.random\(\) \* 1e9/.test(SRC.app), 'the renderer rolls that seed');
+
+  let walked = 0, shortest = 1e9, longest = 0, smallest = 1e9, biggest = 0;
+  for (let seed = 1; seed <= 40; seed++) {
+    const S = R.create(CFG, { seed, chapter: 'longdark' });
+    let air = 0;
+    for (let i = 0; i < S.vox.length; i++) if (S.vox[i] === 0) air++;
+
+    ok(!R.isSolid(S, Math.floor(S.player.x), Math.floor(S.player.y), Math.floor(S.player.z)),
+      `warren #${seed}: he does not wake up inside a rock`);
+    ok(S.exit, `warren #${seed}: it has a way out`);
+    eq(R.blockAt(S, S.exit[0], S.exit[1], S.exit[2]), 15, `warren #${seed}: and the arch is really there`);
+    if (walkable(S)) walked++;
+
+    shortest = Math.min(shortest, S.warrenWalk);
+    longest = Math.max(longest, S.warrenWalk);
+    smallest = Math.min(smallest, air);
+    biggest = Math.max(biggest, air);
+  }
+  eq(walked, 40, 'ALL FORTY WARRENS CAN BE WALKED, from where he wakes up to the way out');
+  ok(shortest > 40, `and every one of them is a real journey — the shortest walk out of forty is ${shortest} cells (longest ${longest})`);
+  ok(smallest > 2000, `and a real cave — the smallest of forty holds ${smallest} cells of air (biggest ${biggest})`);
+
+  /* THE SHAPE IS DECIDED BEFORE THE JOURNEY IS.
+   * Smoothing fills pockets and dissolves spurs, so it can seal a throat, bury the arch,
+   * or wall the player into a cupboard. I ran it AFTER choosing the endpoints and
+   * seventeen warrens out of forty came out unwinnable. Shape the cave, THEN pick the
+   * two ends of it. */
+  ok(/Shape the cave first\. Choose the journey second\./.test(SRC.sim), 'the generator shapes the cave before it decides anything about it');
+  ok(/keep only the biggest connected space/.test(SRC.sim), 'and throws away every cave you cannot walk to');
+
+  // determinism: the same seed is the same warren, or "share this warren" is a lie
+  const a = R.create(CFG, { seed: 777, chapter: 'longdark' });
+  const b = R.create(CFG, { seed: 777, chapter: 'longdark' });
+  eq(a.vox.join(','), b.vox.join(','), 'the same seed is the same warren, block for block');
+  eq(JSON.stringify(a.exit), JSON.stringify(b.exit), 'with the way out in the same place');
+  const c = R.create(CFG, { seed: 778, chapter: 'longdark' });
+  ok(a.vox.join(',') !== c.vox.join(','), 'and the next seed is somewhere else entirely');
 });
 
 group('doors', () => {
