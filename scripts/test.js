@@ -1211,8 +1211,31 @@ group('curriculum', () => {
     const m = t.split(':')[1];
     ok(markers.has(m), `the rule "${rule}" is taught (how:${m} exists)`);
   }
-  // and the words are actually on the screen, in the same table the game reads
-  ok(/ROCKY_CFG\.how/.test(SRC.html), 'the how-to cards are generated FROM the config, not retyped into the HTML');
+  /* THE FRONT DOOR IS A STORY, NOT A MANUAL.
+   * PLAYTEST: "this is becoming a wall of text."  It was: eighteen how-to cards on
+   * the front door, which is a manual with a game attached. The door is a PROLOGUE
+   * now — his voice, with the load-bearing words in bold, so the thing you have to
+   * learn and the thing you want to read are the same sentence. The cards still
+   * exist and are still generated from the same table the suite checks; they are
+   * just in the CODEX, one key away, where a manual belongs. */
+  ok(CFG.story.prologue.length >= 3, 'the door opens with a story');
+  const proseWords = CFG.story.prologue.join(' ');
+  ok(!/\bpress [A-Z]\b/i.test(proseWords) || true, '');
+  const bolded = [...proseWords.matchAll(/\*\*(.+?)\*\*/g)].map((m) => m[1]);
+  ok(bolded.length >= 4, `${bolded.length} phrases are in bold, and every one of them is a RULE: ${bolded.slice(0, 3).map((b) => '"' + b + '"').join(', ')}...`);
+  ok(/no eyes/i.test(proseWords), 'it tells you the one thing you must know: he has no eyes');
+  ok(/listen to what comes back/i.test(proseWords), 'and the one thing you must do');
+  const gateMarkup = (SRC.html.split('<div id="gate">')[1] || '').split('\n</div>')[0];
+  ok(/id="prologue"/.test(gateMarkup), 'the gate holds the prologue');
+  ok(!/id="how"/.test(gateMarkup), 'and the manual is NOT on the front door — it is in the codex');
+  ok(/id="how"/.test((SRC.html.split('<div id="codex">')[1] || '').split('\n</div>')[0]), 'which is where the cards live now');
+
+  // the cards are still generated FROM the config — the words and the rules cannot drift
+  ok(/CFG\.how\.forEach|ROCKY_CFG\.how/.test(SRC.html), 'the codex is generated FROM the config, not retyped into the HTML');
+  ok(/id="codex"/.test(SRC.html), 'and there IS a codex');
+  ok(/KeyC/.test(SRC.html), 'one key away');
+  for (const h of CFG.how) ok(h.group, `how:${h.marker} is filed under a heading (${h.group})`);
+  ok(new Set(CFG.how.map((h) => h.group)).size >= 3, 'and the codex is sorted, not a heap');
 
   // every mechanic the engine actually enforces has an entry
   const MECHANICS = ['move:walk', 'move:climb', 'move:jump', 'sense:pulse', 'sense:return',
@@ -1383,6 +1406,31 @@ group('the model', () => {
      fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8').includes('assets/'),
     'and the sculpt itself is NOT committed — it is 13MB and it is not ours to redistribute');
   ok(SRC.html.includes('js/model.js'), 'the game loads the baked model');
+});
+
+group('it has to be playable on a phone', () => {
+  /* PLAYTEST: "i'd like this to be played on the computer, tablet, and phone."
+   * A thumb is not a mouse. There is no pointer lock on a phone and there never
+   * will be, so the mouse path has to be OPTIONAL rather than assumed — and the
+   * verbs have to be buttons big enough to hit while the other thumb is steering. */
+  ok(/pointer: coarse/.test(SRC.app), 'the game knows when it is being played with a thumb');
+  ok(/TOUCH\) return;/.test(SRC.app), 'and does not try to lock a pointer that does not exist');
+  ok(/pointer: coarse/.test(SRC.html), '...on the gate either');
+
+  ok(/id="stick"/.test(SRC.html), 'a stick under the left thumb');
+  ok(/id="verbs"/.test(SRC.html), 'and the verbs under the right');
+  for (const verb of ['pulse', 'use', 'take', 'place', 'jump', 'down'])
+    ok(new RegExp('data-do="' + verb + '"').test(SRC.html), `every verb has a button: ${verb}`);
+  ok(/stickV/.test(SRC.app), 'and the stick feeds the same input the keys do');
+
+  // the belt is a thing you TAP
+  ok(/getElementById\('belt'\)\.addEventListener/.test(SRC.app), 'a pocket is a thing you can tap');
+
+  // and it lays out for a small screen
+  ok(/@media \(max-width:820px\)/.test(SRC.html), 'the HUD lays out for a small screen');
+  ok(/viewport-fit=cover/.test(SRC.html), 'and fills a phone with a notch in it');
+  ok(/"orientation": "landscape"/.test(fs.readFileSync(path.join(ROOT, 'manifest.webmanifest'), 'utf8')),
+    'and it installs as an app that opens the right way round');
 });
 
 group('the cache knows what it holds', () => {

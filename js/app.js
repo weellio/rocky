@@ -371,7 +371,13 @@ addEventListener('wheel', (e) => {
   Sim.selectSlot(S, (S.slot + (e.deltaY > 0 ? 1 : n - 1)) % n);
 }, { passive: true });
 addEventListener('keyup', (e) => { keys[e.code] = false; });
-canvas.addEventListener('click', () => { if (!locked) canvas.requestPointerLock(); else doPulse(); });
+/* On a mouse, clicking the canvas grabs the pointer and clicking again pulses. On a
+ * phone there is no pointer to lock and there never will be, so the whole mouse path
+ * is optional rather than assumed. */
+canvas.addEventListener('click', () => {
+  if (TOUCH) return;
+  if (!locked) canvas.requestPointerLock(); else doPulse();
+});
 document.addEventListener('pointerlockchange', () => { locked = document.pointerLockElement === canvas; });
 addEventListener('mousemove', (e) => {
   if (!locked) return;
@@ -412,6 +418,95 @@ function doRead() {
     setTimeout(() => say(line.chord, line.text), 2200);
     setTimeout(() => banner('IT IS NOT MY VENTS THAT ARE FAILING. IT IS THE SKY.'), 4600);
   }
+}
+
+/* ================= TOUCH =================
+ * He has to be playable on a phone, and a thumb is not a mouse. The LEFT half of
+ * the screen is a stick you drag; the RIGHT half is where you look; the verbs are
+ * buttons big enough to hit while the other thumb is busy steering.
+ *
+ * Note there is no pointer lock on a phone and there never will be, so the whole
+ * mouse path has to be optional rather than assumed. */
+const TOUCH = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+const stickV = { x: 0, y: 0 };
+if (TOUCH) {
+  document.body.classList.add('touch');
+  const stick = document.getElementById('stick');
+  const knob = document.getElementById('knob');
+  // the stick shrinks on a short screen, so its throw is measured, not assumed
+  const throwOf = () => stick.getBoundingClientRect().width * 0.4;
+  let stickId = null, lookId = null, lookX = 0, lookY = 0;
+
+  const setKnob = (dx, dy) => {
+    const R = throwOf();
+    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+    stickV.x = dx / R;
+    stickV.y = dy / R;
+  };
+
+  stick.addEventListener('pointerdown', (e) => {
+    stickId = e.pointerId;
+    stick.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  stick.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== stickId) return;
+    const r = stick.getBoundingClientRect();
+    let dx = e.clientX - (r.left + r.width / 2);
+    let dy = e.clientY - (r.top + r.height / 2);
+    const R = throwOf();
+    const len = Math.hypot(dx, dy);
+    if (len > R) { dx = dx / len * R; dy = dy / len * R; }
+    setKnob(dx, dy);
+  });
+  const dropStick = (e) => {
+    if (e.pointerId !== stickId) return;
+    stickId = null;
+    setKnob(0, 0);
+  };
+  stick.addEventListener('pointerup', dropStick);
+  stick.addEventListener('pointercancel', dropStick);
+
+  // the right half of the screen is where you look
+  canvas.addEventListener('pointerdown', (e) => {
+    if (e.clientX < innerWidth * 0.42) return;
+    lookId = e.pointerId; lookX = e.clientX; lookY = e.clientY;
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== lookId) return;
+    yaw -= (e.clientX - lookX) * 0.006;
+    pitch = Math.max(-0.9, Math.min(1.1, pitch + (e.clientY - lookY) * 0.005));
+    lookX = e.clientX; lookY = e.clientY;
+  });
+  const dropLook = (e) => { if (e.pointerId === lookId) lookId = null; };
+  canvas.addEventListener('pointerup', dropLook);
+  canvas.addEventListener('pointercancel', dropLook);
+
+  const VERB = {
+    pulse: () => doPulse(),
+    use: () => doUse(),
+    take: () => doTake(),
+    place: () => doPlace(),
+    codex: () => window.ROCKY_CODEX && window.ROCKY_CODEX(true)
+  };
+  for (const b of document.querySelectorAll('.vb')) {
+    const what = b.dataset.do;
+    if (what === 'jump' || what === 'down') {   // these are HELD, not tapped
+      const key = what === 'jump' ? 'Space' : 'ShiftLeft';
+      b.addEventListener('pointerdown', (e) => { keys[key] = true; e.preventDefault(); });
+      b.addEventListener('pointerup', () => { keys[key] = false; });
+      b.addEventListener('pointercancel', () => { keys[key] = false; });
+    } else {
+      b.addEventListener('pointerdown', (e) => { e.preventDefault(); VERB[what](); });
+    }
+  }
+  // and a pocket is a thing you tap
+  document.getElementById('belt').style.pointerEvents = 'auto';
+  document.getElementById('belt').addEventListener('pointerdown', (e) => {
+    const cell = e.target.closest('.p');
+    if (!cell) return;
+    Sim.selectSlot(S, [].indexOf.call(cell.parentNode.children, cell));
+  });
 }
 
 function doTake() {
@@ -487,8 +582,11 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
 
-  input.fwd = (held(MOVE.fwd) ? 1 : 0) - (held(MOVE.back) ? 1 : 0);
-  input.right = (held(MOVE.right) ? 1 : 0) - (held(MOVE.left) ? 1 : 0);
+  // keys and thumb are the same input: whichever is pushing hardest wins
+  const kf = (held(MOVE.fwd) ? 1 : 0) - (held(MOVE.back) ? 1 : 0);
+  const kr = (held(MOVE.right) ? 1 : 0) - (held(MOVE.left) ? 1 : 0);
+  input.fwd = Math.abs(stickV.y) > Math.abs(kf) ? -stickV.y : kf;
+  input.right = Math.abs(stickV.x) > Math.abs(kr) ? stickV.x : kr;
   input.jump = !!keys.Space;
   input.down = !!(keys.ShiftLeft || keys.ShiftRight);
   input.yaw = yaw;

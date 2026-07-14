@@ -93,12 +93,38 @@
   #gate .sub{color:#7d93aa;font-size:13px;letter-spacing:.22em;text-transform:uppercase}
   #gate .blurb{max-width:62ch;color:#a9c0d6;font-size:14px;line-height:1.7}
   #gate .blurb b{color:var(--cyan);font-weight:400}
-  #how{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;
-    max-width:900px;width:100%;margin-top:4px}
-  .card{border:1px solid rgba(143,232,255,.16);background:rgba(8,16,28,.6);padding:10px 12px;
+  /* THE PROLOGUE — his voice, and the words that carry a RULE are the ones in bold,
+     so the thing you must learn and the thing you want to read are one sentence. */
+  #prologue{max-width:60ch;text-align:left;display:flex;flex-direction:column;gap:14px}
+  #prologue p{color:#93aac1;font-size:15px;line-height:1.75}
+  #prologue p:last-child{color:var(--amber);font-size:17px;letter-spacing:.02em;text-align:center;
+    margin-top:2px}
+  #prologue b{color:var(--cyan);font-weight:400;text-shadow:0 0 14px rgba(143,232,255,.35)}
+  #prologue em{color:#c7d8e8;font-style:italic}
+
+  /* THE CODEX — the manual, one key away, and generated from the same table the
+     suite checks. It is not on the front door any more. */
+  #codex{position:fixed;inset:0;z-index:30;background:rgba(2,5,12,.96);overflow-y:auto;
+    padding:34px 24px 60px;display:none}
+  #codex.open{display:block}
+  #codex h2{text-align:center;color:var(--amber);font-size:13px;letter-spacing:.3em;font-weight:400;
+    text-transform:uppercase;margin-bottom:6px}
+  #codex .hint{text-align:center;color:#3d4d61;font-size:10px;letter-spacing:.24em;margin-bottom:26px}
+  #codex .grp{max-width:960px;margin:0 auto 22px}
+  #codex .grp > h3{color:#5d708a;font-size:11px;letter-spacing:.28em;text-transform:uppercase;
+    font-weight:400;margin:0 0 10px;border-bottom:1px solid rgba(93,112,138,.2);padding-bottom:6px}
+  #codex .rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+  .card{border:1px solid rgba(143,232,255,.14);background:rgba(8,16,28,.6);padding:11px 13px;
     border-radius:3px;text-align:left}
-  .card h3{font-size:11px;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase;font-weight:400;margin-bottom:4px}
-  .card p{font-size:12px;line-height:1.55;color:#8fa6be}
+  .card h3{font-size:11px;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase;font-weight:400;margin-bottom:5px}
+  .card p{font-size:12.5px;line-height:1.6;color:#8fa6be}
+  #shut{display:block;margin:8px auto 0;background:transparent;border:1px solid var(--dim);color:var(--dim);
+    font:inherit;font-size:12px;letter-spacing:.2em;padding:9px 26px;border-radius:2px;cursor:pointer}
+  #shut:hover{border-color:var(--cyan);color:var(--cyan)}
+  #codexbtn{position:fixed;top:14px;right:18px;z-index:6;background:rgba(6,12,22,.7);
+    border:1px solid rgba(143,232,255,.3);color:var(--cyan);font:inherit;font-size:11px;letter-spacing:.18em;
+    padding:7px 12px;border-radius:2px;cursor:pointer}
+
   #chapters{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
   .chap{background:transparent;border:1px solid rgba(143,232,255,.28);color:#8fa6be;font:inherit;
     font-size:12px;letter-spacing:.14em;padding:8px 16px;border-radius:2px;cursor:pointer;transition:.18s}
@@ -109,6 +135,89 @@
     text-transform:uppercase;transition:.2s}
   #go:hover{background:var(--amber);color:#100600;box-shadow:0 0 40px rgba(255,154,60,.5)}
   .fold{font-size:10px;letter-spacing:.24em;color:#3d4d61;text-transform:uppercase}
+
+  /* ================= TOUCH =================
+     He has to be playable on a phone. A thumb is not a mouse: the LEFT half of the
+     screen is a stick you drag, the RIGHT half is where you look, and the verbs are
+     buttons big enough to hit while the other thumb is busy steering. */
+  #touch{position:fixed;inset:0;z-index:7;display:none;pointer-events:none}
+  body.touch #touch{display:block}
+  body.touch #keys{display:none}
+  #stick{position:absolute;left:26px;bottom:26px;width:132px;height:132px;border-radius:50%;
+    border:1px solid rgba(143,232,255,.22);background:rgba(8,16,28,.35);pointer-events:auto;
+    touch-action:none}
+  #knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
+    background:rgba(143,232,255,.22);border:1px solid rgba(143,232,255,.5);transition:opacity .2s}
+  #verbs{position:absolute;right:20px;bottom:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+    pointer-events:auto}
+  .vb{width:64px;height:52px;border-radius:4px;background:rgba(8,16,28,.72);
+    border:1px solid rgba(143,232,255,.28);color:var(--cyan);font:inherit;font-size:10px;
+    letter-spacing:.12em;display:flex;align-items:center;justify-content:center;cursor:pointer;
+    touch-action:none;user-select:none}
+  .vb:active{background:rgba(143,232,255,.22)}
+  .vb.big{grid-column:span 3;height:56px;font-size:12px;color:var(--amber);border-color:rgba(255,154,60,.45)}
+  .vb.big:active{background:rgba(255,154,60,.25)}
+
+  /* ================= THE PHONE LAYOUT =================
+     Keyed off TOUCH, not width: a phone in landscape is 844px wide, so a width
+     breakpoint never fires on the exact device it was written for. If there is a
+     thumb, there are thumbs in the corners, and the HUD has to get out of their way. */
+  body.touch #hud2{display:none}
+  body.touch #codexbtn{display:none}          /* there is a CODEX button under the thumb */
+  body.touch #top{padding:8px 12px}
+  body.touch #chapname{font-size:10px;letter-spacing:.18em}
+  body.touch #objective{font-size:11px;max-width:30ch;line-height:1.45}
+  body.touch #gbox{font-size:10px}
+  body.touch #gcount{font-size:17px}
+  body.touch #ear{font-size:9px;line-height:1.7}
+
+  /* his voice goes across the TOP, between the thumbs, where nothing else is */
+  body.touch #talk{left:50%;bottom:auto;top:12px;transform:translateX(-50%);
+    max-width:42vw;padding:7px 11px;border-radius:3px}
+  body.touch #chord{font-size:13px;margin-bottom:2px}
+  body.touch #speech{font-size:11px;line-height:1.45}
+  body.touch #banner{top:30%;font-size:clamp(15px,3vw,22px)}
+  body.touch #prompt{bottom:auto;top:96px;font-size:10px}
+  body.touch #flash{top:40%}
+
+  /* the belt sits just above the stick, small, and every pocket is a tap target */
+  body.touch #belt{left:16px;bottom:auto;top:auto;transform:none;bottom:168px;gap:4px}
+  body.touch #belt .p{width:44px;height:34px}
+  body.touch #belt .p span{font-size:7px}
+  body.touch #belt .p b{font-size:8px}
+
+  body.touch #forge{top:auto;bottom:168px;left:auto;right:220px;transform:none;
+    font-size:10px;line-height:1.7;padding:8px 10px;max-width:200px}
+
+  @media (max-height:470px){
+    body.touch #stick{width:104px;height:104px;left:18px;bottom:18px}
+    body.touch #knob{width:42px;height:42px;margin:-21px 0 0 -21px}
+    body.touch .vb{width:56px;height:42px;font-size:9px}
+    body.touch .vb.big{height:44px;font-size:11px}
+    body.touch #belt{bottom:132px}
+    body.touch #forge{bottom:132px}
+  }
+
+  /* ================= SMALL SCREENS ================= */
+  @media (max-width:820px){
+    #objective{font-size:11px;max-width:34ch}
+    #chapname{font-size:11px}
+    #gcount{font-size:20px}
+    #talk{bottom:150px;max-width:92vw;padding:9px 13px}
+    #speech{font-size:13px}
+    #forge{top:auto;bottom:150px;left:10px;transform:none;font-size:11px;padding:8px 11px}
+    #belt{bottom:auto;top:64px;left:50%;gap:3px}
+    #belt .p{width:46px;height:32px}
+    #belt .p span{font-size:7px}
+    #belt .p b{font-size:8px}
+    #hud2{display:none}
+    #prologue p{font-size:14px;line-height:1.7}
+    #codex .rows{grid-template-columns:1fr}
+  }
+  @media (max-height:520px){
+    #gate{padding-top:14px;gap:10px}
+    #gate h1{font-size:clamp(22px,5vw,34px)}
+  }
 </style>
 </head>
 <body>
@@ -135,22 +244,35 @@
   <b>Q</b> lift · <b>R</b> place · <b>1–6 / wheel</b> pick a pocket
 </div>
 
+<div id="touch">
+  <div id="stick"><div id="knob"></div></div>
+  <div id="verbs">
+    <button class="vb big" data-do="pulse">PULSE</button>
+    <button class="vb" data-do="use">USE</button>
+    <button class="vb" data-do="take">LIFT</button>
+    <button class="vb" data-do="place">PLACE</button>
+    <button class="vb" data-do="jump">JUMP</button>
+    <button class="vb" data-do="down">DOWN</button>
+    <button class="vb" data-do="codex">CODEX</button>
+  </div>
+</div>
+
+<button id="codexbtn">CODEX</button>
+
+<div id="codex">
+  <h2>The Codex</h2>
+  <div class="hint">everything Erid has taught him</div>
+  <div id="how"></div>
+  <button id="shut">Close</button>
+</div>
+
 <div id="gate">
   <div class="sub">Project Hail Mary · Erid · 40 Eridani</div>
   <h1>ROCKY SAVES THE <em>UNIVERSE</em></h1>
-  <p class="blurb">
-    You are an Eridian engineer, and you have <b>no eyes</b>. Nobody on your world has ever had them,
-    because your world has never had light. You know a room the way you know a song: you make a sound,
-    and you listen to what comes back.<br><br>
-    <b>Press E to pulse.</b> The wave leaves you at the speed of sound, so the far wall arrives late.
-    Rock is loud. Grit is nearly silent. And sound crosses stone — badly, but it crosses — so the
-    machines humming behind a wall will show you where the wall ends.<br><br>
-    Something is wrong with the heat.
-  </p>
+  <div id="prologue"></div>
   <div id="chapters"></div>
   <button id="go">Listen</button>
-  <div class="fold">— the whole briefing, below —</div>
-  <div id="how"></div>
+  <div class="fold">the codex holds the rest · C at any time</div>
 </div>
 
 <script src="js/config.js"></script>
@@ -160,12 +282,46 @@
 <script>
   /* THE CURRICULUM: every rule the engine enforces is taught, and the words on
      this screen come from the same table the test suite reads. A mechanic that
-     is not taught fails the suite by design. */
+     is not taught fails the suite by design.
+
+     But it is not a wall of eighteen cards on the front door any more. The door is
+     a STORY, with the load-bearing words in bold; the cards are the CODEX, and the
+     codex is one key away. */
   (function () {
-    const how = window.ROCKY_CFG.how;
-    document.getElementById('how').innerHTML = how.map(function (h) {
-      return '<div class="card" data-marker="' + h.marker + '"><h3>' + h.title + '</h3><p>' + h.body + '</p></div>';
+    const CFG = window.ROCKY_CFG;
+
+    document.getElementById('prologue').innerHTML = CFG.story.prologue.map(function (para) {
+      return '<p>' + para
+        .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>') + '</p>';
     }).join('');
+
+    // the codex, grouped, straight out of the same table
+    const groups = [];
+    CFG.how.forEach(function (h) {
+      let g = groups.find(function (x) { return x.name === h.group; });
+      if (!g) { g = { name: h.group, rows: [] }; groups.push(g); }
+      g.rows.push(h);
+    });
+    document.getElementById('how').innerHTML = groups.map(function (g) {
+      return '<div class="grp"><h3>' + g.name + '</h3><div class="rows">' + g.rows.map(function (h) {
+        return '<div class="card" data-marker="' + h.marker + '"><h3>' + h.title + '</h3><p>' + h.body + '</p></div>';
+      }).join('') + '</div></div>';
+    }).join('');
+
+    const codex = document.getElementById('codex');
+    const toggleCodex = function (on) {
+      codex.classList.toggle('open', on == null ? !codex.classList.contains('open') : on);
+      if (codex.classList.contains('open')) document.exitPointerLock();
+    };
+    document.getElementById('codexbtn').addEventListener('click', function () { toggleCodex(true); });
+    document.getElementById('shut').addEventListener('click', function () { toggleCodex(false); });
+    addEventListener('keydown', function (e) {
+      if (e.code === 'KeyC') toggleCodex();
+      if (e.code === 'Escape' && codex.classList.contains('open')) toggleCodex(false);
+    });
+    window.ROCKY_CODEX = toggleCodex;
+
     // the chapter list comes from config too. adding a level is a data change.
     const chaps = window.ROCKY_CFG.chapters;
     window.ROCKY_START = chaps[0].id;
@@ -187,7 +343,9 @@
       if (window.RockyAudio) window.RockyAudio.start();
       if (window.__rocky) window.__rocky.load(window.ROCKY_START);
       const c = document.getElementById('view');
-      c.requestPointerLock && c.requestPointerLock();
+      // no pointer to lock on a phone
+      const coarse = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+      if (!coarse && c.requestPointerLock) c.requestPointerLock();
     });
   })();
 </script>
