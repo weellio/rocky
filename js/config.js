@@ -12,6 +12,20 @@
     version: 1,
 
     /* ---------------------------------------------------------------
+     * THE PALETTE MEANS SOMETHING.
+     *
+     * This is a story about a thing that eats stars, told by somebody who cannot see.
+     * So the colours are not decoration — they are the argument:
+     *
+     *     GREEN  is LIFE. Xenonite, which carries sound. Resonators, which listen.
+     *            Bells, which answer. The way out. Everything that connects.
+     *     RED    is DEATH. Astrophage, which eats everything that reaches it, and grit,
+     *            which is the same crime on a smaller scale: it eats what you say.
+     *     AMBER  is HEAT — the vents, the forge, the gauges. On Erid heat IS life, and
+     *            it is going out.
+     *     ORANGE is reserved. It belongs to the OTHER SPECIES, and to the inside of a
+     *            ship called the Hail Mary, and we do not spend it until we get there.
+     *
      * THE WORLD IS MADE OF SOUND.
      * Rocky has no eyes. Every material returns a different echo, and the
      * colour you see IS that echo. Learn the colours, learn the world.
@@ -30,33 +44,33 @@
      * `carry` says whether Rocky can pick it up and put it somewhere better. */
     blocks: [
       { id: 0,  key: 'air',      name: 'Air',            solid: false, color: '#000000', absorb: 0.0,  cost: 1.0,  tex: 'none',   carry: false , note: 0 },
-      { id: 1,  key: 'rock',     name: 'Erid basalt',    solid: true,  color: '#4a5a6e', absorb: 0.35, cost: 6.5,  tex: 'mottle', carry: false , note: 174 },
-      { id: 2,  key: 'plate',    name: 'Floor plate',    solid: true,  color: '#6f7f93', absorb: 0.22, cost: 6.0,  tex: 'plate',  carry: false , note: 233 },
+      { id: 1,  key: 'rock',     name: 'Erid basalt',    solid: true,  color: '#6b6055', absorb: 0.35, cost: 6.5,  tex: 'mottle', carry: false , note: 174 },
+      { id: 2,  key: 'plate',    name: 'Floor plate',    solid: true,  color: '#8b8175', absorb: 0.22, cost: 6.0,  tex: 'plate',  carry: false , note: 233 },
       { id: 3,  key: 'girder',   name: 'Girder',         solid: true,  color: '#c88a3a', absorb: 0.10, cost: 4.0,  tex: 'stripe', carry: true  , note: 311 },
-      { id: 4,  key: 'pipe',     name: 'Ammonia pipe',   solid: true,  color: '#3fd3c0', absorb: 0.08, cost: 3.0,  tex: 'rings',  carry: false , note: 415 },
+      { id: 4,  key: 'pipe',     name: 'Ammonia pipe',   solid: true,  color: '#4fbf7a', absorb: 0.08, cost: 3.0,  tex: 'rings',  carry: false , note: 415 },
       { id: 5,  key: 'vent',     name: 'Heat vent',      solid: true,  color: '#ff6a2b', absorb: 0.05, cost: 3.0,  tex: 'grille', carry: false , note: 139 },
       { id: 6,  key: 'gauge',    name: 'Heat gauge',     solid: true,  color: '#ffd23c', absorb: 0.04, cost: 3.0,  tex: 'dial',   carry: false , note: 523 },
-      { id: 7,  key: 'xenonite', name: 'Xenonite',       solid: true,  color: '#b46bff', absorb: 0.02, cost: 1.4,  tex: 'facet',  carry: true  , note: 659 },
+      { id: 7,  key: 'xenonite', name: 'Xenonite',       solid: true,  color: '#57e08a', absorb: 0.02, cost: 1.4,  tex: 'facet',  carry: true  , note: 659 },
       { id: 8,  key: 'door',     name: 'Warren door',    solid: true,  color: '#8fe36b', absorb: 0.30, cost: 9.0,  tex: 'panel',  carry: false , note: 277 },
-      { id: 9,  key: 'sand',     name: 'Grit',           solid: true,  color: '#2f3743', absorb: 0.72, cost: 22.0, tex: 'grain',  carry: true  , note: 87 },
-      { id: 10, key: 'ear',      name: 'Resonator',      solid: true,  color: '#ff4fa3', absorb: 0.01, cost: 5.0,  tex: 'ear',    carry: false , note: 784 },
+      { id: 9,  key: 'sand',     name: 'Grit',           solid: true,  color: '#4a2a26', absorb: 0.72, cost: 22.0, tex: 'grain',  carry: true  , note: 87 },
+      { id: 10, key: 'ear',      name: 'Resonator',      solid: true,  color: '#9be86b', absorb: 0.01, cost: 5.0,  tex: 'ear',    carry: false , note: 784 },
       /* A BELL is a resonator that SHOUTS BACK. Ring it and it answers, loudly,
        * from where it stands — so a chain of them carries a sound clean across a
        * warren far too big to shout across. It is also how you find a blockage:
        * fire the chain and watch where it stops. */
-      { id: 11, key: 'bell',     name: 'Relay bell',     solid: true,  color: '#7cf7ff', absorb: 0.01, cost: 5.0,  tex: 'bell',   carry: true  , note: 880 },
+      { id: 11, key: 'bell',     name: 'Relay bell',     solid: true,  color: '#d0ff5c', absorb: 0.01, cost: 5.0,  tex: 'bell',   carry: true  , note: 880 },
       { id: 12, key: 'forge',    name: 'Xenonite forge', solid: true,  color: '#ff8a3c', absorb: 0.06, cost: 5.0,  tex: 'forge',  carry: false , note: 196 },
       /* CAST xenonite — poured in place, part of the structure, and it does not
        * come up again. A loose block of xenonite you can lift is a window you can
        * simply REMOVE and crawl through, which quietly unlocks every chamber in
        * the game that was supposed to be reachable only by sound. */
-      { id: 13, key: 'pane',     name: 'Cast xenonite',  solid: true,  color: '#c9a4ff', absorb: 0.02, cost: 1.4,  tex: 'pane',   carry: false , note: 698 },
+      { id: 13, key: 'pane',     name: 'Cast xenonite',  solid: true,  color: '#a9e8bd', absorb: 0.02, cost: 1.4,  tex: 'pane',   carry: false , note: 698 },
       /* ASTROPHAGE.
        * It eats light. Of course it eats sound — it eats everything that arrives,
        * which is what it is FOR. It returns nothing at all, so Rocky cannot hear
        * it: he can only hear the hole where it is. You find the thing that is
        * killing your star by looking for the part of the room that is not there. */
-      { id: 14, key: 'astro',    name: 'Astrophage',     solid: true,  color: '#120a1c', absorb: 0.995, cost: 26.0, tex: 'void', carry: true , note: 55 },
+      { id: 14, key: 'astro',    name: 'Astrophage',     solid: true,  color: '#2a0508', absorb: 0.995, cost: 26.0, tex: 'void', carry: true , note: 55 },
       /* THE WAY OUT.
        * PLAYTEST: "there is not a clear exit to the room... each level needs a
        * distinct similar finishing spot, or door, or portal."  Fair, and it was worse
@@ -65,7 +79,7 @@
        * So every chapter now ends at the same thing, and it is findable the way this
        * game finds EVERYTHING: solve the room and the way out starts to HUM. Pulse
        * anywhere and you will hear it calling. Walk into it and you are through. */
-      { id: 15, key: 'exit',     name: 'The way out',    solid: true,  color: '#7cffb0', absorb: 0.0,  cost: 2.0,  tex: 'arch',   carry: false, note: 988 },
+      { id: 15, key: 'exit',     name: 'The way out',    solid: true,  color: '#4dff9e', absorb: 0.0,  cost: 2.0,  tex: 'arch',   carry: false, note: 988 },
       /* VACUUM.
        * SOUND NEEDS SOMETHING TO BE SOUND IN. Erid is twenty-nine atmospheres of hot
        * ammonia and no Eridian has ever been anywhere that was not — they have no word
@@ -121,6 +135,11 @@
      * SIX pockets, because Eridians count in six and it would not occur to him to
      * build five or seven. */
     belt: { pockets: 6 },
+
+    /* Eridian names, for the people you meet in the dark. They are engineers, so they
+     * are named the way engineers name things: after what they DO, or what number they
+     * were, or what they are known for being right about. */
+    folkNames: ['VOTH', 'ARK', 'SEVEN', 'BRIDGE', 'QUIET', 'NINE', 'TALL', 'COUNTER', 'SIX'],
 
     /* A bell Rocky builds is the same OBJECT as any other bell — same list, same
      * rules, same field — but it is a better bell than the old ones in the walls,
@@ -205,12 +224,16 @@
     sourceKinds: {
       vent:  { period: 2.2, amp: 0.85, range: 15, hue: '#ff6a2b' },
       gauge: { period: 3.1, amp: 0.55, range: 10, hue: '#ffd23c' },
-      pipe:  { period: 4.0, amp: 0.40, range: 12, hue: '#3fd3c0' },
+      pipe:  { period: 4.0, amp: 0.40, range: 12, hue: '#4fbf7a' },
       drip:  { period: 1.7, amp: 0.30, range: 8,  hue: '#8fd8ff' },
       /* The way out calls, and it calls LOUD and far, because a player who cannot
        * find the door is a player who is not playing. It only starts once the room is
        * solved — before that it is a dead arch and it says nothing. */
-      exit:  { period: 1.4, amp: 1.0, range: 34, hue: '#7cffb0' }
+      exit:  { period: 1.4, amp: 1.0, range: 34, hue: '#4dff9e' },
+      /* AN ERIDIAN IS A NOISE. They are always working — tapping, filing, shifting
+       * things about — so you find a person exactly the way you find a wall: you shout,
+       * and something answers that is not a wall. */
+      folk:  { period: 2.0, amp: 0.62, range: 18, hue: '#ffb36b' }
     },
 
     audio: {
@@ -1023,7 +1046,7 @@
         forges: [{ at: [6, 2, 12] }],
         labels: [
           { at: [22, 3, 15], block: 7, text: 'THE HATCH — one block of xenonite (Q)' },
-          { at: [36, 4, 22], block: 0, text: 'THE BREACH — put it here (R)', color: '#ff4fa3' },
+          { at: [36, 4, 22], block: 0, text: 'THE BREACH — put it here (R)', color: '#9be86b' },
           { at: [6, 2, 12], block: 12, text: 'THE FORGE — 3 grit make more xenonite' },
           { at: [39, 3, 15], block: 10, text: 'RESONATOR — it cannot hear you in a vacuum' }
         ],
@@ -1112,8 +1135,8 @@
           { at: [18, 2, 20], block: 7, text: 'XENONITE' },
           { at: [29, 2, 19], block: 14, text: 'ASTROPHAGE — it will eat your voice' },
           { at: [12, 3, 9], block: 0, text: 'INTAKE I — it hears only GIRDER', color: '#c88a3a' },
-          { at: [24, 3, 9], block: 0, text: 'INTAKE II — it hears only XENONITE', color: '#b46bff' },
-          { at: [36, 3, 9], block: 0, text: 'INTAKE III — it hears only ASTROPHAGE', color: '#ff4fa3' }
+          { at: [24, 3, 9], block: 0, text: 'INTAKE II — it hears only XENONITE', color: '#57e08a' },
+          { at: [36, 3, 9], block: 0, text: 'INTAKE III — it hears only ASTROPHAGE', color: '#9be86b' }
         ],
         /* Each intake is DEAF to everything but its own note. Shout at them all day.
          * The only thing that will do it is the right block, dropped on the deck. */
@@ -1163,7 +1186,7 @@
         reseed: true,
         build: [
           { op: 'fill', from: [0, 0, 0], to: [51, 19, 51], block: 1 },
-          { op: 'warren', from: [1, 1, 1], to: [50, 16, 50], density: 0.57, passes: 5, smooth: 2 }
+          { op: 'warren', from: [1, 1, 1], to: [50, 16, 50], density: 0.57, passes: 5, smooth: 2, folk: 3 }
         ],
         sources: [],
         gauges: [],
@@ -1199,7 +1222,8 @@
       'act:build':    'how:build',
       'world:astro':  'how:astro',
       'world:vacuum': 'how:vacuum',
-      'world:tuned':  'how:tuned'
+      'world:tuned':  'how:tuned',
+      'world:folk':   'how:folk'
     },
 
     how: [
@@ -1223,6 +1247,7 @@
       { marker: 'vacuum',   group: 'Hearing',    title: 'Vacuum',      body: 'SOUND NEEDS SOMETHING TO BE SOUND IN. Erid is twenty-nine atmospheres of hot ammonia and no Eridian has ever been anywhere that was not, so we have no word for this. Where there is no air you are not quiet — you are DEAF. You can still WALK through it. You just cannot hear across it: all you can hear is what you are TOUCHING, because the sound still runs out of your feet into the hull and the hull still rings. And pressure is not a switch. Any space that can reach the hole has already emptied out. Close the hole and the air comes back, all of it, at once.' },
       { marker: 'astro', group: 'Hearing',    title: 'Astrophage',  body: 'It eats light. Of course it eats sound — it eats everything that arrives, which is what it is FOR. So it gives NOTHING back, and Rocky cannot hear it. He can only hear the HOLE where it is: pulse, and a patch of the wall simply does not come home. That is how you find the thing that is killing your star — you look for the part of the room that is not there. And a sample in your vest eats your own voice too: carry three and you are down to a sixth of yourself, whispering in the dark, and you will need to build something that can shout for you.' },
       { marker: 'tuned',    group: 'Making',     title: 'Tuned resonators', body: 'Some resonators are DEAF to everything but one note. Not quieter — deaf. You can stand in front of one and shout until your carapace splits and it will not hear you, because your voice is a CLICK and a click is not a pitch. But every material has a voice: a girder rings at 311, xenonite sings at 659, astrophage answers with a 55Hz thud you feel in your legs rather than hear. And a block DROPPED on the deck bangs in its own voice. So a tuned resonator is not a lock — it is a question, and the answer is a material. Go and fetch it, and put it down where the question is.' },
+      { marker: 'folk',     group: 'Hearing',    title: 'The others',  body: 'You are not alone down here. Eridians cannot do anything alone — no government, no war, no way to make anybody do anything — so the whole species runs on turning up and TALKING to each other. And you find a person the way you find everything else: an Eridian is always working, and work makes NOISE. Pulse, and something answers that is not a wall. Go and find out who. They will tell you the truth about where you are, and they will have walked it themselves, because an Eridian would be insulted to give you an estimate.' },
       { marker: 'bell', group: 'Making',     title: 'Bells',       body: 'A BELL is a resonator that shouts back. Ring it and it answers, loudly, from where it stands — so a line of bells carries a sound clean across a warren far too big for one voice. And when a chain of them dies halfway, the bell it died at is telling you exactly where the blockage is. Do not go hunting for a switch. Fire the chain, and watch.' }
     ],
 

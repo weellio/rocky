@@ -8,9 +8,12 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg">
 <style>
+  /* LIFE is green, DEATH is red, HEAT is amber — and ORANGE belongs to the humans,
+     so we do not spend it before we meet them. */
   :root{
-    --amber:#ff9a3c; --cyan:#8fe8ff; --violet:#b46bff; --dim:#5d708a;
-    --ink:#02040a;
+    --amber:#ffb347; --cyan:#7fe0a0; --violet:#9be86b; --dim:#6f7f6a;
+    --life:#7fe0a0; --death:#ff5a45;
+    --ink:#04070a;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%;overflow:hidden;background:var(--ink);color:#dff1ff;
@@ -25,10 +28,10 @@
   #objective{font-size:13px;color:#9fb6cc;margin-top:5px;max-width:52ch;line-height:1.5}
   #gbox{text-align:right;font-size:12px;color:var(--dim);letter-spacing:.14em}
   #gcount{display:block;font-size:26px;color:#ffd23c;letter-spacing:.06em;margin-top:2px}
-  #ear{display:block;font-size:11px;color:#ff4fa3;letter-spacing:.14em;margin-top:8px;opacity:0;
+  #ear{display:block;font-size:11px;color:var(--death);letter-spacing:.14em;margin-top:8px;opacity:0;
     transition:opacity .3s;line-height:1.9}
   #ear .on{color:#8fe36b}
-  #ear .ring{color:#7cf7ff;text-shadow:0 0 12px #7cf7ff}
+  #ear .ring{color:#d0ff5c;text-shadow:0 0 12px #d0ff5c}
   /* THE TOOL BELT — six pockets of worn leather, because Eridians count in six */
   #belt{left:50%;transform:translateX(-50%);bottom:52px;display:flex;gap:5px}
   #belt .p{width:64px;height:40px;border-radius:3px;position:relative;
@@ -81,9 +84,9 @@
 
   /* there is no air in here, and he should be told so */
   #vac{left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;
-    font-size:13px;letter-spacing:.22em;color:#ff4fa3;opacity:0;transition:opacity .5s;
-    text-shadow:0 0 20px rgba(255,79,163,.6);max-width:60vw;line-height:1.9;
-    border-top:1px solid rgba(255,79,163,.35);border-bottom:1px solid rgba(255,79,163,.35);
+    font-size:13px;letter-spacing:.22em;color:var(--death);opacity:0;transition:opacity .5s;
+    text-shadow:0 0 20px rgba(255,90,69,.6);max-width:60vw;line-height:1.9;
+    border-top:1px solid rgba(255,90,69,.35);border-bottom:1px solid rgba(255,90,69,.35);
     padding:10px 0}
   #flash{left:50%;top:52%;transform:translateX(-50%);font-size:13px;letter-spacing:.2em;
     color:#7d93aa;opacity:0}
@@ -103,7 +106,7 @@
   /* the door in */
   /* the button must never be below the fold: you should be able to press
      Listen on a laptop without hunting for it. The briefing sits underneath. */
-  #gate{position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at 50% 30%,#0a1424,#01030700 70%),#01030a;
+  #gate{position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at 50% 30%,#0d1a12,#04070a00 70%),#04070a;
     display:flex;flex-direction:column;align-items:center;gap:18px;
     /* `safe` centre: middle of the screen when it fits, top of the screen when it
        does not — a plain centre would push the title up off the top and take the
@@ -130,7 +133,7 @@
   #prologue p:last-child{column-span:all;color:var(--amber);font-size:19px;letter-spacing:.03em;
     text-align:center;margin:10px 0 0;padding-top:14px;
     border-top:1px solid rgba(255,154,60,.18)}
-  #prologue b{color:var(--cyan);font-weight:400;text-shadow:0 0 14px rgba(143,232,255,.35)}
+  #prologue b{color:var(--cyan);font-weight:400;text-shadow:0 0 14px rgba(127,224,160,.35)}
   #prologue em{color:#c7d8e8;font-style:italic}
   @media (max-width:900px){
     #prologue{columns:1;column-rule:none;width:min(62ch,92vw)}
@@ -153,7 +156,7 @@
   #codex .grp > h3{color:#5d708a;font-size:11px;letter-spacing:.28em;text-transform:uppercase;
     font-weight:400;margin:0 0 10px;border-bottom:1px solid rgba(93,112,138,.2);padding-bottom:6px}
   #codex .rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
-  .card{border:1px solid rgba(143,232,255,.14);background:rgba(8,16,28,.6);padding:11px 13px;
+  .card{border:1px solid rgba(127,224,160,.14);background:rgba(8,16,28,.6);padding:11px 13px;
     border-radius:3px;text-align:left}
   .card h3{font-size:11px;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase;font-weight:400;margin-bottom:5px}
   .card p{font-size:12.5px;line-height:1.6;color:#8fa6be}
@@ -168,8 +171,8 @@
   #mats i{display:inline-block;width:15px;height:15px;border-radius:2px;margin-right:9px;
     vertical-align:-3px;border:1px solid rgba(255,255,255,.16)}
   #mats .bar{display:inline-block;height:5px;border-radius:3px;vertical-align:middle;min-width:2px}
-  #mats .loud{background:linear-gradient(90deg,#3a4a5e,#8fe8ff)}
-  #mats .carry{background:linear-gradient(90deg,#3a4a5e,#b46bff)}
+  #mats .loud{background:linear-gradient(90deg,#3a4a5e,#7fe0a0)}
+  #mats .carry{background:linear-gradient(90deg,#3a4a5e,#9be86b)}
   #mats td small{color:#5d708a;margin-left:7px;font-size:10px}
   #codex .note{color:#5d708a;font-size:11px;line-height:1.6;margin-top:10px}
   #codex .note b{color:#8fa6be;font-weight:400}
@@ -177,11 +180,11 @@
     font:inherit;font-size:12px;letter-spacing:.2em;padding:9px 26px;border-radius:2px;cursor:pointer}
   #shut:hover{border-color:var(--cyan);color:var(--cyan)}
   #codexbtn{position:fixed;top:14px;right:18px;z-index:6;background:rgba(6,12,22,.7);
-    border:1px solid rgba(143,232,255,.3);color:var(--cyan);font:inherit;font-size:11px;letter-spacing:.18em;
+    border:1px solid rgba(127,224,160,.3);color:var(--cyan);font:inherit;font-size:11px;letter-spacing:.18em;
     padding:7px 12px;border-radius:2px;cursor:pointer}
 
   #chapters{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-  .chap{background:transparent;border:1px solid rgba(143,232,255,.28);color:#8fa6be;font:inherit;
+  .chap{background:transparent;border:1px solid rgba(127,224,160,.28);color:#8fa6be;font:inherit;
     font-size:12px;letter-spacing:.14em;padding:8px 16px;border-radius:2px;cursor:pointer;transition:.18s}
   .chap:hover{border-color:var(--cyan);color:var(--cyan)}
   .chap.sel{border-color:var(--amber);color:var(--amber);background:rgba(255,154,60,.08)}
@@ -199,17 +202,17 @@
   body.touch #touch{display:block}
   body.touch #keys{display:none}
   #stick{position:absolute;left:26px;bottom:26px;width:132px;height:132px;border-radius:50%;
-    border:1px solid rgba(143,232,255,.22);background:rgba(8,16,28,.35);pointer-events:auto;
+    border:1px solid rgba(127,224,160,.22);background:rgba(8,16,28,.35);pointer-events:auto;
     touch-action:none}
   #knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;
-    background:rgba(143,232,255,.22);border:1px solid rgba(143,232,255,.5);transition:opacity .2s}
+    background:rgba(127,224,160,.22);border:1px solid rgba(127,224,160,.5);transition:opacity .2s}
   #verbs{position:absolute;right:20px;bottom:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
     pointer-events:auto}
   .vb{width:64px;height:52px;border-radius:4px;background:rgba(8,16,28,.72);
-    border:1px solid rgba(143,232,255,.28);color:var(--cyan);font:inherit;font-size:10px;
+    border:1px solid rgba(127,224,160,.28);color:var(--cyan);font:inherit;font-size:10px;
     letter-spacing:.12em;display:flex;align-items:center;justify-content:center;cursor:pointer;
     touch-action:none;user-select:none}
-  .vb:active{background:rgba(143,232,255,.22)}
+  .vb:active{background:rgba(127,224,160,.22)}
   .vb.big{grid-column:span 3;height:56px;font-size:12px;color:var(--amber);border-color:rgba(255,154,60,.45)}
   .vb.big:active{background:rgba(255,154,60,.25)}
 

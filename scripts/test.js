@@ -431,6 +431,13 @@ group('the warren breathes', () => {
   for (const k of Object.keys(CFG.sourceKinds)) {
     const kind = CFG.sourceKinds[k];
     ok(kind.range > 0, `source "${k}" has a range`);
+    if (k === 'folk') {
+      /* A PERSON IS NOT A FLOODLIGHT EITHER, but they are meant to be heard from a room
+       * away, because the entire point of them is that you go and find out who that was. */
+      ok(kind.range > 12 && kind.range < CFG.sonar.maxDist,
+        `an Eridian at work carries ${kind.range} cells — far enough to be worth walking toward, not so far that the warren is never quiet`);
+      continue;
+    }
     if (k === 'exit') {
       /* THE ONE EXCEPTION, and it is deliberate. The way out is not a machine
        * muttering to itself in a corner — it is a BEACON, and it is allowed to be
@@ -1650,7 +1657,7 @@ group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
    * The ONE exception is the way out. It is a beacon. Being visible through the whole
    * level is its entire job. */
   ok(/depthTest: !seeThrough/.test(SRC.app), 'labels are hidden behind rock, like everything else in this game');
-  ok(/makeLabel\('THE WAY OUT', '#7cffb0', true\)/.test(SRC.app), 'and the way out is the ONE that shines through it');
+  ok(/makeLabel\('THE WAY OUT', '#4dff9e', true\)/.test(SRC.app), 'and the way out is the ONE that shines through it');
   ok(/makeLabel\(L\.text[\s\S]{0,90}?false\)/.test(SRC.app), 'every other label obeys the walls');
 
   /* THE TUTORIAL'S CRAWL IS A CRAWL YOU CAN GET INTO, AND IT IS SIGNPOSTED.
@@ -1894,6 +1901,97 @@ group('THE LONG DARK: forty warrens nobody has ever seen', () => {
   ok(a.vox.join(',') !== c.vox.join(','), 'and the next seed is somewhere else entirely');
 });
 
+group('THE OTHERS: you find a person the way you find a wall', () => {
+  /* PLAYTEST: "it would be cool to have other Eridians to talk to on the maps. maybe to
+   * give clues?"
+   *
+   * Eridians cannot do anything alone. No government, no war, no way to make anybody do
+   * anything — the entire species runs on turning up and TALKING to each other. A warren
+   * with nobody in it is not a warren, it is a hole.
+   *
+   * And you find them BY SOUND, like everything else here: an Eridian is always working,
+   * and work makes noise, so a pulse shows you a person exactly the way it shows you a
+   * wall. What they give you is what an engineer gives you — the truth about where you
+   * are, WALKED, not estimated. */
+  const k = CFG.sourceKinds.folk;
+  ok(k, 'a person is a noise');
+  ok(k.range > 12, `and one you can hear from ${k.range} cells away`);
+
+  const S = R.create(CFG, { seed: 7, chapter: 'longdark' });
+  eq(S.folk.length, 3, 'three of them, down there in the dark');
+  eq(S.metN, 0, 'and he has met none of them');
+
+  for (const f of S.folk) {
+    ok(f.name, 'each has a name');
+    ok(f.line && f.line.length > 30, `${f.name} has something to say`);
+    ok(!R.isSolid(S, f.at[0], f.at[1], f.at[2]), `${f.name} is not standing inside a rock`);
+    ok(R.isSolid(S, f.at[0], f.at[1] - 1, f.at[2]), `${f.name} is standing ON something`);
+  }
+
+  /* THEY HAVE WALKED IT. The number they give you is the real one — a breadth-first
+   * walk through the actual cave, from where they are standing to the way out — and it
+   * is in SIXES, because they are Eridians. An engineer would be insulted to estimate. */
+  for (const f of S.folk) {
+    const c = R.folkClue(S, f);
+    ok(c && c.steps > 0, `${f.name} knows the way out: ${c.steps} cells`);
+    eq(c.six, R.toBase6(c.steps), 'and says it in base six, because that is how he counts');
+    ok(f.line.includes(String(c.steps)), 'and the line he actually speaks carries that number');
+  }
+  // the one nearest the exit knows the shortest way. They are not reading from a script.
+  const walks = S.folk.map((f) => R.folkClue(S, f).steps);
+  ok(new Set(walks).size === walks.length, 'and no two of them give the same answer, because no two of them are standing in the same place');
+
+  /* THEY ARE WORKING, SO THEY ARE AUDIBLE. */
+  const before = S.emits;
+  steps(S, 8);
+  ok(S.emits > before + 4, `in eight seconds they make ${S.emits - before} separate noises — you can hear people from a room away`);
+  eq(S.metN, 0, 'but hearing somebody is not meeting them');
+
+  // walk up to one, and you have met them
+  const f0 = S.folk[0];
+  S.player.x = f0.at[0] + 1.5; S.player.y = f0.at[1] + 0.5; S.player.z = f0.at[2] + 0.5;
+  steps(S, 0.4);
+  ok(f0.met, `he walks up to ${f0.name}, and they talk`);
+  eq(S.metN, 1, 'one met');
+  ok(S.folk.filter((f) => f.met).length === 1, 'and only the one he is standing next to');
+});
+
+group('THE PALETTE MEANS SOMETHING', () => {
+  /* PLAYTEST: "less blues and purples — follow the theme of life (green) and the death
+   * from astrophage (red), and the ranges in there."
+   *
+   * Right. This is a story about a thing that eats stars, told by somebody who cannot
+   * see, and the colours should be the ARGUMENT rather than the decoration:
+   *
+   *    GREEN  is life: xenonite (which carries sound), resonators (which listen), bells
+   *           (which answer), the way out. Everything that CONNECTS.
+   *    RED    is death: astrophage, which eats everything that reaches it — and grit,
+   *           which is the same crime on a smaller scale.
+   *    AMBER  is heat, and on Erid heat IS life, and it is going out.
+   *    ORANGE is spent on nothing yet. It belongs to the other species and to the inside
+   *           of a ship called the Hail Mary, and we do not touch it until we get there. */
+  const rgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const green = (h) => { const [r, g, b] = rgb(h); return g > r && g > b; };
+  const red = (h) => { const [r, g, b] = rgb(h); return r > g && r > b && g < 120; };
+
+  for (const key of ['xenonite', 'ear', 'bell', 'exit', 'pane', 'door']) {
+    const b = CFG.blocks.find((x) => x.key === key);
+    ok(green(b.color), `${b.name} is GREEN — it is one of the things that connect`);
+  }
+  for (const key of ['astro', 'sand']) {
+    const b = CFG.blocks.find((x) => x.key === key);
+    ok(red(b.color), `${b.name} is RED — it eats what reaches it`);
+  }
+
+  // and nothing in the world is BLUE any more
+  for (const b of CFG.blocks) {
+    if (!b.solid) continue;
+    const [r, g, bl] = rgb(b.color);
+    ok(!(bl > r && bl > g), `${b.name} is not blue — this warren is lit by life and death, not by a screensaver`);
+  }
+  ok(!/#8fe8ff|#b46bff|#7cf7ff|#ff4fa3/.test(SRC.html), 'and the HUD has no cyan, violet or hot pink left in it');
+});
+
 group('doors', () => {
   const S = deep();
   ok(R.isSolid(S, 20, 3, 17), 'a shut door is solid');
@@ -1959,7 +2057,7 @@ group('curriculum', () => {
   const MECHANICS = ['move:walk', 'move:climb', 'move:jump', 'sense:pulse', 'sense:return',
     'sense:footfall', 'sense:decay', 'sense:through', 'sense:material', 'world:sources',
     'read:base6', 'act:gauge', 'act:carry', 'world:conduct', 'world:ear', 'world:bell',
-    'act:forge', 'act:build', 'world:astro', 'world:vacuum', 'world:tuned'];
+    'act:forge', 'act:build', 'world:astro', 'world:vacuum', 'world:tuned', 'world:folk'];
   for (const m of MECHANICS) ok(CFG.teach[m], 'mechanic "' + m + '" is on the curriculum');
   eq(Object.keys(CFG.teach).length, MECHANICS.length, 'and there are no orphan lessons teaching rules that do not exist');
 

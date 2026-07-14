@@ -124,6 +124,16 @@
         setTimeout(function () { ping(f, 0.9, 'sine', 0.16); }, 260 + i * 110);
       });
     },
+    /* somebody working: a tap, a scrape, a thing being put down */
+    'source:folk': function () {
+      ping(392 + Math.random() * 180, 0.06, 'triangle', 0.05);
+      setTimeout(function () { noise(0.07, 1100, 0.04); }, 70 + Math.random() * 90);
+    },
+    meet: function () {
+      [440, 587, 740].forEach(function (f, i) {
+        setTimeout(function () { ping(f, 0.45, 'sine', 0.15); }, i * 110);
+      });
+    },
     'source:vent': function () { noise(0.32, 420, 0.05); },
     'source:pipe': function () { ping(320, 0.16, 'sine', 0.035); },
     'source:drip': function () { ping(1400, 0.05, 'sine', 0.03, 900); },

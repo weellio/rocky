@@ -344,6 +344,41 @@
       S.player.x = sp[0] + 0.5; S.player.y = sp[1] + 0.5; S.player.z = sp[2] + 0.5;
       S.exit = ex;
       S.warrenWalk = b.d;      // how long the journey actually is, in cells
+
+      /* AND PUT PEOPLE IN IT.
+       * A warren with nobody in it is not a warren, it is a hole. Space them along the
+       * ACTUAL walk out — a quarter, a half, three quarters of the way — so you meet
+       * somebody roughly when you have started to wonder whether you are lost. */
+      if (op.folk) {
+        const dist = new Int32Array(S.w * S.h * S.d).fill(-1);
+        const q = [sp];
+        dist[at3(sp[0], sp[1], sp[2])] = 0;
+        const byDist = [];
+        for (let h = 0; h < q.length; h++) {
+          const [cx, cy, cz] = q[h];
+          const d = dist[at3(cx, cy, cz)];
+          if (isSolid(S, cx, cy - 1, cz)) byDist.push({ at: [cx, cy, cz], d });   // standing on something
+          for (let n = 0; n < FACES; n++) {
+            const nx = cx + NB[n][0], ny = cy + NB[n][1], nz = cz + NB[n][2];
+            if (!inBox(nx, ny, nz) || isSolid(S, nx, ny, nz)) continue;
+            const j = at3(nx, ny, nz);
+            if (dist[j] !== -1) continue;
+            dist[j] = d + 1;
+            q.push([nx, ny, nz]);
+          }
+        }
+        const far = b.d;
+        S.folkSpots = [];
+        for (let k = 1; k <= op.folk; k++) {
+          const want = far * (k / (op.folk + 1));
+          let best2 = null;
+          for (const c of byDist) {
+            const err = Math.abs(c.d - want);
+            if (!best2 || err < best2.err) best2 = { at: c.at, err, d: c.d };
+          }
+          if (best2) S.folkSpots.push(best2.at);
+        }
+      }
       return;
     }
 
@@ -1249,6 +1284,81 @@
   }
 
   /* ================================================================
+   * THE OTHERS
+   *
+   * PLAYTEST: "it would be cool to have other Eridians to talk to on the maps. maybe
+   * to give clues? maybe they have their own rooms in the cave spaces?"
+   *
+   * Eridians cannot do anything alone. They have no government and no war and no way to
+   * make anybody do anything, so the entire species runs on turning up and TALKING to
+   * each other. A warren with nobody in it is not a warren, it is a hole.
+   *
+   * And they are found the way everything in this game is found: BY SOUND. An Eridian is
+   * always working — tapping, filing, shifting things about — so an Eridian is a NOISE,
+   * and a pulse shows you a person exactly the way it shows you a wall. You do not see
+   * them across the room. You hear somebody working, and you go and find out who.
+   *
+   * What they give you is what an engineer gives you: they tell you the truth about
+   * where you are. In a generated warren, that is a bearing and a distance to the way
+   * out — computed, not guessed, by walking the cave themselves.
+   * ============================================================== */
+  function stepFolk(S, dt) {
+    if (!S.folk.length) return;
+    const p = S.player;
+    for (const f of S.folk) {
+      // they are always working, and work makes noise
+      f.cd -= dt;
+      if (f.cd <= 0) {
+        const k = S.cfg.sourceKinds.folk;
+        f.cd += k.period * (0.7 + S.rnd() * 0.6);
+        emit(S, f.at[0] + 0.5, f.at[1] + 0.5, f.at[2] + 0.5, k.amp, 90, k.range, null, S.cfg.blocks[11].note);
+        cue(S, 'source:folk');
+      }
+      const d = Math.hypot(p.x - (f.at[0] + 0.5), p.y - (f.at[1] + 0.5), p.z - (f.at[2] + 0.5));
+      f.near = d < 5.5;
+      if (f.near && !f.met) {
+        f.met = true;
+        S.metN++;
+        cue(S, 'meet');
+      }
+    }
+  }
+
+  /* WHAT DOES SOMEBODY WHO LIVES HERE KNOW? Where the way out is — and not vaguely:
+   * they have walked it. So we walk it too, from them, through the actual cave, and hand
+   * them the real number. An Eridian would be insulted to give you an estimate. */
+  function folkClue(S, f) {
+    if (!S.exit) return null;
+    const dist = new Int32Array(S.w * S.h * S.d).fill(-1);
+    const start = idx(S, f.at[0], f.at[1], f.at[2]);
+    const q = [[f.at[0], f.at[1], f.at[2]]];
+    dist[start] = 0;
+    let hit = -1;
+    while (q.length) {
+      const [x, y, z] = q.shift();
+      const d = dist[idx(S, x, y, z)];
+      for (let n = 0; n < FACES; n++) {
+        const nx = x + NB[n][0], ny = y + NB[n][1], nz = z + NB[n][2];
+        if (!inside(S, nx, ny, nz)) continue;
+        if (nx === S.exit[0] && ny === S.exit[1] && nz === S.exit[2]) { hit = d + 1; q.length = 0; break; }
+        if (isSolid(S, nx, ny, nz)) continue;
+        const j = idx(S, nx, ny, nz);
+        if (dist[j] !== -1) continue;
+        dist[j] = d + 1;
+        q.push([nx, ny, nz]);
+      }
+      if (hit >= 0) break;
+    }
+    if (hit < 0) return null;
+    const dx = S.exit[0] - f.at[0], dz = S.exit[2] - f.at[2], dy = S.exit[1] - f.at[1];
+    const dirs = [];
+    if (Math.abs(dz) > 4) dirs.push(dz < 0 ? 'sunward' : 'deepward');
+    if (Math.abs(dx) > 4) dirs.push(dx < 0 ? 'left of that' : 'right of that');
+    const climb = dy > 3 ? ' and it is ABOVE you' : (dy < -3 ? ' and it is BELOW you' : '');
+    return { steps: hit, six: toBase6(hit), where: dirs.join(', ') || 'close, very close', climb };
+  }
+
+  /* ================================================================
    * THE WAY OUT
    *
    * PLAYTEST: "there is not a clear exit to the room... each level needs a distinct
@@ -1416,6 +1526,8 @@
       stepDoneN: 0,
       exit: chapter.exit || null,
       exitCd: 0,
+      folk: (chapter.folk || []).map((f) => Object.assign({ met: false, near: false, cd: 0 }, f)),
+      metN: 0,
       space: chapter.space || null,
       vacN: null,
       airN: 0,
@@ -1434,6 +1546,26 @@
     for (const d of S.doors) for (const c of d.cells) setBlock(S, c[0], c[1], c[2], 8);
     for (const f of S.forges) setBlock(S, f.at[0], f.at[1], f.at[2], 12);
     if (S.exit) setBlock(S, S.exit[0], S.exit[1], S.exit[2], 15);
+
+    /* THE PEOPLE A GENERATOR PUTS IN A CAVE.
+     * They are not decoration and they do not read from a script: each of them WALKS the
+     * cave, from where they are standing to the way out, and tells you the real number.
+     * An Eridian would be insulted to give you an estimate. */
+    if (S.folkSpots && S.folkSpots.length) {
+      const names = cfg.folkNames;
+      S.folkSpots.forEach((at, i) => {
+        const f = { at, name: names[i % names.length], met: false, near: false, cd: i * 0.4, generated: true };
+        S.folk.push(f);
+      });
+      for (const f of S.folk) {
+        if (!f.generated) continue;
+        const c = folkClue(S, f);
+        f.chord = ['♪♩♪', '♩♪♩♩', '♪♪♩', '♩♩♪♪'][S.folk.indexOf(f) % 4];
+        f.line = c
+          ? `The way out? ${c.six} paces, in sixes — ${c.steps} of yours. ${c.where}${c.climb}. I have walked it. I am not guessing.`
+          : 'There is no way out of here that I have ever found, and I have looked.';
+      }
+    }
     repressurize(S);
     rebuildSurface(S);
     return S;
@@ -1451,6 +1583,7 @@
       stepPlayer(S, FIXED, input);
       stepSources(S, FIXED);
       stepBells(S, FIXED);
+      stepFolk(S, FIXED);
       stepWalk(S);
       stepExit(S, FIXED);
       updateHeat(S, FIXED);
@@ -1514,6 +1647,7 @@
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
     stepNow, stepDone, stepWalk, chordOf, solved, stepExit, repressurize, inVacuum,
+    stepFolk, folkClue,
     feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED
   };

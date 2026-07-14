@@ -16,8 +16,8 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPrefere
 renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x02040a);
-scene.fog = new THREE.Fog(0x02040a, 6, 34);
+scene.background = new THREE.Color(0x04070a);
+scene.fog = new THREE.Fog(0x04070a, 6, 34);
 
 const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 200);
 
@@ -265,6 +265,12 @@ const limbs = [];
           0.14 + up * 0.15 + grain * 0.03,
           0.09 + up * 0.08 + grain * 0.02
         );
+        /* AND THE GREEN IN HIM. Rocky's carapace is cracked rock, and in the cracks
+         * there is something alive and faintly luminous — which is the whole thesis of
+         * the game in one animal: life, growing in the dark, in the gaps of something
+         * that looks like stone. */
+        const vein = ((x * 5 + z * 3) % 11 === 0) && ((y * 7 + x) % 5 < 2);
+        if (vein) col.setRGB(0.16 + grain * 0.05, 0.62 + grain * 0.12, 0.36 + grain * 0.06);
 
         /* THE HARNESS IS PAINTED INTO HIM, not bolted on. A strap runs over the top
          * of the carapace and a girth goes round it, and both are just cubes of his
@@ -634,6 +640,13 @@ function frame(now) {
 
   for (const id of Sim.takeCues(S)) {
     if (window.RockyAudio) window.RockyAudio.cue(id);
+    if (id === 'meet') {
+      const f = S.folk.find((x) => x.near && x.met);
+      if (f) {
+        say(f.chord || '♪♩♪', `${f.name}: ${f.line || (f.lines && f.lines[0]) || '...'}`);
+        banner('YOU ARE NOT ALONE DOWN HERE');
+      }
+    }
     if (id === 'pressure') {
       banner('THE AIR CAME BACK');
       const line = S.chapter.lines.find((l) => l.at === 'pressure');
@@ -776,6 +789,13 @@ function frame(now) {
   // ease toward it. A creature turns onto a wall; it does not snap onto one.
   rocky.quaternion.slerp(qTarget, Math.min(1, dt * (onWall ? 9 : 12)));
   rocky.position.y = p.y - (moving && !onWall ? Math.abs(Math.sin(gaitT * 1.25)) * 0.012 : 0);
+
+  // the others: they sway a little, because they are working
+  for (const g of folkGroup.children) {
+    const f = g.userData.f;
+    g.rotation.z = Math.sin(S.t * 1.4 + g.position.x) * 0.05;
+    g.position.y = f.at[1] + 0.5 + Math.sin(S.t * 2.1 + g.position.z) * 0.02;
+  }
 
   /* the labels: they fade in when you are close enough for them to be your business.
    * THE WAY OUT is the exception — once the room is solved it is visible from right
@@ -943,6 +963,57 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
+/* ---------- THE OTHERS ----------
+ * The same voxel body as Rocky, in somebody else's colours. They stand in the dark
+ * doing their own work, and you hear them long before you reach them. */
+const folkGroup = new THREE.Group();
+scene.add(folkGroup);
+
+function buildFolk() {
+  folkGroup.clear();
+  const M = window.ROCKY_MODEL;
+  if (!M) return;
+  const [MW, MH, MD] = M.dim;
+  const s = 1.15 / Math.max(MW, MH, MD);
+  let minY = Infinity;
+  for (const p of M.parts) for (let i = 1; i < p.cells.length; i += 3) minY = Math.min(minY, p.cells[i]);
+
+  S.folk.forEach((f, fi) => {
+    const g = new THREE.Group();
+    const tint = [[0.30, 0.13, 0.10], [0.22, 0.17, 0.12], [0.31, 0.19, 0.09]][fi % 3];
+    const col = new THREE.Color();
+    const d = new THREE.Object3D();
+    for (const part of M.parts) {
+      const n = part.cells.length / 3;
+      if (!n) continue;
+      const mesh = new THREE.InstancedMesh(bakedBox(0.96), new THREE.MeshBasicMaterial({ vertexColors: true, fog: true }), n);
+      mesh.frustumCulled = false;
+      for (let i = 0, k = 0; i < part.cells.length; i += 3, k++) {
+        const x = part.cells[i], y = part.cells[i + 1], z = part.cells[i + 2];
+        d.position.set((x - MW / 2) * s, (y - minY) * s - 0.36, (z - MD / 2) * s);
+        d.scale.setScalar(s);
+        d.updateMatrix();
+        mesh.setMatrixAt(k, d.matrix);
+        const up = (y - minY) / MH;
+        const grain = ((x * 7 + y * 13 + z * 5) % 5) / 5;
+        col.setRGB(tint[0] + up * 0.30 + grain * 0.05, tint[1] + up * 0.14 + grain * 0.03, tint[2] + up * 0.07);
+        // and the same green in their cracks. They are the same animal.
+        if (((x * 5 + z * 3) % 11 === 0) && ((y * 7 + x) % 5 < 2)) col.setRGB(0.14, 0.55 + grain * 0.1, 0.32);
+        mesh.setColorAt(k, col);
+      }
+      g.add(mesh);
+    }
+    g.position.set(f.at[0] + 0.5, f.at[1] + 0.5, f.at[2] + 0.5);
+    g.rotation.y = fi * 1.7;
+    g.userData.f = f;
+    folkGroup.add(g);
+
+    const sp = makeLabel(f.name, '#ffb347', false);
+    sp.position.set(f.at[0] + 0.5, f.at[1] + 1.5, f.at[2] + 0.5);
+    labels.add(sp);
+  });
+}
+
 /* ---------- LABELS ----------
  * PLAYTEST: "can we have text blocks above the materials, so we can correlate the
  * word in the quest to a block?"  Yes, and it is the obvious thing: a name in a
@@ -996,7 +1067,7 @@ function buildLabels() {
   labels.clear();
   // the way out labels itself, in every chapter, without anybody remembering to
   if (S.exit) {
-    const sp = makeLabel('THE WAY OUT', '#7cffb0', true);   // a beacon: seen through the rock
+    const sp = makeLabel('THE WAY OUT', '#4dff9e', true);   // a beacon: seen through the rock
     sp.position.set(S.exit[0] + 0.5, S.exit[1] + 1.5, S.exit[2] + 0.5);
     sp.userData.exit = true;
     labels.add(sp);
@@ -1004,7 +1075,7 @@ function buildLabels() {
   const list = S.chapter.labels || [];
   for (const L of list) {
     const b = L.block != null ? CFG.blocks[L.block] : null;
-    const sp = makeLabel(L.text || (b ? b.name : '?'), L.color || (b ? b.color : '#8fe8ff'), false);
+    const sp = makeLabel(L.text || (b ? b.name : '?'), L.color || (b ? b.color : '#7fe0a0'), false);
     sp.position.set(L.at[0] + 0.5, L.at[1] + 1.35, L.at[2] + 0.5);
     labels.add(sp);
   }
@@ -1032,6 +1103,7 @@ function load(id) {
   el('gcount').style.display = S.gauges.length ? '' : 'none';
   refreshGauges();
   buildLabels();
+  buildFolk();
   const open = S.chapter.lines.filter((l) => l.at === 'start');
   if (open[0]) say(open[0].chord, open[0].text);
   if (open[1]) setTimeout(() => say(open[1].chord, open[1].text), 5600);
