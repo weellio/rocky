@@ -1633,7 +1633,7 @@ group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
      * A NAVIGATION chapter — the generated warren — has no job to be half done. There
      * is nothing to solve there but the walk itself, so its arch calls from the first
      * second, and getting to it IS the game. Two different promises; both kept. */
-    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length || (c.track && c.track.need) || c.seal || c.count;
+    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length || (c.track && c.track.need) || c.seal || c.count || (c.build_target && c.build_target.length);
     steps(S, 6);
     if (isPuzzle) {
       ok(!R.solved(S), `${c.name}: the room is not solved at the start`);
@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock atmospheres numbers names grief longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock atmospheres numbers names wall question grief longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2812,6 +2812,118 @@ group('NAMES: a note becomes a word you agree on', () => {
   // each material's note really is distinct — a name has to be tellable from the others
   const notes = A.ears.map((e) => e.tuned);
   eq(new Set(notes).size, notes.length, 'and no two of her words are the same pitch, or they would not be different words');
+});
+
+group('THE WALL: the engineer builds the thing he is best at', () => {
+  /* His hull is open to the void; a doorway of vacuum vents his chamber, and a hand-span
+   * beyond it is her whole xenonite hull. He rebuilds the breach out of xenonite — and only
+   * xenonite, because it must be airtight AND still carry his voice to her. Six cells; one
+   * open cell is still a vacuum and still silent. Grit seals the air but goes deaf. */
+  const mkw = () => R.create(CFG, { seed: 1, chapter: 'wall' });
+  const cells = [[17, 2, 6], [17, 4, 6], [17, 2, 7], [17, 4, 7], [17, 3, 6], [17, 3, 7]];
+
+  const V = mkw(); steps(V, 1);
+  ok(R.blockAt(V, 8, 3, 7) === 16, 'the breach vents his chamber: where he stands is vacuum');
+  ok(R.blockAt(V, 24, 3, 7) !== 16, 'but her chamber is whole — her hull never had the hole, and it holds');
+  ok(!R.solved(V), 'and nothing is built yet, so the way out says nothing');
+
+  const X = mkw();
+  for (const c of cells) R.setBlock(X, c[0], c[1], c[2], 7);
+  R.repressurize(X);
+  eq(R.blockAt(X, 8, 3, 7), 0, 'the wall is whole: his air comes roaring back');
+  ok(R.solved(X), 'and the chapter is done — one six of xenonite panes, airtight and still able to talk');
+
+  const H = mkw();
+  for (let i = 0; i < 5; i++) R.setBlock(H, cells[i][0], cells[i][1], cells[i][2], 7);
+  R.repressurize(H);
+  eq(R.blockAt(H, 8, 3, 7), 16, 'one cell still open, and the whole chamber is still vacuum');
+  ok(!R.solved(H), 'you cannot leave a hole in it and call it a wall');
+
+  const G = mkw();
+  for (let i = 0; i < 5; i++) R.setBlock(G, cells[i][0], cells[i][1], cells[i][2], 7);
+  R.setBlock(G, cells[5][0], cells[5][1], cells[5][2], 9);
+  R.repressurize(G);
+  eq(R.blockAt(G, 8, 3, 7), 0, 'grit does seal the air, so his chamber re-pressurises');
+  ok(!R.solved(G), 'but a deaf pane breaks the song — the wall is not xenonite all the way through, so it is not done');
+
+  const P = mkw();
+  for (let i = 0; i < 5; i++) R.setBlock(P, cells[i][0], cells[i][1], cells[i][2], 7);
+  R.repressurize(P);
+  P.player.x = 16.4; P.player.y = 3.34; P.player.z = 7.5; P.player.yaw = -Math.PI / 2;
+  R.setHeld(P, 7); steps(P, 0.2);
+  const put = R.placeBlock(P);
+  ok(put.ok && R.blockAt(P, 17, 3, 7) === 7, 'he fits the last pane into the breach');
+  steps(P, 0.4);
+  ok(R.solved(P), 'the wall is whole, the air is back — that is the chapter');
+
+  const L = mkw();
+  L.player.x = 5.6; L.player.y = 2.34; L.player.z = 6.5; L.player.yaw = Math.PI / 2;
+  steps(L, 0.2);
+  const took = R.takeBlock(L);
+  ok(took.ok && took.block === 7, 'he lifts a pane of xenonite off the stack');
+});
+
+group('QUESTION: the first time somebody wants something back', () => {
+  /* Every ear until now has been a STATEMENT — it listens, always, and opens if the right
+   * sound ever arrives. Grace's sockets ASK: each rings out in her own note, then holds open
+   * a moment, expecting a reply, and only takes an answer inside that window. Answer when it
+   * did not ask — a reply to a statement — and it falls on a closed socket. And she takes
+   * turns: she will not ask the next thing until the last is answered. */
+  const mkQ = () => R.create(CFG, { seed: 1, chapter: 'question' });
+  const ear = (S, id) => S.ears.find((x) => x.id === id);
+  const isOpen = (S, id) => { const e = ear(S, id); return !!(e && e.open); };
+
+  const B = mkQ();
+  eq(B.ears.length, 3, 'three questions');
+  eq(B.ears[0].tuned, CFG.blocks[3].note, 'the first is answered by a GIRDER');
+  eq(B.ears[1].tuned, CFG.blocks[7].note, 'the second by XENONITE');
+  eq(B.ears[2].tuned, CFG.blocks[9].note, 'the third by GRIT');
+  ok(B.ears.every((e) => e.asks && e.asks.note && e.asks.note !== e.tuned),
+    'and each ASKS in a note that is not its own answer — the question and the reply are different sounds');
+  ok(B.folk[0].kind === 'human', 'and Grace is across the wall, doing the asking');
+
+  // SHE ASKS, unprompted — and holds it open, and does NOT ask the next thing yet
+  const K = mkQ();
+  steps(K, 3);
+  ok(ear(K, 'q1').asked > 0, 'she asks her first question on her own, with no input from him');
+  eq(ear(K, 'q2').asked, 0, 'and she will not ask the second until the first is answered — a conversation, not a checklist');
+
+  const answer = (S, id, block) => {
+    const e = ear(S, id);
+    R.setHeld(S, block);
+    S.player.x = e.at[0] + 0.5; S.player.y = 3.0; S.player.z = e.at[2] - 1.5; S.player.yaw = Math.PI;
+    steps(S, 0.2);
+    e.openUntil = S.t + 10;              // she is mid-question, waiting for a reply
+    R.placeBlock(S);
+    steps(S, 1.4);
+  };
+
+  const A = mkQ();
+  ok(!R.solved(A), 'nothing answered yet');
+  answer(A, 'q1', 3); ok(isOpen(A, 'q1'), 'girder, while she waits: the first question is answered');
+  answer(A, 'q2', 7); ok(isOpen(A, 'q2'), 'xenonite answers the second');
+  answer(A, 'q3', 9); ok(isOpen(A, 'q3'), 'grit answers the third');
+  ok(R.solved(A), 'three questions asked and answered — the gate home opens');
+  ok(A.flags.all_doors, 'and the chapter turns');
+
+  // NEAR-MISS 1 — the wrong answer
+  const W = mkQ();
+  answer(W, 'q1', 7);
+  ok(!isOpen(W, 'q1'), 'the wrong material at a question is deaf, exactly like any tuned lock');
+
+  // NEAR-MISS 2 — the RIGHT answer to a socket that is NOT asking (a reply to a statement)
+  const D = mkQ();
+  const e1 = ear(D, 'q1');
+  R.setHeld(D, 3);
+  D.player.x = e1.at[0] + 0.5; D.player.y = 3.0; D.player.z = e1.at[2] - 1.5; D.player.yaw = Math.PI;
+  steps(D, 0.2);
+  e1.openUntil = D.t - 1;                // she is NOT asking right now
+  R.placeBlock(D);
+  steps(D, 1.4);
+  ok(!isOpen(D, 'q1'), 'the right answer, to no question: the socket is not listening, and nothing opens');
+
+  const labs = mkQ().chapter.labels || [];
+  ok(labs.filter((l) => /question/i.test(l.text)).length >= 3, 'each question says what it wants');
 });
 
 group('GRIEF: he says his dead in sixes and ones — and twenty-three is the only answer the shelves allow', () => {

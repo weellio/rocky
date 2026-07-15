@@ -714,8 +714,11 @@ function frame(now) {
       }
     }
     if (id === 'pressure') {
-      banner('THE AIR CAME BACK');
+      /* Air returning is the payoff of a seal/build chapter, so the pressure line gets to
+       * carry its own banner (The Wall's "it is whole — and it sings"); a chapter that just
+       * repressurised in passing still gets the plain "the air came back". */
       const line = S.chapter.lines.find((l) => l.at === 'pressure');
+      banner((line && line.banner) || 'THE AIR CAME BACK');
       if (line) setTimeout(() => say(line.chord, line.text), 1200);
     }
     if (id === 'fix') {
@@ -737,7 +740,7 @@ function frame(now) {
        * instead — so here we only need to keep quiet and not stamp our generic banner over
        * the chapter's own. The way out only "just calls" when the chapter had nothing to say. */
       const done = S.chapter.lines.find((l) => l.at === 'solved');
-      const hasOwnClosing = S.chapter.lines.some((l) => l.at === 'all_doors' || l.at === 'all_gauges');
+      const hasOwnClosing = S.chapter.lines.some((l) => l.at === 'all_doors' || l.at === 'all_gauges' || l.at === 'pressure');
       if (done) {
         if (done.banner) banner(done.banner);
         setTimeout(() => say(done.chord, done.text), 700);

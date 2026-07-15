@@ -664,6 +664,13 @@
         if (!p.note) continue;                                  // a click is not a note
         if (Math.abs(p.note - e.tuned) > e.tuned * 0.02) continue;   // and it is not THAT note
       }
+      /* A QUESTION ONLY TAKES AN ANSWER WHILE IT IS WAITING FOR ONE.
+       * A statement listens forever; a question rings, then holds open a moment, expecting.
+       * Answer inside that window and it counts; answer when nothing was asked — a reply to
+       * a statement — and it falls on a closed socket. That window is the whole difference
+       * between a question and a statement. (openUntil starts at -1, so before she has ever
+       * asked, an asking-socket takes nothing.) */
+      if (e && e.asks && S.t > e.openUntil) continue;
       if (p.amp > (heard[p.id] || 0)) heard[p.id] = p.amp;
     }
     S.pending = still;
@@ -697,6 +704,37 @@
         e.open = true;
         cue(S, 'ear');
         tryOpen(S, e.opens);
+      }
+    }
+  }
+
+  /* ================================================================
+   * A QUESTION IS A STATEMENT THAT WAITS.
+   *
+   * Every ear until now has been a STATEMENT: it listens, always, and opens if the right
+   * sound ever reaches it. Grace's sockets ASK. On her own timing a socket rings out — once,
+   * in her question-note — and then holds itself OPEN for a moment, expecting a reply. And
+   * she takes turns (`after`): she will not ask the next thing until you have answered the
+   * last. A conversation, not a checklist. The answer itself is settled by the ordinary
+   * tuned-ear path; this only decides WHEN she is listening for one.
+   * ================================================================ */
+  function stepQuestions(S, dt) {
+    if (S.flags.done) return;
+    for (const e of S.ears) {
+      if (!e.asks || e.open) continue;
+      if (e.after) {                                     // turn-taking: her earlier question first
+        const prev = S.ears.find((x) => x.id === e.after);
+        if (!prev || !prev.open) continue;
+      }
+      e.askCd -= dt;
+      if (e.askCd <= 0) {
+        e.askCd += e.asks.period == null ? 5 : e.asks.period;
+        e.openUntil = S.t + (e.asks.window == null ? 4 : e.asks.window);
+        e.asked++;
+        emit(S, e.at[0] + 0.5, e.at[1] + 0.5, e.at[2] + 0.5,
+          e.asks.amp == null ? 0.9 : e.asks.amp, 90,
+          e.asks.range == null ? 24 : e.asks.range, e.id, e.asks.note);
+        cue(S, 'ask');
       }
     }
   }
@@ -1482,6 +1520,20 @@
       const sixes = tally(c.count.sixes), ones = tally(c.count.ones);
       return sixes * 6 + ones === c.count.value && ones < 6;
     }
+
+    /* A BUILD chapter is won by CONSTRUCTION — the engineer finally gets to do the thing he
+     * is FOR. He rebuilds a breached hull, cell by cell, out of the one material that is
+     * airtight AND sings: every target cell must become XENONITE (loose 7 or cast 13). Grit
+     * would seal the air and go deaf, and a wall you cannot talk through is not this wall.
+     * Half-built is not built: the same cells vent his chamber (see `space`), so one open
+     * cell is still a vacuum and still silent — you cannot leave a hole in it and call it a
+     * wall. */
+    if (c.build_target) {
+      return c.build_target.every((p) => {
+        const b = blockAt(S, p[0], p[1], p[2]);
+        return b === 7 || b === 13;
+      });
+    }
     /* In a SHIFT chapter the doors are not the win — they are the shifts themselves, opened
      * one at a time by sleeping. Opening the last of them is not finishing the voyage; it
      * only gets you into the hall where the last gauge is. So a shift chapter is solved by
@@ -1664,7 +1716,7 @@
         path: s.path || null, speed: s.speed || 0, travel: 0
       })),
       gauges: (chapter.gauges || []).map((g) => Object.assign({ read: false }, g)),
-      ears: (chapter.ears || []).map((e) => Object.assign({ open: false, lit: 0, loudest: 0, cd: 0, rang: 0 }, e)),
+      ears: (chapter.ears || []).map((e) => Object.assign({ open: false, lit: 0, loudest: 0, cd: 0, rang: 0, askCd: 0, openUntil: -1, asked: 0 }, e)),
       ringQ: [],
       doors: (chapter.doors || []).map((d) => Object.assign({ open: false }, d)),
       earAt: {},
@@ -1713,6 +1765,8 @@
     for (const e of S.ears) {
       setBlock(S, e.at[0], e.at[1], e.at[2], e.rings ? 11 : 10);
       S.earAt[idx(S, e.at[0], e.at[1], e.at[2])] = e.id;
+      // an asking socket does not ask the instant the room loads — she waits a beat first
+      if (e.asks) e.askCd = (e.asks.period == null ? 5 : e.asks.period) * 0.4;
     }
     for (const d of S.doors) for (const c of d.cells) setBlock(S, c[0], c[1], c[2], 8);
     for (const f of S.forges) setBlock(S, f.at[0], f.at[1], f.at[2], 12);
@@ -1753,6 +1807,7 @@
       if (S.pulseCd > 0) S.pulseCd -= FIXED;
       stepPlayer(S, FIXED, input);
       stepSources(S, FIXED);
+      stepQuestions(S, FIXED);
       stepBells(S, FIXED);
       stepFolk(S, FIXED);
       stepWalk(S);
@@ -1818,7 +1873,7 @@
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
     stepNow, stepDone, stepWalk, chordOf, solved, stepExit, repressurize, inVacuum,
-    stepFolk, folkClue, sleep, nearBunk,
+    stepFolk, folkClue, sleep, nearBunk, stepQuestions,
     feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED
   };
