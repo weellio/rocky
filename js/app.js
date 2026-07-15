@@ -448,10 +448,23 @@ function doPulse() {
   }, 620);
 }
 
-/* F is "use the thing in front of you". A gauge is read. A forge is FED. */
+/* F is "use the thing in front of you". A gauge is read. A forge is FED. A bunk is SLEPT
+ * in — and a sleep is not a small thing here, so the bunk gets first claim on F when you
+ * are standing in it. */
 function doUse() {
+  if (Sim.nearBunk && Sim.nearBunk(S)) { doSleep(); return; }
   if (Sim.nearestForge(S)) { doFeed(); return; }
   doRead();
+}
+
+function doSleep() {
+  const r = Sim.sleep(S);
+  if (!r.ok) { flash(r.why); return; }
+  banner('SHIFT ' + (r.shift + 1));
+  flash('the ship is not the same');
+  if (r.line) setTimeout(() => say(r.line.chord, r.line.text), 900);
+  buildLabels();   // whatever the shift changed, relabel it
+  buildFolk();
 }
 
 function doFeed() {
@@ -471,8 +484,14 @@ function doRead() {
   refreshGauges();
   if (r.done) {
     const line = S.chapter.lines.find((l) => l.at === 'all_gauges');
-    setTimeout(() => say(line.chord, line.text), 2200);
-    setTimeout(() => banner('IT IS NOT MY VENTS THAT ARE FAILING. IT IS THE SKY.'), 4600);
+    if (line) {
+      setTimeout(() => say(line.chord, line.text), 2200);
+      /* The dramatic banner is the CHAPTER's, not the Cold's — it used to be hardcoded to
+       * "it is not my vents that are failing", which then flashed at the end of every
+       * chapter that happened to end on gauges (Launch, for one). The line carries its own
+       * banner now, and a chapter that has nothing to shout says nothing. */
+      if (line.banner) setTimeout(() => banner(line.banner), 4600);
+    }
   }
 }
 
@@ -1045,9 +1064,12 @@ function frame(now) {
     vp.textContent = 'VACUUM — there is no air here. You can only hear what you are touching.';
   } else if (!vac) { delete vp.dataset.on; }
 
+  /* the F-prompt, in priority order: a bunk you can sleep in, then a gauge you can read */
+  const atBunk = Sim.nearBunk && Sim.nearBunk(S) && S.shift < (S.chapter.shifts || []).length;
   const g = Sim.nearestGauge(S);
-  el('prompt').style.opacity = (g && !g.read) ? '1' : '0';
-  if (g && !g.read) el('prompt').textContent = 'F — READ GAUGE';
+  const prompt = atBunk ? 'F — SLEEP' : (g && !g.read) ? 'F — READ GAUGE' : null;
+  el('prompt').style.opacity = prompt ? '1' : '0';
+  if (prompt) el('prompt').textContent = prompt;
 
   requestAnimationFrame(frame);
 }
@@ -1254,6 +1276,8 @@ window.__rocky = {
   }),
   pulse: doPulse,
   read: doRead,
+  sleep: doSleep,
+  shift: () => S.shift,
   tp: (x, y, z) => { S.player.x = x; S.player.y = y; S.player.z = z; S.player.vy = 0; },
   cam: () => ({
     dist: +camDist.toFixed(2),

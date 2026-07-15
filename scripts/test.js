@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2375,6 +2375,63 @@ group('LAUNCH: the one chapter you can see everything — and then you cannot', 
   // the parting line is really there for app.js to speak into that silence
   ok(S.chapter.lines.some((l) => l.at === 'done' && /quiet/i.test(l.text)),
     'and he has a last word to say into it');
+});
+
+group('SLEEP: four shifts, and the ship changes while you are out', () => {
+  /* You do your rounds, you sleep, the ship mutates, you do them again. The whole thing
+   * has to hold together as a STATE MACHINE the player drives, not a cutscene: the next
+   * chamber stays sealed until you sleep into it, and you cannot sleep until the shift's
+   * gauge is read. Played end to end, exactly the way a person would. */
+  const S = R.create(CFG, { seed: 1, chapter: 'sleep' });
+  const step = (t) => steps(S, t == null ? 0.2 : t);
+  const gotoCell = (x, y, z) => { S.player.x = x + 0.5; S.player.y = y + 0.5; S.player.z = z + 0.5; S.player.vy = 0; step(0.2); };
+  const toBunk = () => { S.player.x = 3.5; S.player.y = 3.3; S.player.z = 7.5; S.player.vy = 0; step(0.2); };
+
+  // the four chambers are SEALED to start — every gauge but the first is behind a shut door
+  ok(R.isSolid(S, 14, 3, 7) && R.isSolid(S, 24, 3, 7) && R.isSolid(S, 34, 3, 7),
+    'the ship ahead is shut: you have not lived those shifts yet');
+
+  // you cannot sleep through your rounds
+  toBunk();
+  eq(R.sleep(S).ok, false, 'the bunk will not have you until the shift\'s gauge is read');
+
+  // shift I: read the reactor, come back, sleep — and the next bulkhead opens
+  gotoCell(10, 3, 7); ok(R.readGauge(S).ok, 'he reads the first shift\'s reactor gauge');
+  ok(R.isSolid(S, 14, 3, 7), 'and the way forward is STILL shut — reading is not sleeping');
+  toBunk();
+  const s1 = R.sleep(S);
+  ok(s1.ok && s1.shift === 1, 'he sleeps, and the second shift begins');
+  ok(!R.isSolid(S, 14, 3, 7), 'and a bulkhead that was shut is open now — the ship moved while he was out');
+
+  // and something has come down in a corner that was clean when he lay down
+  eq(R.blockAt(S, 8, 1, 11), 9, 'a drift of grit is on the floor of a hall he had already walked');
+
+  // shifts II and III, the same shape, each opening the next hall
+  gotoCell(20, 3, 7); ok(R.readGauge(S).ok, 'shift II gauge read');
+  toBunk(); ok(R.sleep(S).ok, 'he sleeps again');
+  ok(!R.isSolid(S, 24, 3, 7), 'third hall open');
+  gotoCell(30, 3, 7); ok(R.readGauge(S).ok, 'shift III gauge read');
+  toBunk(); const s3 = R.sleep(S);
+  ok(s3.ok && s3.shift === 3, 'and the fourth shift begins');
+  ok(!R.isSolid(S, 34, 3, 7), 'the last hall is open — the one with the worst of it in');
+
+  // the voyage does not solve until the last, worst gauge is read
+  ok(!R.solved(S), 'not through yet: the last gauge is unread');
+  gotoCell(40, 3, 7);
+  const last = R.readGauge(S);
+  ok(last.ok && last.done, 'he reads the shielding, and it is the last of the four');
+  ok(R.solved(S), 'and the voyage is done');
+
+  // there is no fifth shift to sleep into
+  toBunk();
+  eq(R.sleep(S).ok, false, 'and the bunk has nothing left to offer — the voyage is over');
+
+  // the numbers ARE the plot: the reactor creeps, then the shielding fails, hard
+  const by = {}; S.gauges.forEach((g) => { by[g.id] = g; });
+  ok(by.g2.reading > by.g1.reading, 'the reactor is hotter on the second shift than the first');
+  ok(by.g4.reading > by.g3.reading * 3, 'and by the last shift the shielding number has run away entirely');
+  ok(S.chapter.lines.some((l) => l.at === 'all_gauges' && /xenonite/i.test(l.text)),
+    'and the realization that the xenonite is not holding — the next chapter, arriving early');
 });
 
 group('the model', () => {

@@ -14,6 +14,96 @@
 
   return [
     /* ==============================================================
+     * ACT III.12 — SLEEP
+     *
+     * Forty-two light years. You cannot see relativity and you cannot see the distance, so
+     * the chapter is the one thing an engineer on a long haul actually does: your rounds,
+     * and then you sleep, and then you get up and do them again. Four shifts.
+     *
+     * And the ship CHANGES while you are out, and nobody tells you what. A bulkhead you
+     * have never had to think about has settled. A drift of grit has come down in a corner
+     * that was clean when you lay down. A way has opened further forward that was not there
+     * before. You pulse into a room you knew, and something is different, and the only way
+     * to know what is to have been listening.
+     *
+     * The rule is honest: you do not sleep through your rounds. Each shift owns a gauge,
+     * and the bunk will not have you until you have read it — and the gauges tell the story
+     * the portholes cannot, because there are no portholes: the reactor creeps hot, and
+     * then the shielding numbers start to climb, and climb, and by the fourth shift the
+     * xenonite is not holding the radiation the way anyone promised it would. Which is the
+     * whole of the next chapter, arriving early, in a number, in the dark.
+     * ============================================================== */
+    {
+      id: 'sleep',
+      name: 'Sleep',
+      world: { w: 48, h: 12, d: 14 },
+      spawn: [6, 3, 7],
+      objective: 'Four shifts. Read the shift\'s gauge, sleep at the bunk (F), and mind what the ship does while you are out.',
+      exit: [44, 3, 7],
+      bunk: [3, 3, 7],
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [47, 11, 13], block: 1 },
+        { op: 'room', from: [2, 1, 3], to: [45, 8, 11], floor: 2 },
+
+        // three bulkheads between the four shift-chambers; the door cells are carved back
+        // to doors by the doors array, and each opens only when you sleep into that shift
+        { op: 'fill', from: [14, 1, 3], to: [14, 7, 11], block: 1 },
+        { op: 'fill', from: [24, 1, 3], to: [24, 7, 11], block: 1 },
+        { op: 'fill', from: [34, 1, 3], to: [34, 7, 11], block: 1 },
+
+        // THE BUNK, aft: a pad of xenonite (green — life, rest) against the back wall
+        { op: 'fill', from: [3, 1, 6], to: [3, 1, 8], block: 7 },
+
+        // the way out, fore
+        { op: 'room', from: [43, 1, 5], to: [46, 6, 9], floor: 2 }
+      ],
+      // a little life in each chamber, so a room that goes quiet later is a room you KNEW
+      sources: [
+        { at: [10, 3, 4], kind: 'pipe' },
+        { at: [20, 3, 10], kind: 'drip' },
+        { at: [30, 3, 4], kind: 'pipe' },
+        { at: [40, 3, 10], kind: 'vent' }
+      ],
+      /* Four gauges, one per shift. The reactor creeps, then the shielding fails. The
+       * numbers are the plot; base six is how Rocky reads them. */
+      gauges: [
+        { id: 'g1', at: [10, 3, 7], name: 'Reactor · heat',    nominal: 40, reading: 41 },
+        { id: 'g2', at: [20, 3, 7], name: 'Reactor · heat',    nominal: 40, reading: 46 },
+        { id: 'g3', at: [30, 3, 7], name: 'Shielding · rads',  nominal: 6,  reading: 27 },
+        { id: 'g4', at: [40, 3, 7], name: 'Shielding · rads',  nominal: 6,  reading: 90 }
+      ],
+      doors: [
+        { id: 'd2', cells: [[14, 1, 7], [14, 2, 7], [14, 3, 7]] },
+        { id: 'd3', cells: [[24, 1, 7], [24, 2, 7], [24, 3, 7]] },
+        { id: 'd4', cells: [[34, 1, 7], [34, 2, 7], [34, 3, 7]] }
+      ],
+      labels: [
+        { at: [3, 3, 7], block: 7, text: 'THE BUNK — F to sleep', color: '#57e08a' },
+        { at: [10, 3, 7], block: 6, text: 'SHIFT I · reactor' },
+        { at: [20, 3, 7], block: 6, text: 'SHIFT II · reactor' },
+        { at: [30, 3, 7], block: 6, text: 'SHIFT III · shielding' },
+        { at: [40, 3, 7], block: 6, text: 'SHIFT IV · shielding' }
+      ],
+      /* THE SHIFTS. Read the named gauge, come back to the bunk, and this is what the ship
+       * does while you are asleep: it opens the next way forward, and it drops a little more
+       * of itself on the floor behind you. Grit in the corners — a ship coming apart a
+       * grain at a time, in rooms you have to walk back through to notice. */
+      shifts: [
+        { check: 'g1', opens: 'd2', ops: [{ op: 'fill', from: [8, 1, 11], to: [9, 2, 11], block: 9 }],
+          line: { chord: '♩♪♩', text: 'Second shift. I slept, I think — it is hard to tell in here, there is no morning. Something has come down in the corner of the first hall while I was out. Grit. The ship is shedding itself, quietly, and only when nobody is listening.' } },
+        { check: 'g2', opens: 'd3', ops: [{ op: 'fill', from: [18, 1, 3], to: [19, 2, 3], block: 9 }],
+          line: { chord: '♪♩♩', text: 'Third shift. The reactor is running hot and the hall behind me is a little smaller than it was — more grit, a different corner. I am forty-two light years from anyone who could tell me whether that is normal. It is not normal. I know it is not normal.' } },
+        { check: 'g3', opens: 'd4', ops: [{ op: 'fill', from: [28, 1, 11], to: [29, 2, 11], block: 9 }],
+          line: { chord: '♩♩♪♩', text: 'Fourth shift, and I do not want to read the last gauge. The shielding is xenonite. Xenonite is supposed to stop this. Every number I have taken since I woke says it is not stopping this, and the last chamber is the one with the worst of it in.' } }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'Forty-two light years, and no windows — windows are for eyes. So this is the voyage: my rounds, and the bunk, and my rounds again. Read the gauge in each hall. Sleep when it is read. And listen to what the ship gets up to while I am not.' },
+        { at: 'start', chord: '♩♩♪', text: 'The bunk is behind me, in the green. Walk into it and press F when the shift is done.' },
+        { at: 'all_gauges', chord: '♩♪♪♩', text: 'Ninety, against a promised six. The shielding is not shielding. Whatever we thought xenonite did to this radiation, it does not do it — and there are twenty-two other people asleep on this ship who do not know that yet.', banner: 'THE XENONITE IS NOT HOLDING' }
+      ]
+    },
+
+    /* ==============================================================
      * THE LONG DARK — a warren nobody has mapped.
      *
      * Every other chapter in this game is measured to the cell, because every other

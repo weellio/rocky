@@ -141,7 +141,9 @@
     /* THE BURN: a low rolling roar with a body under it, throbbing on the drive's clock.
      * It is the loudest thing in the game and it should sit UNDER everything, felt more
      * than heard — the sound of being carried. */
-    'source:burn': function () { noise(0.6, 150, 0.055); ping(58, 0.5, 'sine', 0.045); }
+    'source:burn': function () { noise(0.6, 150, 0.055); ping(58, 0.5, 'sine', 0.045); },
+    /* SLEEP: a slow settle, four notes falling — lying down in the dark for a shift. */
+    sleep: function () { [330, 247, 196, 147].forEach(function (f, i) { setTimeout(function () { ping(f, 0.75, 'sine', 0.06); }, i * 150); }); }
   };
 
   /* THE ROOM ANSWERS IN ITS OWN VOICE.

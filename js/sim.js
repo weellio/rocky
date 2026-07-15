@@ -1390,8 +1390,15 @@
       const need = leaveAt < 0 ? c.walk.length : leaveAt;
       return S.stepI >= need;
     }
-    if (S.doors.length) return S.doors.every((d) => d.open);
+    /* In a SHIFT chapter the doors are not the win — they are the shifts themselves, opened
+     * one at a time by sleeping. Opening the last of them is not finishing the voyage; it
+     * only gets you into the hall where the last gauge is. So a shift chapter is solved by
+     * its GAUGES, and the doors are just the road. (Without this, opening the third
+     * bulkhead "solved" Sleep with the worst gauge still unread — the whole point of the
+     * chapter, skipped by a technicality.) */
+    if (S.doors.length && !c.shifts) return S.doors.every((d) => d.open);
     if (S.gauges.length) return S.gauges.every((g) => g.read);
+    if (S.doors.length) return S.doors.every((d) => d.open);
     return true;
   }
 
@@ -1466,6 +1473,45 @@
       six: toBase6(g.reading), sixNominal: toBase6(g.nominal),
       done: done
     };
+  }
+
+  /* ---------- SLEEP: and the ship changes while you are out ----------
+   *
+   * You cannot see relativity and you cannot see forty-two light years. What you CAN do is
+   * lie down in the dark, and get up, and find that the room you knew is not quite the room
+   * any more — a wall where a way used to be, a machine gone quiet, a passage that has
+   * opened somewhere behind you. Nobody narrates it. You pulse into it and something is
+   * different, and you have to work out what.
+   *
+   * The rule is the honest one: you do not sleep until your rounds are done. Each shift has
+   * a gauge that is your job to read; read it, come back to the bunk, and the next shift
+   * begins — the chapter's own op-list mutates the ship, and one more door of the voyage
+   * opens ahead of you.
+   */
+  function nearBunk(S) {
+    if (!S.bunk) return false;
+    const p = S.player;
+    return Math.hypot(p.x - (S.bunk[0] + 0.5), p.y - (S.bunk[1] + 0.5), p.z - (S.bunk[2] + 0.5)) <= 2.4;
+  }
+
+  function sleep(S) {
+    const shifts = S.chapter.shifts || [];
+    if (!S.bunk || !shifts.length) return { ok: false, why: 'nowhere to sleep here' };
+    if (!nearBunk(S)) return { ok: false, why: 'not at the bunk' };
+    if (S.shift >= shifts.length) return { ok: false, why: 'the voyage is over' };
+    const sh = shifts[S.shift];
+    /* YOU DO NOT SLEEP THROUGH YOUR ROUNDS. The shift names the gauge you owe it; leave it
+     * unread and the bunk will not have you. */
+    if (sh.check) {
+      const g = S.gauges.find((x) => x.id === sh.check);
+      if (g && !g.read) return { ok: false, why: 'finish your rounds first' };
+    }
+    for (const op of (sh.ops || [])) applyOp(S, op);
+    if (sh.opens) openDoor(S, sh.opens);
+    S.shift++;
+    S.dirty = true;
+    cue(S, 'sleep');
+    return { ok: true, shift: S.shift, line: sh.line || null };
   }
 
   /* ---------- the 12 commands go through ONE door, so the tape is honest ---------- */
@@ -1543,6 +1589,14 @@
       space: chapter.space || null,
       vacN: null,
       airN: 0,
+      /* THE VOYAGE IS PLAYED IN SHIFTS. A chapter can hand you a bunk and a list of
+       * shifts; you do your rounds, you sleep, and while you are out the ship CHANGES —
+       * and nobody tells you what. `shift` is which one you are on; the ops that mutate
+       * the ship live in the chapter's data, so the engine just applies them and the
+       * renderer, which only ever draws what the last pulse lit, shows you the difference
+       * the next time you shout. */
+      shift: 0,
+      bunk: chapter.bunk || null,
       carryOf: cfg.blocks.map((b) => !!b.carry),
       flags: {},
       cueQ: [],
@@ -1659,7 +1713,7 @@
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
     stepNow, stepDone, stepWalk, chordOf, solved, stepExit, repressurize, inVacuum,
-    stepFolk, folkClue,
+    stepFolk, folkClue, sleep, nearBunk,
     feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED
   };
