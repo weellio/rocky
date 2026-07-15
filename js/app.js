@@ -1103,6 +1103,38 @@ function buildFolk() {
 
   S.folk.forEach((f, fi) => {
     const g = new THREE.Group();
+
+    /* THE HUMAN IS NOT SHAPED LIKE US. Every other person in this game is an Eridian and is
+     * drawn from Rocky's own baked body, tinted — they are the same animal. Grace is not.
+     * She is a biped, upright and thin, with a flat panel on the front of her head that she
+     * keeps pointing at Rocky as if it means something, and it makes no sound at all. And she
+     * is ORANGE — the colour this whole palette has been holding in reserve since the first
+     * room for exactly this moment: the first thing here that is not Erid. */
+    if (f.kind === 'human') {
+      const O = 0xe8730f, Od = 0xa34a06, panel = 0xffd9a0;
+      /* fog:false — the human is the thing the whole palette has been saving orange for, and
+       * she stands across a window a dozen cells off; let the fog swallow her and the one
+       * moment the game turns orange is a dark smudge. She stays vivid, like Rocky himself. */
+      const box = (w, h, d, x, y, z, c) => {
+        const m = new THREE.Mesh(bakedBox(0.96), new THREE.MeshBasicMaterial({ color: c, fog: false }));
+        m.scale.set(w, h, d); m.position.set(x, y, z); g.add(m);
+      };
+      box(0.34, 0.44, 0.20, 0, 0.28, 0, O);        // torso
+      box(0.15, 0.44, 0.15, -0.10, -0.14, 0, Od);  // left leg
+      box(0.15, 0.44, 0.15, 0.10, -0.14, 0, Od);   // right leg
+      box(0.54, 0.12, 0.12, 0, 0.40, 0, Od);       // arms, out to the sides
+      box(0.20, 0.20, 0.20, 0, 0.62, 0, O);        // head
+      box(0.20, 0.14, 0.04, 0, 0.64, 0.11, panel); // THE FLAT PANEL on the front of its head
+      g.position.set(f.at[0] + 0.5, f.at[1] - 0.36 + 0.5, f.at[2] + 0.5);
+      g.rotation.y = -Math.PI / 2;                 // facing Rocky, across the lock
+      g.userData.f = f;
+      folkGroup.add(g);
+      const sp = makeLabel(f.name, '#e8730f', false);
+      sp.position.set(f.at[0] + 0.5, f.at[1] + 1.5, f.at[2] + 0.5);
+      labels.add(sp);
+      return;
+    }
+
     const tint = [[0.30, 0.13, 0.10], [0.22, 0.17, 0.12], [0.31, 0.19, 0.09]][fi % 3];
     const col = new THREE.Color();
     const d = new THREE.Object3D();

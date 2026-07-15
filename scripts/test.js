@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2645,6 +2645,44 @@ group('APPROACH: a ship so thin you hear all of it at once', () => {
   const panel = (A.chapter.labels || []).some((l) => /panel/i.test(l.text));
   const thinWall = (A.chapter.labels || []).some((l) => /one cell|barely/i.test(l.text));
   ok(panel && thinWall, 'and it names the two things that make no sense to him: the vast flat panel, and a wall you could put your hand through');
+});
+
+group('THE AIRLOCK: it heard me — and the palette spends its orange', () => {
+  /* First contact, and it is not language — it is one fact, established: we can be heard by
+   * each other. The other makes no sound Rocky can use (it works a flat panel he is deaf to);
+   * the ONLY channel is the cast-xenonite window between them, which sings. So the chapter
+   * is: go to the glass, shout, and be heard. Not from across the room — the wall carries a
+   * shout, but only a real one, made right there. */
+  const mkA = () => R.create(CFG, { seed: 1, chapter: 'airlock' });
+  const shout = (S, x) => { S.player.x = x + 0.5; S.player.y = 3.5; S.player.z = 8.5; S.player.vy = 0; S.pulseCd = 0; R.pulse(S); steps(S, 1.2); };
+
+  // the other is a HUMAN — drawn nothing like an Eridian, and named as the stranger it is
+  const A = mkA();
+  const other = A.folk[0];
+  eq(other.kind, 'human', 'the thing on the far side is not one of us — it is drawn as its own shape');
+  ok(!/VOTH|ARK|SEVEN|BRIDGE/i.test(other.name), 'and Rocky has no name for it yet — it is just the other');
+
+  // its machine's colour is the ORANGE the palette has been holding since the first room
+  ok(/^#c8|^#e8|^#f/i.test(CFG.sourceKinds.grind.hue), 'even its machine is orange — the one colour reserved for the humans');
+
+  // a shout from ACROSS THE ROOM does not carry: the wall sings, but not to a mumble
+  const far = mkA();
+  shout(far, 5);
+  ok(!far.ears[0].open, `from across the room the window does not stir (it heard only ${far.ears[0].loudest.toFixed(2)}, under the ${far.ears[0].needs} it needs)`);
+  ok(!R.solved(far), 'so nothing has happened yet — you have to go to the glass');
+
+  // a shout AT THE WINDOW rings clean through the xenonite, and it is heard
+  const near = mkA();
+  ok(R.isSolid(near, 8, 3, 3), 'the way back is shut to begin with');
+  shout(near, 20);
+  ok(near.ears[0].open, `at the glass, it hears you loud and clear (${near.ears[0].loudest.toFixed(2)} against ${near.ears[0].needs})`);
+  ok(!R.isSolid(near, 8, 3, 3), 'and the hatch behind you opens — you have been heard');
+  ok(R.solved(near), 'that is the whole of it: contact made');
+
+  // it is genuinely the xenonite doing the work — the window between them is the singing kind
+  ok(R.blockAt(A, 21, 4, 8) === 13, 'and the wall that carried it is cast xenonite, the one thing sound crosses for free');
+  ok(A.chapter.lines.some((l) => l.at === 'ear' && /heard|felt|door/i.test(l.text)),
+    'and what he says is not "we spoke" — it is "it heard me", which is smaller, and everything');
 });
 
 group('the model', () => {

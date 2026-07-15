@@ -141,6 +141,8 @@
     /* THE CONTACT: a strange two-tone chirp, close but wrong — not a material's voice, not
      * a person's. The first sound in the game that belongs to nobody you know. */
     'source:contact': function () { ping(1320, 0.09, 'square', 0.03); setTimeout(function () { ping(990, 0.12, 'square', 0.028); }, 90); },
+    /* THE HUMAN'S MACHINERY: a low rough grind that never quite resolves, wrong and alive. */
+    'source:grind': function () { noise(0.5, 200, 0.05); ping(96, 0.4, 'sawtooth', 0.02); },
     /* FIX: a clean confirming blip — you caught it, a point on its course pinned down. */
     fix: function () { ping(1560, 0.08, 'sine', 0.05); setTimeout(function () { ping(2080, 0.1, 'sine', 0.04); }, 70); },
     /* PLOTTED: the dots join into a line. A small rising figure — you know where it is going. */

@@ -418,6 +418,77 @@
     },
 
     /* ==============================================================
+     * ACT IV.18 — THE AIRLOCK
+     *
+     * The first meeting. And the room the whole palette has been saving its ORANGE for.
+     *
+     * There is a shape on the other side of the lock. It is upright and thin and it is not
+     * an Eridian, and it holds a flat panel on the front of its head and points it at Rocky
+     * and does something with it — and there is NO SOUND. Whatever it is trying, it is trying
+     * in a way Rocky has no organ for; he stands in front of it while it works and works and
+     * gets nothing at all, and it is the loneliest thing that has happened to him yet, to be
+     * addressed and not be able to hear it. Behind it, a machine grinds and grinds and will
+     * not stop.
+     *
+     * But the wall between them is cast xenonite, and xenonite carries sound. So Rocky does
+     * the only thing he knows how to do: he goes up to the wall and he SHOUTS at it. And on
+     * the far side, a thing hears him — the first thing that is not Erid, and not one of his
+     * dead, and not a machine, to answer. That is the whole chapter. Not language. Just: it
+     * heard me. We can be heard by each other. Everything else is the rest of the game.
+     * ============================================================== */
+    {
+      id: 'airlock',
+      name: 'The Airlock',
+      world: { w: 44, h: 12, d: 16 },
+      spawn: [4, 3, 8],
+      objective: 'Something is on the other side, and it makes no sound you can use. Go to the window and SHOUT — the wall will carry it.',
+      exit: [8, 3, 1],
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [43, 11, 15], block: 1 },
+        // Rocky's side — his own ship, thick basalt
+        { op: 'room', from: [2, 1, 4], to: [20, 8, 12], floor: 2 },
+        // THE AIRLOCK WINDOW: a wall of cast xenonite between the two of them. Solid — he
+        // cannot cross it, and must not, their airs would kill each other — but it SINGS, so
+        // a shout goes through it even though a body never could.
+        { op: 'fill', from: [21, 1, 4], to: [21, 8, 12], block: 13 },
+        // the other's side, beyond the window
+        { op: 'room', from: [22, 1, 4], to: [40, 8, 12], floor: 2 },
+        // the hatch back into his ship, that opens once contact is made
+        { op: 'fill', from: [8, 1, 3], to: [8, 3, 3], block: 8 },
+        { op: 'room', from: [6, 1, 1], to: [10, 5, 3], floor: 2 }
+      ],
+      /* The machine on her side that never stops. */
+      sources: [
+        { at: [34, 3, 8], kind: 'grind' }
+      ],
+      /* THE OTHER. A biped, orange, thin, with a flat panel on its head — drawn nothing like
+       * an Eridian, because it is nothing like one. Rocky has no name for it yet. */
+      folk: [
+        { at: [30, 3, 8], name: 'THE OTHER', kind: 'human', chord: '—',
+          line: 'It is pointing the flat part of its head at me again. It is doing something with it, something that matters to it, I can tell — and there is nothing. No sound at all. It is talking and I am deaf to whatever this is, and it does not know that yet, and I cannot think of anything sadder.' }
+      ],
+      /* THE WINDOW HEARS. A resonator on the far side of the xenonite, set to need a good
+       * loud shout — so you have to come right up to the glass, where it is standing, and
+       * make your noise there. Then it hears you, and the hatch behind you opens: not a
+       * puzzle solved, a hand held up against a window from the other side. */
+      ears: [
+        { id: 'win', at: [22, 3, 8], needs: 0.45, name: 'IT HEARD YOU', opens: 'back' }
+      ],
+      doors: [
+        { id: 'back', cells: [[8, 1, 3], [8, 2, 3], [8, 3, 3]] }
+      ],
+      labels: [
+        { at: [21, 4, 8], block: 13, text: 'THE WINDOW — shout here; the wall carries it', color: '#a9e8bd' },
+        { at: [8, 3, 3], block: 8, text: 'THE WAY BACK', color: '#4dff9e' }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'It is right there. On the other side of a hand-span of xenonite, a shape, upright, thin, not one of mine and not one of anything I have ever heard of. It is holding a flat panel to the front of its head and pointing it at me and WAITING, and I have no idea for what, because whatever it is doing makes no sound, and sound is the only thing I have.' },
+        { at: 'start', chord: '♩♩♪', text: 'So I will do the one thing I know. The wall is xenonite. Xenonite carries. I am going to go right up to it, and I am going to shout, and I am going to find out if this thing can hear.' },
+        { at: 'ear', chord: '♩♪♪♩♩', text: 'It moved. The moment my shout hit the wall, the whole shape of it changed — it FELT that. It cannot see me any more than I can see it, and it cannot hear the way I hoped, but it felt the wall ring and it knows what that means: there is somebody here. We found the one door that is open. Everything else we will have to build, but we found the door.', banner: 'IT HEARD YOU' }
+      ]
+    },
+
+    /* ==============================================================
      * THE LONG DARK — a warren nobody has mapped.
      *
      * Every other chapter in this game is measured to the cell, because every other

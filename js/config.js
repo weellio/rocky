@@ -246,7 +246,12 @@
        * deliberately COLOURLESS — a pale, uncertain white — because Rocky does not know what
        * it is yet, and the palette will not spend its orange on the humans until he is close
        * enough to be sure. You hear it only when it passes near; it is faint, and it moves. */
-      contact: { period: 1.1, amp: 0.7, range: 15, hue: '#e8eef2' }
+      contact: { period: 1.1, amp: 0.7, range: 15, hue: '#e8eef2' },
+      /* THE GRINDING. Whatever the human runs to stay alive makes a sound like a mill that
+       * never stops — a low, rough, ceaseless working that Rocky finds almost unbearable and
+       * cannot switch off and slowly stops noticing. It is ORANGE, because it is hers, and
+       * orange is the humans, and this is the room the palette spends it in. */
+      grind: { period: 0.9, amp: 0.6, range: 14, hue: '#c85a1a' }
     },
 
     audio: {
