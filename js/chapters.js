@@ -49,6 +49,7 @@
     'sleep',        /* III · four shifts, and the ship changes while you are out */
     'failure',      /*      the crew go silent one by one; a death is a sound that stops */
     'alone',        /*      the quiet middle: the only sound is the one you make */
+    'tauceti',      /*      arrival — and the first sound that is not where you left it */
     'longdark'      /*      forty-two light years of quiet */
   ];
 

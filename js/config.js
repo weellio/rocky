@@ -241,7 +241,12 @@
        * faded), and it is AMBER because it is heat — the same heat that is eating the star,
        * turned into the thing that carries you to it. It ends when you strap in, and after
        * that it is quiet for forty-two light years. */
-      burn:  { period: 0.55, amp: 2.3, range: 74, hue: '#ffb020' }
+      burn:  { period: 0.55, amp: 2.3, range: 74, hue: '#ffb020' },
+      /* THE CONTACT. Something at Tau Ceti that is not a wall and is not one of yours. It is
+       * deliberately COLOURLESS — a pale, uncertain white — because Rocky does not know what
+       * it is yet, and the palette will not spend its orange on the humans until he is close
+       * enough to be sure. You hear it only when it passes near; it is faint, and it moves. */
+      contact: { period: 1.1, amp: 0.7, range: 15, hue: '#e8eef2' }
     },
 
     audio: {

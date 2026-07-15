@@ -138,6 +138,9 @@
     'source:pipe': function () { ping(320, 0.16, 'sine', 0.035); },
     'source:drip': function () { ping(1400, 0.05, 'sine', 0.03, 900); },
     'source:gauge': function () { ping(1100, 0.06, 'sine', 0.025); },
+    /* THE CONTACT: a strange two-tone chirp, close but wrong — not a material's voice, not
+     * a person's. The first sound in the game that belongs to nobody you know. */
+    'source:contact': function () { ping(1320, 0.09, 'square', 0.03); setTimeout(function () { ping(990, 0.12, 'square', 0.028); }, 90); },
     /* THE BURN: a low rolling roar with a body under it, throbbing on the drive's clock.
      * It is the loudest thing in the game and it should sit UNDER everything, felt more
      * than heard — the sound of being carried. */

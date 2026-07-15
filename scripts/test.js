@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2517,6 +2517,55 @@ group('ALONE: the only sound left is the one you make', () => {
 
   // there is no puzzle to fail — the bridge calls from the start and you simply have to reach it
   ok(R.solved(S), 'nothing to solve: only a long dark to cross');
+});
+
+group('TAU CETI: the first sound that is not where you left it', () => {
+  /* Everything that has ever made a noise in this game has stood still. Tau Ceti brings the
+   * first thing that does not: a contact crossing the dark outside the hull, HERE when you
+   * pulse and over THERE when you pulse again. The engine has to make that literally true —
+   * a source whose cell moves — and it has to stay deterministic, or a replay would drift. */
+  const S = R.create(CFG, { seed: 1, chapter: 'tauceti' });
+  const step = (t) => steps(S, t == null ? 0.2 : t);
+  const contact = S.sources.find((s) => s.kind === 'contact');
+  ok(contact && contact.path && contact.speed > 0, 'there is a contact, and it is built to move');
+
+  // it is NOT where you left it: sample its cell across time, and it travels
+  const at0 = contact.at.slice();
+  step(1); const at1 = contact.at.slice();
+  step(1); const at2 = contact.at.slice();
+  ok(at0[0] !== at1[0] && at1[0] !== at2[0], `it crosses the dark: x ${at0[0]} → ${at1[0]} → ${at2[0]}`);
+  ok(S.emits > 0, 'and it speaks — a voice that is not a wall and not one of yours');
+
+  /* DETERMINISTIC. A moving source computed from a clock or a random would desync on
+   * replay; this one is a pure function of distance travelled, so two ships stepped the
+   * same amount put the contact in exactly the same place. */
+  const A = R.create(CFG, { seed: 1, chapter: 'tauceti' });
+  const B = R.create(CFG, { seed: 1, chapter: 'tauceti' });
+  steps(A, 3.4); steps(B, 3.4);
+  eq(A.sources[0].at.join(','), B.sources[0].at.join(','), 'two runs put it in exactly the same place — no clock, no dice');
+
+  // YOU HEAR IT THROUGH THE HULL. The outboard wall is cast xenonite, which sings, so the
+  // thing outside rings the ship — stand at the hull and it lights your corner as it passes.
+  const H = R.create(CFG, { seed: 1, chapter: 'tauceti' });
+  H.player.x = 24.5; H.player.y = 3.5; H.player.z = 9.5; H.player.vy = 0;
+  let heard = 0;
+  for (let i = 0; i < 80; i++) {
+    steps(H, 0.15);
+    const near = R.litCells(H, []).filter((c) => c.src === 1 && Math.hypot(c.x - 24, c.y - 3, c.z - 9) < 8).length;
+    if (near > heard) heard = near;
+  }
+  ok(heard > 0, `the hull rings as it goes by — ${heard} cells of its passing reach you through the xenonite`);
+
+  // the array gives three bearings, and reading all three is arriving
+  ok(!R.solved(S), 'not done on arrival: you have to take the bearings');
+  for (const g of S.gauges) { S.player.x = g.at[0] + 0.5; S.player.y = 3.5; S.player.z = 7.5; step(0.2); R.readGauge(S); }
+  ok(R.solved(S), 'three bearings taken, and the way to the airlock opens');
+
+  // the bearings only ever close — it is not drifting, it is coming
+  const rs = S.gauges.map((g) => g.reading);
+  ok(rs[0] > rs[1] && rs[1] > rs[2], `and every bearing is nearer than the last: ${rs.join(' → ')}`);
+  ok(S.chapter.lines.some((l) => l.at === 'all_gauges' && /coming|heading/i.test(l.text)),
+    'and he knows what that means: it has a heading, and the heading is him');
 });
 
 group('the model', () => {

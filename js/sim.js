@@ -960,6 +960,41 @@
     S.nActive = w;
   }
 
+  /* A SOURCE THAT MOVES. Everything that has ever made a sound in this game has stood
+   * still — a vent in a wall, a person at a bench, a door. A moving source is the first
+   * thing in the whole game that is NOT WHERE YOU LEFT IT: you pulse, you hear it over
+   * there; you pulse again a moment later and it has crossed the dark. It travels a path at
+   * a steady speed and ping-pongs along it forever, and its cell is recomputed from a
+   * single scalar (distance travelled), so it is perfectly deterministic — no clock, no
+   * random, the same at frame ten thousand as at frame one. This is what arrives at Tau
+   * Ceti, and it is the whole of Act IV. */
+  function moveSource(s, dt) {
+    const path = s.path;
+    if (!path || path.length < 2) return;
+    const segs = [];
+    let total = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+      const L = Math.hypot(path[i + 1][0] - path[i][0], path[i + 1][1] - path[i][1], path[i + 1][2] - path[i][2]);
+      segs.push(L); total += L;
+    }
+    if (total <= 0) return;
+    s.travel += s.speed * dt;
+    const period = 2 * total;
+    let ph = s.travel % period; if (ph < 0) ph += period;
+    const d = ph <= total ? ph : (period - ph);       // ping-pong: out along the path, then back
+    let acc = 0, pos = path[0];
+    for (let i = 0; i < segs.length; i++) {
+      if (d <= acc + segs[i] || i === segs.length - 1) {
+        const t = segs[i] > 0 ? (d - acc) / segs[i] : 0;
+        const a = path[i], b = path[i + 1];
+        pos = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+        break;
+      }
+      acc += segs[i];
+    }
+    s.at = [Math.floor(pos[0]), Math.floor(pos[1]), Math.floor(pos[2])];
+  }
+
   /* ---------- ambient sources: the warren breathes ---------- */
   function stepSources(S, dt) {
     /* ONCE YOU ARE THROUGH, THE ROOM GOES QUIET. A chapter you have finished stops making
@@ -972,6 +1007,7 @@
     if (S.flags.done) return;
     for (let i = 0; i < S.sources.length; i++) {
       const s = S.sources[i];
+      if (s.path) moveSource(s, dt);   // the contact crosses the dark whether or not it is speaking
       s.cd -= dt;
       if (s.cd <= 0) {
         const k = S.cfg.sourceKinds[s.kind];
@@ -1576,7 +1612,10 @@
       pulses: 0,
       emits: 0,
       readCount: 0,
-      sources: (chapter.sources || []).map((s) => ({ at: s.at, kind: s.kind, cd: cfg.sourceKinds[s.kind].period * 0.3 })),
+      sources: (chapter.sources || []).map((s) => ({
+        at: (s.at || s.path[0]).slice(), kind: s.kind, cd: cfg.sourceKinds[s.kind].period * 0.3,
+        path: s.path || null, speed: s.speed || 0, travel: 0
+      })),
       gauges: (chapter.gauges || []).map((g) => Object.assign({ read: false }, g)),
       ears: (chapter.ears || []).map((e) => Object.assign({ open: false, lit: 0, loudest: 0, cd: 0, rang: 0 }, e)),
       ringQ: [],

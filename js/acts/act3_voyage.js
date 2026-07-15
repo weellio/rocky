@@ -241,6 +241,67 @@
     },
 
     /* ==============================================================
+     * ACT III.15 — TAU CETI
+     *
+     * Arrival. And something else is here.
+     *
+     * Forty-two light years, everyone he came with dead, and Rocky does the thing he came
+     * to do: he goes to the array and he listens to the star. And there is a sound.
+     *
+     * It is not a wall — walls do not move. It is not one of his — his are all silent now.
+     * It is a thing crossing the dark outside the hull, and the hull is cast xenonite, and
+     * xenonite SINGS, so as the thing passes he can hear it ring the length of the ship: a
+     * strange, two-tone, wrong little voice, HERE, and then over there, and then nearer. The
+     * first moving sound in the whole game — the first thing that is not where he left it.
+     *
+     * The array gives him three bearings, and every one is closer than the last. Whatever
+     * it is, it has seen his ship, and it is coming. Which is the rest of the game.
+     * ============================================================== */
+    {
+      id: 'tauceti',
+      name: 'Tau Ceti',
+      world: { w: 50, h: 12, d: 16 },
+      spawn: [5, 3, 7],
+      objective: 'You are here. Read the array — three bearings — and mind the thing that is not a wall.',
+      exit: [45, 3, 7],
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [49, 11, 15], block: 1 },
+        { op: 'room', from: [3, 1, 4], to: [46, 8, 10], floor: 2 },
+        // THE HULL SKIN: a wall of CAST xenonite down the outboard side. It cannot be lifted
+        // (it is the hull), and it carries sound almost for free — so a thing passing OUTSIDE
+        // it rings the whole length of the ship, and that is how you hear what you cannot see.
+        { op: 'fill', from: [3, 1, 11], to: [46, 8, 11], block: 13 },
+        // the airlock, forward — the way into the rest of the story
+        { op: 'room', from: [43, 1, 5], to: [47, 6, 9], floor: 2 }
+      ],
+      /* THE CONTACT. A moving source, out past the hull, patrolling the length of the ship
+       * and back. It is faint and it is wrong and it will not hold still. */
+      sources: [
+        { kind: 'contact', path: [[4, 4, 12], [45, 4, 12]], speed: 7 }
+      ],
+      /* THE ARRAY: three bearings to the thing outside. There should be NOTHING here —
+       * nominal zero — and every reading says something, closer each time. */
+      gauges: [
+        { id: 'g1', at: [12, 3, 7], name: 'Contact · range', nominal: 0, reading: 88 },
+        { id: 'g2', at: [24, 3, 7], name: 'Contact · range', nominal: 0, reading: 40 },
+        { id: 'g3', at: [36, 3, 7], name: 'Contact · range', nominal: 0, reading: 14 }
+      ],
+      labels: [
+        { at: [12, 3, 7], block: 6, text: 'ARRAY I · bearing' },
+        { at: [24, 3, 7], block: 6, text: 'ARRAY II · bearing' },
+        { at: [36, 3, 7], block: 6, text: 'ARRAY III · bearing' },
+        { at: [24, 3, 11], block: 13, text: 'THE HULL — it rings when something passes', color: '#a9e8bd' },
+        { at: [45, 3, 7], block: 15, text: 'THE AIRLOCK', color: '#4dff9e' }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'Tau Ceti. I am here. I came all this way to listen to a star that is not dying, and I have been listening for an hour, and the star is fine — the star is exactly as clean as they hoped. It worked. It all worked, and there is no one left to tell.' },
+        { at: 'start', chord: '♩♩♪', text: 'And then — no. That is not the star. That is not a wall. Walls do not move. Something is out there, past the hull, and I can hear it because the hull SINGS, and it is going one way and then the other, and it is not one of mine, because mine are all quiet now.' },
+        { at: 'gauge', chord: '♪♩', text: 'Another bearing. Closer.' },
+        { at: 'all_gauges', chord: '♩♪♪♩', text: 'Three bearings and every one nearer than the last. It is not drifting. It is not wreckage. It has a heading, and the heading is me. Something crossed forty-two light years to the same dying star I did, and it has seen my ship, and it is coming to it.', banner: 'IT IS NOT A WALL — AND IT IS COMING' }
+      ]
+    },
+
+    /* ==============================================================
      * THE LONG DARK — a warren nobody has mapped.
      *
      * Every other chapter in this game is measured to the cell, because every other
