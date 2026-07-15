@@ -47,6 +47,7 @@
     'volunteers',   /*      twenty-three of them, and nobody argued */
     'launch',       /*      the one chapter you can see everything */
     'sleep',        /* III · four shifts, and the ship changes while you are out */
+    'failure',      /*      the crew go silent one by one; a death is a sound that stops */
     'longdark'      /*      forty-two light years of quiet */
   ];
 

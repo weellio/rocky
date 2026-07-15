@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2432,6 +2432,57 @@ group('SLEEP: four shifts, and the ship changes while you are out', () => {
   ok(by.g4.reading > by.g3.reading * 3, 'and by the last shift the shielding number has run away entirely');
   ok(S.chapter.lines.some((l) => l.at === 'all_gauges' && /xenonite/i.test(l.text)),
     'and the realization that the xenonite is not holding — the next chapter, arriving early');
+});
+
+group('THE FAILURE: you find out somebody has died because a sound stops', () => {
+  /* The crew are sources — they hum, and you have navigated by that hum all game. This
+   * chapter kills them, one at a time, and the ONLY signal is the silence: no banner, no
+   * body, no announcement. The engine has to make that literally true — a dead voice makes
+   * no sound, ever again — and it has to be YOUR act of checking that ends it. */
+  const S = R.create(CFG, { seed: 1, chapter: 'failure' });
+  const step = (t) => steps(S, t == null ? 0.2 : t);
+  const goTo = (x, z) => { S.player.x = x + 0.5; S.player.y = 3.5; S.player.z = z + 0.5; S.player.vy = 0; step(0.2); };
+  const alive = () => S.folk.filter((f) => f.alive).map((f) => f.name);
+
+  // four crew, all working, all making noise
+  eq(alive().length, 4, 'four of the crew are aboard and alive');
+  const e0 = S.emits; step(2.5);
+  ok(S.emits > e0, 'and you can hear them — they hum, they work, the ship is full of people');
+
+  /* Reading a section's gauge is how you find out it is lethal — and that is the moment
+   * the crew member working it goes quiet. One gauge, one silence, in lockstep. */
+  goTo(11, 8); R.readGauge(S);
+  ok(!alive().includes('VOTH') && S.lostN === 1, 'you check section one, and Voth stops');
+  goTo(21, 8); R.readGauge(S);
+  ok(!alive().includes('SEVEN') && S.lostN === 2, 'section two, and Seven stops');
+
+  // finish the round: the last two, and the last is ARK, who asked you to write his name
+  goTo(31, 8); R.readGauge(S);
+  ok(!alive().includes('BRIDGE'), 'section three, and Bridge stops');
+  ok(!R.solved(S), 'not done yet — Ark is still working, still audible, at the last station');
+  goTo(41, 8); const last = R.readGauge(S);
+  ok(!alive().includes('ARK') && last.done, 'and the last gauge takes the last of them');
+  eq(alive().length, 0, 'the crew are gone, every one, checked off by your own rounds');
+  eq(S.lostN, 4, 'four sounds, four silences');
+  ok(R.solved(S), 'the round is done, and the way out opens');
+
+  /* No death is ever ANNOUNCED — the engine utters "lost", which the audio plays as a hum
+   * dying to nothing, but there is no banner, no name in lights. The silence is the only
+   * telling. The realization is saved for the very end. */
+  ok(S.chapter.lines.some((l) => l.at === 'all_gauges' && /only sound left|last voice|last of/i.test(l.text)),
+    'and only at the end does he say it: he is the last voice on the ship');
+
+  /* AND THE SHIP IS MEASURABLY QUIETER FOR IT. A fresh ship full of working people makes a
+   * certain amount of noise in a window of time; the same ship with the crew gone makes far
+   * less, because a death here is not an event — it is a subtraction from the sound. */
+  const wf = R.create(CFG, { seed: 1, chapter: 'failure' });
+  wf.player.x = 26.5; wf.player.y = 3.5; wf.player.z = 8.5;   // stand mid-ship, near nobody in particular
+  const liveWindow = wf.emits; steps(wf, 5); const withCrew = wf.emits - liveWindow;
+  for (const g of wf.gauges) { wf.player.x = g.at[0] + 0.5; wf.player.y = 3.5; wf.player.z = 8.5; steps(wf, 0.2); R.readGauge(wf); }
+  eq(wf.folk.filter((f) => f.alive).length, 0, 'every voice checked off');
+  wf.player.x = 26.5; wf.player.y = 3.5; wf.player.z = 8.5;
+  const deadWindow = wf.emits; steps(wf, 5); const withoutCrew = wf.emits - deadWindow;
+  ok(withoutCrew < withCrew, `the ship quiets as they go: ${withCrew} sounds in five seconds with the crew, ${withoutCrew} without`);
 });
 
 group('the model', () => {

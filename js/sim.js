@@ -1315,6 +1315,11 @@
     if (S.flags.done) return;   // through the door, and the crew have gone quiet too
     const p = S.player;
     for (const f of S.folk) {
+      /* THE DEAD MAKE NO SOUND. A crew member who has gone silent stays silent — no hum,
+       * no work, nothing to walk toward. This is the whole of The Failure: you have known
+       * where everybody is, all game, by the noise they make, and one by one the noises
+       * stop, and the engine tells you nothing. You just notice a voice is not there. */
+      if (f.alive === false) continue;   // === false: only the KILLED are silent; a generated warren's folk have no `alive` set and must still hum
       // they are always working, and work makes noise
       f.cd -= dt;
       if (f.cd <= 0) {
@@ -1464,6 +1469,14 @@
     g.read = true;
     S.readCount++;
     cue(S, 'gauge');
+    /* AND CHECKING A SYSTEM IS HOW YOU FIND OUT. In The Failure, each gauge is a section of
+     * the ship, and reading it — learning the radiation there is past saving — is the
+     * moment the crew member working that section goes quiet. You do not cause it and the
+     * game does not announce it: you are standing at the gauge, and a hum you have heard
+     * all game simply stops. `dies` names whose sound ends when this gauge is read. */
+    for (const f of S.folk) {
+      if (f.alive && f.dies === g.id) { f.alive = false; S.lostN++; cue(S, 'lost'); }
+    }
     const done = S.gauges.every((x) => x.read);
     if (done) { S.flags.all_gauges = true; cue(S, 'chapter'); }
     return {
@@ -1584,7 +1597,8 @@
       stepDoneN: 0,
       exit: chapter.exit || null,
       exitCd: 0,
-      folk: (chapter.folk || []).map((f) => Object.assign({ met: false, near: false, cd: 0 }, f)),
+      folk: (chapter.folk || []).map((f) => Object.assign({ met: false, near: false, cd: 0, alive: true }, f)),
+      lostN: 0,
       metN: 0,
       space: chapter.space || null,
       vacN: null,

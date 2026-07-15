@@ -104,6 +104,81 @@
     },
 
     /* ==============================================================
+     * ACT III.13 — THE FAILURE
+     *
+     * You have known where everybody is for the whole game. Not by looking — nobody here
+     * has ever looked at anything — but by the noise they make. An Eridian is always
+     * working, so an Eridian is a sound, and you have navigated by those sounds since the
+     * first room: the tap and scrape of somebody alive in the next chamber.
+     *
+     * The xenonite is not stopping the radiation. Sleep told you that in a number; this is
+     * the number happening to people. You go down the ship on your rounds, and at each
+     * station you check the gauge, and you learn the section is lethal — and the crew
+     * member working it goes quiet. Not dramatically. There is no announcement, no banner,
+     * no body. A hum you have heard all game simply stops, and you are standing there, and
+     * the only way you know somebody has died is that a sound you were not even listening
+     * for is not there any more.
+     *
+     * By the last gauge you are the only voice left on the ship. Which is the next chapter.
+     * ============================================================== */
+    {
+      id: 'failure',
+      name: 'The Failure',
+      world: { w: 54, h: 12, d: 16 },
+      spawn: [6, 3, 8],
+      objective: 'The shielding is failing. Check each section — and listen to what is still there when you do.',
+      exit: [50, 3, 8],
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [53, 11, 15], block: 1 },
+        { op: 'room', from: [2, 1, 3], to: [51, 8, 13], floor: 2 },
+        // low ribs between the sections you can step over — the ship has a spine, but the
+        // way is open: nothing is LOCKED here, the loss is not a puzzle you can fail
+        { op: 'fill', from: [15, 1, 3], to: [15, 3, 13], block: 1 },
+        { op: 'fill', from: [15, 1, 7], to: [15, 3, 9], block: 0 },
+        { op: 'fill', from: [25, 1, 3], to: [25, 3, 13], block: 1 },
+        { op: 'fill', from: [25, 1, 7], to: [25, 3, 9], block: 0 },
+        { op: 'fill', from: [35, 1, 3], to: [35, 3, 13], block: 1 },
+        { op: 'fill', from: [35, 1, 7], to: [35, 3, 9], block: 0 },
+        { op: 'fill', from: [45, 1, 3], to: [45, 3, 13], block: 1 },
+        { op: 'fill', from: [45, 1, 7], to: [45, 3, 9], block: 0 },
+        { op: 'room', from: [49, 1, 6], to: [52, 6, 10], floor: 2 }
+      ],
+      // the ship's own machines keep running — it is the PEOPLE who stop
+      sources: [
+        { at: [8, 3, 4], kind: 'pipe' },
+        { at: [46, 3, 12], kind: 'vent' }
+      ],
+      /* Four sections, four gauges. Reading one is checking that section — and finding it
+       * lethal. The numbers only ever get worse. */
+      gauges: [
+        { id: 'g1', at: [11, 3, 8], name: 'Section 1 · rads', nominal: 6, reading: 44 },
+        { id: 'g2', at: [21, 3, 8], name: 'Section 2 · rads', nominal: 6, reading: 61 },
+        { id: 'g3', at: [31, 3, 8], name: 'Section 3 · rads', nominal: 6, reading: 78 },
+        { id: 'g4', at: [41, 3, 8], name: 'Section 4 · rads', nominal: 6, reading: 95 }
+      ],
+      /* THE CREW. The volunteers from Tau Ceti, working the ship they chose to die on. Each
+       * hums at their station until you check their section — and then they do not. `dies`
+       * names the gauge whose reading ends their sound. ARK is last, because ARK asked you
+       * to write his name down, and you did. */
+      folk: [
+        { at: [12, 3, 11], name: 'VOTH',   chord: '♩♪♩',  dies: 'g1',
+          line: 'Still here, Rocky. Still working. Do not stop on my account — go and read your gauge. I know what it says. I have known for a while.' },
+        { at: [22, 3, 5],  name: 'SEVEN',  chord: '♪♪♩',  dies: 'g2',
+          line: 'I told you it did not matter whether we came back. I did not think it would be this that got us, though. Not the shielding. We were so sure about the shielding.' },
+        { at: [32, 3, 11], name: 'BRIDGE', chord: '♩♩♪♩', dies: 'g3',
+          line: 'I built this hull. I built it to hold twenty-nine atmospheres and it holds them beautifully. Nobody asked me to build it to hold this. Go on. Check my section. I can hear you not wanting to.' },
+        { at: [42, 3, 5],  name: 'ARK',    chord: '♪♩♩♪', dies: 'g4',
+          line: 'Three children. You wrote my name down, in that order, like I asked. I am glad it was you doing the rounds, Rocky. Read the last gauge. I do not want you to, and I want you to. Both.' }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'I have known where every one of them is since we launched. Not by looking — by listening. Voth tapping. Seven filing something down, always. Bridge, humming, that low thing he does not know he does. This is how you know a ship is alive: it is full of noises that are people.' },
+        { at: 'start', chord: '♩♩♪',  text: 'The shielding is failing and I have to check each section to see how far. I already know how far. I can hear how far.' },
+        { at: 'gauge', chord: '♪♩',   text: '...and the sound stops.' },
+        { at: 'all_gauges', chord: '♩♪♪♩', text: 'There. That was the last of it — the last voice but mine. I have read every gauge and I have lost every one of them doing it, and the ship is exactly as loud now as a ship with nobody on it, because that is what it is.', banner: 'YOU ARE THE ONLY SOUND LEFT' }
+      ]
+    },
+
+    /* ==============================================================
      * THE LONG DARK — a warren nobody has mapped.
      *
      * Every other chapter in this game is measured to the cell, because every other

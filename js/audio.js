@@ -143,7 +143,10 @@
      * than heard — the sound of being carried. */
     'source:burn': function () { noise(0.6, 150, 0.055); ping(58, 0.5, 'sine', 0.045); },
     /* SLEEP: a slow settle, four notes falling — lying down in the dark for a shift. */
-    sleep: function () { [330, 247, 196, 147].forEach(function (f, i) { setTimeout(function () { ping(f, 0.75, 'sine', 0.06); }, i * 150); }); }
+    sleep: function () { [330, 247, 196, 147].forEach(function (f, i) { setTimeout(function () { ping(f, 0.75, 'sine', 0.06); }, i * 150); }); },
+    /* LOST: a hum that was there, and then is not. One low note that dies away to nothing —
+     * quieter than anything else in the game, because the point is the SILENCE after it. */
+    lost: function () { ping(174, 1.4, 'sine', 0.05); }
   };
 
   /* THE ROOM ANSWERS IN ITS OWN VOICE.
