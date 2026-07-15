@@ -489,6 +489,73 @@
     },
 
     /* ==============================================================
+     * ACT IV.19 — TWENTY-NINE ATMOSPHERES
+     *
+     * The thing will die in your ship. You will die in its. Neither of you can breathe the
+     * other's air, and you both work it out inside a minute, and you both keep talking.
+     *
+     * There is a hole in the join between the two ships and Rocky's air is going out of it,
+     * fast, into nothing — his chamber is emptying while he stands in it. He has to seal it.
+     * He has exactly two things to seal it with: a lump of grit, and a pane of xenonite.
+     *
+     * The grit will do it. Grit stops anything; his air would come back and he would be
+     * safe. And he would never hear her again, because grit is DEAF — it is the one material
+     * that eats a sound whole, and the far side of a grit wall is silence. He would be
+     * alive, and sealed, and alone, a hand-span from the only other mind for forty light
+     * years, and unable to say so.
+     *
+     * The xenonite also stops the air. And xenonite SINGS. Seal the hole with xenonite and
+     * he is safe AND he can still shout through the wall and be heard on the other side. It
+     * is the only answer, and it is not a compromise — it is the whole thesis of the game,
+     * standing in one cell: the wall between them is not the obstacle. The wall is the only
+     * reason the two of them can talk at all.
+     * ============================================================== */
+    {
+      id: 'atmospheres',
+      name: 'Twenty-Nine Atmospheres',
+      world: { w: 32, h: 12, d: 12 },
+      spawn: [4, 3, 6],
+      objective: 'Your air is pouring out of a hole in the wall. Seal it — and only xenonite seals it AND lets you keep talking through it.',
+      exit: [9, 3, 1],
+      seal: [13, 3, 6],
+      space: [[13, 3, 6]],   // the hole vents Rocky's chamber to nothing until he plugs it
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [31, 11, 11], block: 1 },
+        // Rocky's chamber — his air, twenty-nine atmospheres of it, and going
+        { op: 'room', from: [2, 1, 3], to: [12, 8, 9], floor: 2 },
+        // THE HOLE, in the join — a single empty cell his whole atmosphere is leaving through
+        { op: 'set', at: [13, 3, 6], block: 16 },
+        // the other ship's hull, intact: cast xenonite, so it already sings — her wall was
+        // never the problem, and it is how he knows she is there at all
+        { op: 'fill', from: [14, 1, 3], to: [14, 8, 9], block: 13 },
+        { op: 'room', from: [15, 1, 3], to: [25, 8, 9], floor: 2 },
+        // the two things he has to plug it with: the trap and the answer
+        { op: 'set', at: [6, 2, 6], block: 9 },   // grit — airtight, and deaf
+        { op: 'set', at: [8, 2, 6], block: 7 },   // xenonite — airtight, and it sings
+        // the way on, once he is sealed and still able to speak
+        { op: 'room', from: [7, 1, 1], to: [11, 5, 3], floor: 2 }
+      ],
+      sources: [
+        { at: [22, 3, 6], kind: 'grind' }
+      ],
+      folk: [
+        { at: [20, 3, 6], name: 'THE OTHER', kind: 'human', chord: '—',
+          line: 'It is still there. On the far side of a wall I am about to reseal, doing its silent thing with the panel on its head, alive in an air that would kill me in a breath — and I would kill it, if my air got to it, and we both know this now, and neither of us has moved away from the wall.' }
+      ],
+      labels: [
+        { at: [13, 4, 6], block: 16, text: 'THE HOLE — your air is going', color: '#ff5a4d' },
+        { at: [6, 3, 6], block: 9, text: 'GRIT — seals it, and goes deaf', color: '#8a5a4a' },
+        { at: [8, 3, 6], block: 7, text: 'XENONITE — seals it, and sings', color: '#57e08a' },
+        { at: [9, 3, 1], block: 15, text: 'THE WAY ON', color: '#4dff9e' }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'There is a hole in the wall between us and my air is leaving through it. I can feel the chamber going thin. I have to close it now, and I have two things in reach to close it with, and this is the most important choice I have made since I left home, and I have about a minute to make it.' },
+        { at: 'start', chord: '♩♩♪', text: 'Grit would do it. Grit stops everything — including the sound of it, on the other side. I would be safe and I would be deaf and it would be right there and I could never tell it so. Xenonite stops the air AND carries my voice. The wall is not the thing keeping us apart. The wall is the only thing letting us be together. So it is xenonite. Of course it is xenonite.' },
+        { at: 'pressure', chord: '♩♪♩', text: 'Air. The chamber is full again, and the wall is whole, and it SINGS — I can hear the grinding of its machine straight through the seal. We are two sealed jars a hand-span apart, and we can shout to each other all night, and neither of us will ever open the lid. That is the deal. I will take it.' }
+      ]
+    },
+
+    /* ==============================================================
      * THE LONG DARK — a warren nobody has mapped.
      *
      * Every other chapter in this game is measured to the cell, because every other

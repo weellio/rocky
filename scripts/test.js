@@ -1633,7 +1633,7 @@ group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
      * A NAVIGATION chapter — the generated warren — has no job to be half done. There
      * is nothing to solve there but the walk itself, so its arch calls from the first
      * second, and getting to it IS the game. Two different promises; both kept. */
-    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length || (c.track && c.track.need);
+    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length || (c.track && c.track.need) || c.seal;
     steps(S, 6);
     if (isPuzzle) {
       ok(!R.solved(S), `${c.name}: the room is not solved at the start`);
@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock atmospheres longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2683,6 +2683,50 @@ group('THE AIRLOCK: it heard me — and the palette spends its orange', () => {
   ok(R.blockAt(A, 21, 4, 8) === 13, 'and the wall that carried it is cast xenonite, the one thing sound crosses for free');
   ok(A.chapter.lines.some((l) => l.at === 'ear' && /heard|felt|door/i.test(l.text)),
     'and what he says is not "we spoke" — it is "it heard me", which is smaller, and everything');
+});
+
+group('TWENTY-NINE ATMOSPHERES: the wall is the reason, not the obstacle', () => {
+  /* Two airs that would each kill the other, one wall between, a hole in it, and his air is
+   * going. He has grit and he has xenonite. Both stop the leak. Only one lets him still be
+   * heard through the wall. The chapter is not done until the hole is sealed with the
+   * material that is airtight AND sings — because being alive and deaf, a hand-span from the
+   * only other mind for forty light years, is not a solution. */
+  const mk29 = () => R.create(CFG, { seed: 1, chapter: 'atmospheres' });
+  const settle = (S) => steps(S, 1);
+
+  // the hole vents HIS chamber to nothing — but not hers; her hull is whole
+  const V = mk29(); settle(V);
+  ok(R.blockAt(V, 6, 3, 6) === 16, 'his chamber is emptying: the air where he stands has gone to vacuum');
+  ok(R.blockAt(V, 20, 3, 6) !== 16, 'but her side is untouched — her wall never had the hole, and it holds');
+
+  // GRIT seals the leak and leaves him deaf: safe, and NOT done
+  const G = mk29();
+  R.setBlock(G, 13, 3, 6, 9); R.repressurize(G);
+  ok(R.blockAt(G, 6, 3, 6) !== 16, 'grit brings his air back');
+  ok(!R.solved(G), 'but it does not finish the chapter — sealed and deaf is not an answer');
+
+  // XENONITE seals the leak AND keeps the wall singing: safe, and DONE
+  const X = mk29();
+  R.setBlock(X, 13, 3, 6, 7); R.repressurize(X);
+  ok(R.blockAt(X, 6, 3, 6) !== 16, 'xenonite brings his air back too');
+  ok(R.solved(X), 'and it finishes the chapter, because now the wall between them still carries a voice');
+
+  // and a real player can do it: lift the xenonite off the deck and plug the hole with it
+  const P = mk29();
+  P.player.x = 9.5; P.player.y = 2.34; P.player.z = 6.5; P.player.yaw = Math.PI / 2; steps(P, 0.2);
+  const took = R.takeBlock(P);
+  ok(took.ok && took.block === 7, 'he lifts the pane of xenonite');
+  P.player.x = 12.4; P.player.y = 3.34; P.player.z = 6.5; P.player.yaw = -Math.PI / 2; steps(P, 0.2);
+  const put = R.placeBlock(P);
+  ok(put.ok && R.blockAt(P, 13, 3, 6) === 7, 'and fits it into the hole in the wall');
+  steps(P, 0.4);
+  ok(R.solved(P), 'and that is the chapter: airtight, and still able to talk');
+
+  // the trap and the answer are both named, plainly, so the choice is a real one
+  const labs = X.chapter.labels || [];
+  ok(labs.some((l) => /grit/i.test(l.text) && /deaf/i.test(l.text)), 'the grit is labelled as the deaf one');
+  ok(labs.some((l) => /xenonite/i.test(l.text) && /sing/i.test(l.text)), 'and the xenonite as the one that sings');
+  ok(X.folk[0] && X.folk[0].kind === 'human', 'and she is right there on the other side of it, the whole time');
 });
 
 group('the model', () => {

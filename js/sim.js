@@ -1460,6 +1460,16 @@
     /* A TRACKING chapter is won by plotting the contact's course — enough fixes, spread
      * along its path — not by a door or a gauge. The Blip does not answer to anything else. */
     if (c.track) return S.fixes.length >= c.track.need;
+
+    /* A SEAL chapter turns on WHAT you plug the breach with. Any solid stops your air going;
+     * only XENONITE also lets your voice through. So sealing with grit leaves you alive and
+     * deaf — safe, and alone — and the chapter is not done until the hole is filled with the
+     * one material that is airtight AND sings. The wall is not the obstacle. The wall is the
+     * whole reason the two of you can talk at all. */
+    if (c.seal) {
+      const b = blockAt(S, c.seal[0], c.seal[1], c.seal[2]);
+      return b === 7 || b === 13;   // loose or cast xenonite
+    }
     /* In a SHIFT chapter the doors are not the win — they are the shifts themselves, opened
      * one at a time by sleeping. Opening the last of them is not finishing the voyage; it
      * only gets you into the hall where the last gauge is. So a shift chapter is solved by
