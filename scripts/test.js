@@ -1633,7 +1633,7 @@ group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
      * A NAVIGATION chapter — the generated warren — has no job to be half done. There
      * is nothing to solve there but the walk itself, so its arch calls from the first
      * second, and getting to it IS the game. Two different promises; both kept. */
-    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length;
+    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length || (c.track && c.track.need);
     steps(S, 6);
     if (isPuzzle) {
       ok(!R.solved(S), `${c.name}: the room is not solved at the start`);
@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2566,6 +2566,48 @@ group('TAU CETI: the first sound that is not where you left it', () => {
   ok(rs[0] > rs[1] && rs[1] > rs[2], `and every bearing is nearer than the last: ${rs.join(' → ')}`);
   ok(S.chapter.lines.some((l) => l.at === 'all_gauges' && /coming|heading/i.test(l.text)),
     'and he knows what that means: it has a heading, and the heading is him');
+});
+
+group('THE BLIP: plot a course by chasing a thing that will not answer', () => {
+  /* The moving contact stops being scenery and becomes the puzzle. You cannot open it or
+   * ring it; you can only catch WHERE it is, again and again, at a spread of points, and
+   * join them into a heading. Two things have to be true and the suite has to hold both:
+   * chasing it DOES plot the course, and standing still does NOT — or it is not tracking,
+   * it is just waiting. */
+  const T = CFG.chapters.find((c) => c.id === 'blip').track;
+  ok(T && T.need >= 3 && T.minSep > 0, 'the chapter asks you to plot several fixes, each a fresh stretch of its path');
+
+  // CHASE IT: keep beside the blip and pulse when you can — the course fills in
+  const S = R.create(CFG, { seed: 1, chapter: 'blip' });
+  let pulses = 0;
+  for (let i = 0; i < 200 && S.fixes.length < T.need; i++) {
+    steps(S, 0.1);
+    const a = S.sources[0].at;                 // stay with it, just inside the hull
+    S.player.x = a[0] + 0.5; S.player.y = 3.5; S.player.z = 9.5; S.player.vy = 0;
+    if (S.pulseCd <= 0) { R.pulse(S); pulses++; }
+  }
+  eq(S.fixes.length, T.need, `run it down and its course fills in: ${T.need} fixes in ${pulses} shouts`);
+  ok(R.solved(S), 'and with the course plotted, you know where it goes — the chapter is done');
+
+  // the fixes are genuinely SPREAD along its path, not four reads of the same spot
+  const xs = S.fixes.map((f) => f[0]).sort((a, b) => a - b);
+  ok(xs[xs.length - 1] - xs[0] >= T.minSep * 2, `and they span its course, not one point: x ${xs.join(', ')}`);
+  for (let i = 1; i < xs.length; i++) ok(xs[i] - xs[i - 1] >= T.minSep - 1, 'no two fixes are the same stretch of it');
+
+  // STAND STILL and you cannot cheat it: pulsing from one spot catches at most a point or
+  // two, because the fix must be a part of the course you have not plotted yet
+  const P = R.create(CFG, { seed: 1, chapter: 'blip' });
+  let fixed = 0;
+  for (let i = 0; i < 160 && fixed < 40; i++) {
+    steps(P, 0.1);
+    P.player.x = 10.5; P.player.y = 3.5; P.player.z = 9.5; P.player.vy = 0;
+    if (P.pulseCd <= 0) { R.pulse(P); fixed++; }
+  }
+  ok(P.fixes.length < T.need, `holding still, ${fixed} shouts from one spot plot only ${P.fixes.length} of ${T.need} — you have to chase it`);
+  ok(!R.solved(P), 'so you cannot solve The Blip standing still');
+
+  ok(S.chapter.lines.some((l) => l.at === 'plotted' && /airlock|door|way in|coming/i.test(l.text)),
+    'and the course, plotted, ends exactly where he feared: his own door');
 });
 
 group('the model', () => {

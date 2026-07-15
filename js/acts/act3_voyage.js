@@ -302,6 +302,56 @@
     },
 
     /* ==============================================================
+     * ACT IV.16 — THE BLIP
+     *
+     * A contact that does not answer.
+     *
+     * At Tau Ceti he heard it pass. Now he has to TRACK it — and it will not help him. You
+     * cannot open it like a door or ring it like a bell; you pulse at it and nothing comes
+     * back but the same wrong little voice, somewhere new. So you do the only thing there
+     * is: you catch WHERE it is, and then where it is next, and then again, and you join the
+     * dots into a heading. Standing still and pulsing at the same passing point tells you
+     * nothing — the fix only counts if it is a fresh stretch of the thing's course — so you
+     * have to run it down the dark, staying with it, pinning it at a spread of places.
+     *
+     * This is the first chapter that is entirely about a thing that is NOT WHERE YOU LEFT
+     * IT. Plot four points and you have its line, and its line goes exactly where you feared
+     * it did: to your airlock.
+     * ============================================================== */
+    {
+      id: 'blip',
+      name: 'The Blip',
+      world: { w: 58, h: 12, d: 16 },
+      spawn: [5, 3, 7],
+      objective: 'It will not answer. Plot its course — catch it at four different points — and you will know where it is headed.',
+      exit: [53, 3, 7],
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [57, 11, 15], block: 1 },
+        { op: 'room', from: [3, 1, 4], to: [54, 8, 10], floor: 2 },
+        // the observation hull: cast xenonite the length of the deck, so the blip outside
+        // rings through it and you can hear where it is well enough to chase
+        { op: 'fill', from: [3, 1, 11], to: [54, 8, 11], block: 13 },
+        { op: 'room', from: [51, 1, 5], to: [55, 6, 9], floor: 2 }
+      ],
+      /* The contact, faster now and closer in, running the length of the deck and back. */
+      sources: [
+        { kind: 'contact', path: [[4, 4, 12], [52, 4, 12]], speed: 6 }
+      ],
+      /* PLOT ITS COURSE. Four fixes, each a fresh stretch of its path — you cannot get them
+       * all from one spot; you have to keep up with it. */
+      track: { kind: 'contact', need: 4, range: 14, minSep: 9 },
+      labels: [
+        { at: [27, 3, 11], block: 13, text: 'THE HULL — the blip rings through it', color: '#a9e8bd' },
+        { at: [53, 3, 7], block: 15, text: 'THE AIRLOCK', color: '#4dff9e' }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'It is still out there. I have been awake for a day and a night listening to it and it has not once held still. It does not answer. I pulse at it — the way you would knock on a wall to see what is behind it — and nothing comes back but the thing itself, moved on, somewhere I did not leave it.' },
+        { at: 'start', chord: '♩♩♪', text: 'So I will do what you do with a thing that will not answer: I will follow it. Catch where it is, and where it goes next, and again, until the dots are a line. Four should do it. I have to keep up with it — it will not wait for me to work it out.' },
+        { at: 'plotted', chord: '♩♪♪♩', text: 'There. Four points, and they are a straight line, and the line ends at my airlock. It is not lost and it is not drifting. It knows exactly where I am, and it has known for a while, and it is on its way in.', banner: 'ITS COURSE ENDS AT YOUR DOOR' }
+      ]
+    },
+
+    /* ==============================================================
      * THE LONG DARK — a warren nobody has mapped.
      *
      * Every other chapter in this game is measured to the cell, because every other

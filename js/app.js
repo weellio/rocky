@@ -717,6 +717,18 @@ function frame(now) {
       const line = S.chapter.lines.find((l) => l.at === 'pressure');
       if (line) setTimeout(() => say(line.chord, line.text), 1200);
     }
+    if (id === 'fix') {
+      const need = (S.chapter.track && S.chapter.track.need) || 0;
+      banner(`PLOTTED · ${S.fixes.length} of ${need}`);
+      if (S.fixes.length < need) flash('a point on its course — now catch it somewhere else');
+    }
+    if (id === 'plotted') {
+      const line = S.chapter.lines.find((l) => l.at === 'plotted');
+      if (line) {
+        setTimeout(() => say(line.chord, line.text), 1400);
+        if (line.banner) banner(line.banner);
+      }
+    }
     if (id === 'exitopen') {
       banner('THE WAY OUT IS CALLING');
       flash('pulse — you will hear it');

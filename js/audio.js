@@ -141,6 +141,10 @@
     /* THE CONTACT: a strange two-tone chirp, close but wrong — not a material's voice, not
      * a person's. The first sound in the game that belongs to nobody you know. */
     'source:contact': function () { ping(1320, 0.09, 'square', 0.03); setTimeout(function () { ping(990, 0.12, 'square', 0.028); }, 90); },
+    /* FIX: a clean confirming blip — you caught it, a point on its course pinned down. */
+    fix: function () { ping(1560, 0.08, 'sine', 0.05); setTimeout(function () { ping(2080, 0.1, 'sine', 0.04); }, 70); },
+    /* PLOTTED: the dots join into a line. A small rising figure — you know where it is going. */
+    plotted: function () { [784, 988, 1319].forEach(function (f, i) { setTimeout(function () { ping(f, 0.5, 'sine', 0.06); }, i * 120); }); },
     /* THE BURN: a low rolling roar with a body under it, throbbing on the drive's clock.
      * It is the loudest thing in the game and it should sit UNDER everything, felt more
      * than heard — the sound of being carried. */

@@ -916,6 +916,27 @@
   }
 
   /* Rocky pulses. Costs a cooldown, so you cannot simply hold the world lit. */
+  /* PLOTTING A COURSE. The Blip does not answer — you cannot open it like a door or ring it
+   * like a bell. All you can do is catch WHERE it is, again and again, and join the dots
+   * into a heading. A fix is logged when you pulse with the contact inside range AND it is
+   * far enough from every fix you already have — so standing still and pulsing at the same
+   * passing point gets you nowhere; you have to CHASE it down the dark and catch it at a
+   * spread of places. That is tracking, and it is the whole chapter. */
+  function recordFix(S) {
+    const t = S.chapter.track;
+    if (!t) return;
+    const src = S.sources.find((s) => s.kind === t.kind);
+    if (!src) return;
+    const p = S.player, a = src.at;
+    const d = Math.hypot(p.x - (a[0] + 0.5), p.y - (a[1] + 0.5), p.z - (a[2] + 0.5));
+    if (d > (t.range || 16)) return;                    // too far out to get a clean fix
+    const sep = t.minSep || 8;
+    for (const f of S.fixes) if (Math.hypot(f[0] - a[0], f[1] - a[1], f[2] - a[2]) < sep) return;  // that stretch of its course is already plotted
+    S.fixes.push([a[0], a[1], a[2]]);
+    cue(S, 'fix');
+    if (S.fixes.length === t.need) cue(S, 'plotted');   // enough points: the course is a line now
+  }
+
   function pulse(S) {
     if (S.pulseCd > 0) return { ok: false, why: 'cooling' };
     const p = S.player;
@@ -927,6 +948,7 @@
     const n = emit(S, p.x, p.y, p.z, voice(S, S.cfg.sonar.pulseAmp), 0);
     S.pulses++;
     cue(S, 'pulse');
+    if (S.chapter.track) recordFix(S);   // a shout is also a sensor sweep, if there is a blip to catch
     return { ok: true, cells: n };
   }
 
@@ -1435,6 +1457,9 @@
       const need = leaveAt < 0 ? c.walk.length : leaveAt;
       return S.stepI >= need;
     }
+    /* A TRACKING chapter is won by plotting the contact's course — enough fixes, spread
+     * along its path — not by a door or a gauge. The Blip does not answer to anything else. */
+    if (c.track) return S.fixes.length >= c.track.need;
     /* In a SHIFT chapter the doors are not the win — they are the shifts themselves, opened
      * one at a time by sleeping. Opening the last of them is not finishing the voyage; it
      * only gets you into the hall where the last gauge is. So a shift chapter is solved by
@@ -1654,6 +1679,7 @@
        * the next time you shout. */
       shift: 0,
       bunk: chapter.bunk || null,
+      fixes: [],   // plotted positions of a moving contact — see recordFix / The Blip
       carryOf: cfg.blocks.map((b) => !!b.carry),
       flags: {},
       cueQ: [],

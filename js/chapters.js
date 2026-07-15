@@ -50,6 +50,7 @@
     'failure',      /*      the crew go silent one by one; a death is a sound that stops */
     'alone',        /*      the quiet middle: the only sound is the one you make */
     'tauceti',      /*      arrival — and the first sound that is not where you left it */
+    'blip',         /* IV · a contact that will not answer; plot its course by ear */
     'longdark'      /*      forty-two light years of quiet */
   ];
 
