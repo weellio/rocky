@@ -674,6 +674,7 @@ const qLift = new THREE.Quaternion();
 const qTarget = new THREE.Quaternion();
 const qRoll = new THREE.Quaternion();
 const bodyUp = new THREE.Vector3();
+const curUp = new THREE.Vector3();               // his ACTUAL up this frame, to see if he is mid-roll onto a wall
 const bodyFwd = new THREE.Vector3();
 const bodySide = new THREE.Vector3();
 const basis = new THREE.Matrix4();
@@ -891,8 +892,22 @@ function frame(now) {
     qTarget.multiply(qRoll.setFromAxisAngle(FWD_AXIS, Math.sin(gaitT * 0.5) * 0.03));
   }
 
-  // ease toward it. A creature turns onto a wall; it does not snap onto one.
-  rocky.quaternion.slerp(qTarget, Math.min(1, dt * (onWall ? 9 : 12)));
+  /* EASE TOWARD IT — and ease the FLOOR-TO-WALL FLIP slowest of all.
+   * PLAYTEST: "when Rocky transitions from the floor to the wall it is an instant shift
+   * from straight to vertical — can we have a 45 degree shift first so it looks natural?"
+   * Yes. The snap was there because his whole orientation used one turn-rate, and the rate
+   * that feels right for glancing your heading around is far too quick to read as a body
+   * rolling ninety degrees onto a cliff. So we watch his UP: when it swings (his down is
+   * changing — a floor/wall/ceiling transition) we turn him SLOWLY, and he leans through
+   * forty-five and on up to the wall the way a climbing thing actually would; when it is
+   * only his heading moving, he still turns briskly. We compare where his up ACTUALLY
+   * points right now against where it needs to be — so the slow rate holds for the whole
+   * roll, not just the single frame the target flips, and he leans up through forty-five
+   * and on to the wall over about a third of a second. */
+  curUp.set(0, 1, 0).applyQuaternion(rocky.quaternion);
+  const rolling = curUp.dot(bodyUp) < 0.997;     // his feet are not yet where the wall wants them
+  const rate = rolling ? 4.4 : (onWall ? 9 : 12);
+  rocky.quaternion.slerp(qTarget, Math.min(1, dt * rate));
   rocky.position.y = p.y - (moving && !onWall ? Math.abs(Math.sin(gaitT * 1.25)) * 0.012 : 0);
 
   // the others: they sway a little, because they are working
