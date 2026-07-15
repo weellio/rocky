@@ -285,6 +285,28 @@
   .glx{color:#8fe9ff;text-shadow:1.2px 0 rgba(255,59,107,.9),-1.2px 0 rgba(55,224,255,.9);}
   .decoding{animation:decflick .09s steps(2) infinite;}
   @keyframes decflick{50%{opacity:.86;filter:brightness(1.25)}}
+  /* THE LANDING GLITCH — a sonar decode on the front-door title. The word tears into
+     horizontal slices that jump and split into red/cyan ghosts (a PowerGlitch look), while
+     a ping expands out from behind it. It reads as the game's own sense: a name arriving
+     as an echo and resolving into something you can read. */
+  #gate h1.sonar-glitch{animation:sonarslice .26s steps(2,end) infinite;
+    text-shadow:2px 0 rgba(255,59,107,.85),-2px 0 rgba(55,224,255,.85),0 0 26px rgba(143,233,255,.5);}
+  @keyframes sonarslice{
+    0%  {clip-path:inset(0 0 0 0);transform:translate(0,0)}
+    12% {clip-path:inset(6% 0 78% 0);transform:translate(-5px,0)}
+    24% {clip-path:inset(64% 0 8% 0);transform:translate(4px,0)}
+    37% {clip-path:inset(38% 0 40% 0);transform:translate(-3px,0)}
+    50% {clip-path:inset(0 0 0 0);transform:translate(2px,0)}
+    63% {clip-path:inset(80% 0 4% 0);transform:translate(-4px,0)}
+    76% {clip-path:inset(22% 0 58% 0);transform:translate(3px,0)}
+    100%{clip-path:inset(0 0 0 0);transform:translate(0,0)}}
+  #gate h1{position:relative}
+  #gate h1::before{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;
+    border:2px solid rgba(143,233,255,.55);border-radius:50%;transform:translate(-50%,-50%) scale(0);
+    opacity:0;pointer-events:none}
+  #gate h1.ping::before{animation:sonarping 2.6s ease-out}
+  @keyframes sonarping{0%{transform:translate(-50%,-50%) scale(0);opacity:.8}
+    100%{transform:translate(-50%,-50%) scale(34);opacity:0}}
 </style>
 </head>
 <body>
@@ -377,6 +399,35 @@
         .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
         .replace(/\*(.+?)\*/g, '<em>$1</em>') + '</p>';
     }).join('');
+
+    /* THE FRONT DOOR SPEAKS IN DOTS FIRST. The title is a NAME — the biggest one in the
+       game — so it arrives the way every name does: as Rocky's Braille, tearing through a
+       sonar glitch and resolving into the letters we read it by. Slower than anywhere in
+       the game, because it is the first thing you see and it should take its time. The
+       amber emphasis on UNIVERSE is put back the moment it settles. */
+    (function () {
+      var D = window.ROCKY_DECODE;
+      var h1 = document.querySelector('#gate h1');
+      if (!D || !h1) return;
+      var full = 'ROCKY SAVES THE UNIVERSE', em = 'UNIVERSE';
+      var esc = function (s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); };
+      var settled = function () {
+        var i = full.lastIndexOf(em);
+        h1.innerHTML = esc(full.slice(0, i)) + '<em>' + esc(em) + '</em>' + esc(full.slice(i + em.length));
+      };
+      var dur = 2400, start = null;
+      h1.classList.add('sonar-glitch', 'ping');
+      var step = function (now) {
+        if (start == null) start = now;
+        var t = Math.min(1, (now - start) / dur);
+        h1.innerHTML = D.frame(full, t).map(function (p) {
+          return p.hot ? '<span class="glx">' + esc(p.c) + '</span>' : esc(p.c);
+        }).join('');
+        if (t < 1) requestAnimationFrame(step);
+        else { h1.classList.remove('sonar-glitch'); settled(); setTimeout(function () { h1.classList.remove('ping'); }, 400); }
+      };
+      setTimeout(function () { requestAnimationFrame(step); }, 260);
+    })();
 
     /* THE MATERIALS TABLE. Read straight off the block table the ENGINE plays by, so
        the chart and the world can never drift apart. `absorb` is how much a material

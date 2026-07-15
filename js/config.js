@@ -233,7 +233,15 @@
       /* AN ERIDIAN IS A NOISE. They are always working — tapping, filing, shifting
        * things about — so you find a person exactly the way you find a wall: you shout,
        * and something answers that is not a wall. */
-      folk:  { period: 2.0, amp: 0.62, range: 18, hue: '#ffb36b' }
+      folk:  { period: 2.0, amp: 0.62, range: 18, hue: '#ffb36b' },
+      /* THE BURN. For one chapter, and one chapter only, you do not have to make a sound
+       * to know where you are — the drive does it for you, and it does it to the WHOLE
+       * SHIP at once. It is the loudest thing in the game by a mile: it floods every
+       * chamber, it throbs (the period is short, so it re-lights before the last echo has
+       * faded), and it is AMBER because it is heat — the same heat that is eating the star,
+       * turned into the thing that carries you to it. It ends when you strap in, and after
+       * that it is quiet for forty-two light years. */
+      burn:  { period: 0.55, amp: 2.3, range: 74, hue: '#ffb020' }
     },
 
     audio: {

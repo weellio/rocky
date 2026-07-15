@@ -457,5 +457,94 @@
         { at: 'all_doors', chord: '♩♪♪♩♩', text: 'Twenty-three. Nobody argued. Not one of them argued, and I think I would have felt better if somebody had.' }
       ]
     }
+,
+
+    /* ==============================================================
+     * ACT II.5 — LAUNCH
+     *
+     * The one chapter you can see everything.
+     *
+     * Every other room in this game is dark until you make it answer. This one is not:
+     * the drive's burn is a sound source of colossal amplitude, and it lights the WHOLE
+     * SHIP at once, throbbing, amber, from stem to stern. For the length of one chapter
+     * Rocky does not have to pulse. He just walks through his ship in the loudest light it
+     * will ever hold, running the launch checklist — three boards, read on the way past —
+     * and climbs into the crash couch at the far end.
+     *
+     * And the moment he straps in, the burn cuts. Nothing relights the chambers, so they
+     * fade to black on their own (stepSources simply stops emitting the burn once
+     * flags.done is set — there is no darkness special-case in the renderer, the ship just
+     * stops making the sound). That black is the forty-two years of quiet, arriving on cue.
+     *
+     * There is no puzzle here and there should not be. It is a held breath. He is leaving
+     * a sky he has never seen, and for once the game lets him look at where he is standing.
+     * ============================================================== */
+    {
+      id: 'launch',
+      name: 'Launch',
+      world: { w: 58, h: 16, d: 20 },
+      spawn: [6, 3, 10],
+      objective: 'The drive lights the whole ship — you do not need to pulse. Run the launch boards and get to the couch.',
+      exit: [52, 3, 10],
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [57, 15, 19], block: 1 },
+
+        // the ship's spine: one long hull, aft to fore, floored in plate
+        { op: 'room', from: [3, 1, 4], to: [54, 11, 15], floor: 2 },
+
+        // THE DRIVE, aft. A cage of heat vents around the core — the burn lifts off here
+        // and floods everything ahead of it. Cast xenonite screens it, and xenonite SINGS,
+        // so the roar carries clean through the whole ship instead of stopping at a wall.
+        { op: 'fill', from: [3, 1, 7], to: [4, 6, 12], block: 5 },
+        { op: 'fill', from: [5, 1, 7], to: [5, 6, 12], block: 13 },
+        { op: 'set', at: [4, 3, 10], block: 5 },
+
+        // a mid-ship bulkhead you step through — the ship has ribs, and you feel them in
+        // the light as much as underfoot
+        { op: 'fill', from: [28, 1, 4], to: [28, 8, 15], block: 1 },
+        { op: 'fill', from: [28, 1, 8], to: [28, 4, 11], block: 0 },
+
+        // a raised aft-of-couch deck: a step up toward the front, all of it plainly lit
+        { op: 'fill', from: [40, 1, 5], to: [48, 2, 14], block: 2 },
+
+        // the crash couch, fore: a bay, an arch, the way out of the only home he has
+        { op: 'fill', from: [50, 3, 10], to: [50, 5, 10], block: 7 },
+        { op: 'room', from: [51, 1, 7], to: [55, 6, 13], floor: 2 }
+      ],
+      /* THE BURN. The whole point of the chapter, in one line of data: a source so loud
+       * and so far-reaching it lights the ship end to end, on its own clock, until you
+       * strap in. */
+      sources: [
+        { at: [5, 3, 10], kind: 'burn' }
+      ],
+      /* THE LAUNCH CHECKLIST. Three boards, read on the way forward. Reading them is the
+       * only thing that opens the couch — a crossing with a reason, not a corridor. */
+      gauges: [
+        { id: 'g1', at: [12, 3, 10], name: 'Drive pressure', nominal: 29, reading: 29 },
+        { id: 'g2', at: [34, 3, 10], name: 'Hull stress',    nominal: 44, reading: 44 },
+        { id: 'g3', at: [46, 3, 12], name: 'Heading · Tau Ceti', nominal: 100, reading: 100 }
+      ],
+      labels: [
+        { at: [4, 3, 10], block: 5, text: 'THE DRIVE — it is doing the listening for you', color: '#ffb020' },
+        { at: [12, 3, 10], block: 6, text: 'BOARD I · drive pressure' },
+        { at: [34, 3, 10], block: 6, text: 'BOARD II · hull stress' },
+        { at: [46, 3, 12], block: 6, text: 'BOARD III · heading' },
+        { at: [52, 3, 10], block: 15, text: 'THE COUCH — strap in', color: '#ffb020' }
+      ],
+      /* Two of the crew, at their stations, calling into the roar. */
+      folk: [
+        { at: [20, 3, 6], name: 'ARK', chord: '♩♪♩',
+          line: 'Loud, isn\'t it. First time in my life I have walked a room without asking it a question. I do not like it. Read your boards, Rocky — the drive will not wait for us to make our peace.' },
+        { at: [38, 3, 13], name: 'BRIDGE', chord: '♪♩♩♪',
+          line: 'Hull is holding. I built her to hold. When the burn stops you will hear nothing at all for a very long time, and I want you to remember that the nothing means she is working.' }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'I have never heard anything like this. The drive is a sound with no edges — it fills the whole ship at once, and for the first time in my life I can hear a room without asking it anything. Everything is lit. Everything.' },
+        { at: 'start', chord: '♩♩♪',  text: 'Three boards to read and then the couch. I am not going to pulse. I am just going to walk through my ship, once, in the light, and look at all of it.' },
+        { at: 'gauge', chord: '♪♪♩',  text: 'Green. She is ready.' },
+        { at: 'all_gauges', chord: '♩♪♪♩', text: 'All three. Nothing to do now but lie down in the couch and let the murderer of my star carry me to it.' },
+        { at: 'done', chord: '♪', text: 'And then the burn stopped. And it was quiet. It stayed quiet for forty-two years, and I was asleep for most of them, and this — this nothing — is the sound of the plan working.' }
+      ]
+    }
   ];
 });

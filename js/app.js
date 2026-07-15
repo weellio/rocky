@@ -605,7 +605,7 @@ function flash(msg) {
 const Decode = window.ROCKY_DECODE;
 function decodeInto(node, text, dur) {
   if (!Decode || !text) { node.textContent = text || ''; return; }
-  dur = dur || 620;
+  dur = dur || 1000;
   node.classList.add('decoding');
   const start = performance.now();
   const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -625,14 +625,14 @@ function say(chord, text) {
   box.classList.remove('go');
   void box.offsetWidth;
   box.classList.add('go');
-  decodeInto(el('speech'), text, 720);
+  decodeInto(el('speech'), text, 1150);
 }
 function banner(text) {
   const b = el('banner');
   b.classList.remove('go');
   void b.offsetWidth;
   b.classList.add('go');
-  decodeInto(b, text, 560);
+  decodeInto(b, text, 900);
 }
 function refreshGauges() {
   el('gcount').textContent = `${S.readCount} / ${S.gauges.length}`;
@@ -706,7 +706,12 @@ function frame(now) {
       const n = CFG.chapters.findIndex((c) => c.id === S.chapter.id);
       const next = CFG.chapters[n + 1];
       banner(next ? 'CHAPTER COMPLETE' : 'THAT IS ALL OF IT — SO FAR');
-      if (next) setTimeout(() => load(next.id), 3400);
+      /* Some chapters have a last word to say between the couch and the next room — the
+       * burn going quiet, for one — so if the chapter left a line at 'done', let him say
+       * it into the gap before the screen moves on. */
+      const parting = S.chapter.lines.find((l) => l.at === 'done');
+      if (parting) setTimeout(() => say(parting.chord, parting.text), 700);
+      if (next) setTimeout(() => load(next.id), parting ? 6200 : 3400);
     }
     if (id === 'ear') {
       const line = S.chapter.lines.find((l) => l.at === 'ear');
@@ -887,7 +892,7 @@ function frame(now) {
         sp.userData.decT0 = now;
       }
       if (sp.userData.decT0 >= 0 && !sp.userData.done) {
-        const t = Math.min(1, (now - sp.userData.decT0) / 780);
+        const t = Math.min(1, (now - sp.userData.decT0) / 1200);
         sp.userData.paint(t);
         sp.userData.tex.needsUpdate = true;
         if (t >= 1) sp.userData.done = true;
@@ -1205,7 +1210,7 @@ function load(id) {
   const n = CFG.chapters.findIndex((c) => c.id === S.chapter.id) + 1;
   decodeInto(el('chapname'), chap && chap.reseed
     ? `${S.chapter.name.split('  ')[0]} · warren #${seed}`
-    : `Chapter ${n} — ${S.chapter.name}`, 900);
+    : `Chapter ${n} — ${S.chapter.name}`, 1500);
   el('objective').textContent = S.chapter.objective;
   // the box holds the gauge count AND the resonator readout: hide it only when a
   // chapter has neither, or the ear goes invisible in every chapter without gauges.

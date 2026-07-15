@@ -449,6 +449,23 @@ group('the warren breathes', () => {
         `the WAY OUT carries ${kind.range} cells — further than Rocky can shout, because it is a beacon and not a machine`);
       continue;
     }
+    if (k === 'burn') {
+      /* THE OTHER EXCEPTION, and it is the whole point of the chapter it belongs to. The
+       * burn is SUPPOSED to be a floodlight — it lights the entire ship at once so that,
+       * for one chapter, Rocky does not have to pulse at all. It is the loudest thing in
+       * the game on purpose, it lives in exactly one chapter (launch), and the moment you
+       * strap in it stops. A floodlight is only a bug when it is ALWAYS on; this one is
+       * the sound of the drive, and it goes quiet with the drive. */
+      ok(kind.range > CFG.sonar.maxDist,
+        `the BURN carries ${kind.range} cells — louder than a pulse, because for one chapter the drive does the listening`);
+      const inLaunch = CFG.chapters.find((c) => c.id === 'launch');
+      ok(inLaunch && (inLaunch.sources || []).some((s) => s.kind === 'burn'),
+        'and the burn lives in Launch');
+      const elsewhere = CFG.chapters.filter((c) => c.id !== 'launch')
+        .some((c) => (c.sources || []).some((s) => s.kind === 'burn'));
+      ok(!elsewhere, 'and NOWHERE else — a floodlight in a listening game is allowed exactly once');
+      continue;
+    }
     ok(kind.range < CFG.sonar.maxDist * 0.5,
       `source "${k}" carries ${kind.range} cells — far less than Rocky's own ${CFG.sonar.maxDist}-cell pulse`);
   }
@@ -2240,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2287,6 +2304,77 @@ group('the translation: gibberish resolves to the name Grace gave him', () => {
   // the wavefront is REAL: halfway through, the head has resolved and the tail has not
   const mid = D.frame('ROCKY', 0.5, off).map((p) => p.c).join('');
   ok(mid[0] === 'R' && mid[4] !== 'Y', 'halfway through, the front is English and the tail is still dots');
+});
+
+group('LAUNCH: the one chapter you can see everything — and then you cannot', () => {
+  /* Every other room in this game is dark until Rocky makes it answer. Launch is the
+   * exception the whole story has been walking toward: the drive's burn lights the entire
+   * ship at once, so for one chapter he does not pulse — he just walks through it in the
+   * light. And the instant he straps in, the burn cuts, and it is dark for forty-two years.
+   * Both halves of that have to be TRUE in the engine, not faked in the renderer. */
+  const S = R.create(CFG, { seed: 1, chapter: 'launch' });
+  const tick = (s) => steps(S, s == null ? 0.2 : s);
+
+  /* HE LIGHTS NOTHING HIMSELF, AND HE CAN STILL SEE. In every other chapter, stand still
+   * and stay silent and you are blind. Here the drive holds a bright bubble around him
+   * that never fades, because it re-emits faster than the echo dies — the one place in
+   * the game you do not have to ask a question to get an answer. */
+  tick(3);
+  eq(S.pulses, 0, 'Rocky makes no sound of his own');
+  /* The drive THROBS — it re-emits every 0.55s, so the bubble breathes between a trough
+   * and a peak. What he can see is the peak of that breath, so measure across a full
+   * cycle, not at whatever instant we happened to sample. */
+  const here = S.player;
+  let bubble = 0, far = 0;
+  for (let k = 0; k < 8; k++) {
+    tick(0.1);
+    const cells = R.litCells(S, []);
+    bubble = Math.max(bubble, cells.length);
+    for (const c of cells) far = Math.max(far, Math.hypot(c.x - here.x, c.y - here.y, c.z - here.z));
+  }
+  ok(bubble > 90, `and he can see anyway — ${bubble} cells lit around him at the top of the breath, on a drive he never pulsed`);
+  ok(far > 18, `the bubble reaches ${far.toFixed(0)} cells — wider than a single pulse, and it does not fade`);
+
+  /* AND THE BUBBLE FOLLOWS HIM. Walk forward and the front of the ship, dark a moment ago,
+   * comes up into the light — so across the chapter he sees the whole hull, a length at a
+   * time, without ever pulsing. */
+  // the reach of the light, at the top of the breath (a trough would lie about it)
+  const litReach = () => { let m = 0; for (let k = 0; k < 8; k++) { tick(0.1); for (const c of R.litCells(S, [])) m = Math.max(m, c.x); } return m; };
+  const before = litReach();
+  S.player.x = 34.5; S.player.y = 3.5; S.player.z = 10.5; S.player.vy = 0;
+  const after = litReach();
+  ok(after > before + 8, `the light travels with him: the lit hull reached x${before}, now it reaches x${after}`);
+
+  // the launch checklist: three boards, and only reading all three lets the couch have him
+  ok(!R.solved(S), 'the couch will not take him until the boards are read');
+  const read = (g) => { S.player.x = g.at[0] + 0.5; S.player.y = g.at[1] + 0.5; S.player.z = g.at[2] + 0.5; S.player.vy = 0; tick(0.2); return R.readGauge(S); };
+  for (const g of S.gauges) ok(read(g).ok, `he reads ${g.name} on the way forward`);
+  ok(R.solved(S), 'all three green — she is ready');
+  tick(0.5);
+  ok(S.flags.exitOpen, 'and the couch calls');
+
+  // he climbs into the couch
+  ok(!S.flags.done, 'he has not strapped in yet');
+  S.player.x = S.exit[0] + 0.5; S.player.y = S.exit[1] + 0.5; S.player.z = S.exit[2] + 0.5; S.player.vy = 0;
+  tick(0.4);
+  ok(S.flags.done, 'he lies down in the couch, and he is through');
+
+  /* AND THEN THE BURN CUTS. Every sound in the ship stops — the drive, the beacon, the
+   * crew — so nothing is left to relight the chambers, and the light dies out on its own,
+   * slowly, as the last echo fades. No darkness is faked in the renderer; the ship simply
+   * stops making the sound, and forty-two years of quiet arrive on their own. */
+  const e0 = S.emits;
+  const litAtStrapIn = R.litCells(S, []).length;
+  tick(2);
+  eq(S.emits, e0, 'nothing in the ship makes another sound — the drive, the beacon, everyone, silent');
+  ok(litAtStrapIn > 0, `(it was ${litAtStrapIn} cells lit the moment he strapped in — the dark is the fade of that, not a switch)`);
+  let darkAt = null;
+  for (let k = 0; k < 40 && darkAt == null; k++) { tick(0.5); if (R.litCells(S, []).length === 0) darkAt = (k + 1) * 0.5 + 2; }
+  ok(darkAt != null, `and the ship goes completely dark (by +${darkAt}s), the last of the burn fading to nothing on its own`);
+
+  // the parting line is really there for app.js to speak into that silence
+  ok(S.chapter.lines.some((l) => l.at === 'done' && /quiet/i.test(l.text)),
+    'and he has a last word to say into it');
 });
 
 group('the model', () => {

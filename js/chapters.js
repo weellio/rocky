@@ -45,6 +45,7 @@
     'hull',
     'drive',
     'volunteers',   /*      twenty-three of them, and nobody argued */
+    'launch',       /*      the one chapter you can see everything */
     'longdark'      /* III · forty-two light years of quiet */
   ];
 

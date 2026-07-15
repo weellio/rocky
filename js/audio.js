@@ -137,7 +137,11 @@
     'source:vent': function () { noise(0.32, 420, 0.05); },
     'source:pipe': function () { ping(320, 0.16, 'sine', 0.035); },
     'source:drip': function () { ping(1400, 0.05, 'sine', 0.03, 900); },
-    'source:gauge': function () { ping(1100, 0.06, 'sine', 0.025); }
+    'source:gauge': function () { ping(1100, 0.06, 'sine', 0.025); },
+    /* THE BURN: a low rolling roar with a body under it, throbbing on the drive's clock.
+     * It is the loudest thing in the game and it should sit UNDER everything, felt more
+     * than heard — the sound of being carried. */
+    'source:burn': function () { noise(0.6, 150, 0.055); ping(58, 0.5, 'sine', 0.045); }
   };
 
   /* THE ROOM ANSWERS IN ITS OWN VOICE.

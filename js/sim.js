@@ -958,6 +958,14 @@
 
   /* ---------- ambient sources: the warren breathes ---------- */
   function stepSources(S, dt) {
+    /* ONCE YOU ARE THROUGH, THE ROOM GOES QUIET. A chapter you have finished stops making
+     * sound — the machines, the beacon, everybody. In most chapters you never notice,
+     * because the next room loads a breath later. In LAUNCH it is the whole point: the
+     * drive was lighting the entire ship, and the instant you strap into the couch it
+     * cuts, nothing relights the chambers, and they fall dark on their own. That black is
+     * the forty-two years of quiet, arriving on cue, with no darkness faked in the
+     * renderer — the ship simply stops making the sound. */
+    if (S.flags.done) return;
     for (let i = 0; i < S.sources.length; i++) {
       const s = S.sources[i];
       s.cd -= dt;
@@ -1304,6 +1312,7 @@
    * ============================================================== */
   function stepFolk(S, dt) {
     if (!S.folk.length) return;
+    if (S.flags.done) return;   // through the door, and the crew have gone quiet too
     const p = S.player;
     for (const f of S.folk) {
       // they are always working, and work makes noise
@@ -1395,13 +1404,16 @@
     }
     if (!open) return;
 
-    // it calls, so you can always find it
-    S.exitCd -= dt;
-    if (S.exitCd <= 0) {
-      const k = S.cfg.sourceKinds.exit;
-      S.exitCd += k.period;
-      emit(S, S.exit[0] + 0.5, S.exit[1] + 0.5, S.exit[2] + 0.5, k.amp, 99, k.range);
-      cue(S, 'source:exit');
+    // it calls, so you can always find it — until you have walked through it, and then
+    // there is nothing left to call you anywhere, which in Launch is the point
+    if (!S.flags.done) {
+      S.exitCd -= dt;
+      if (S.exitCd <= 0) {
+        const k = S.cfg.sourceKinds.exit;
+        S.exitCd += k.period;
+        emit(S, S.exit[0] + 0.5, S.exit[1] + 0.5, S.exit[2] + 0.5, k.amp, 99, k.range);
+        cue(S, 'source:exit');
+      }
     }
 
     if (S.flags.done) return;
