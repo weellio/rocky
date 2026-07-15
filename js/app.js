@@ -731,14 +731,17 @@ function frame(now) {
       }
     }
     if (id === 'exitopen') {
-      /* Some chapters have a last thing to say the moment they are solved — a count agreed,
-       * a course plotted — and there is no gauge or door to hang it on. If the chapter left
-       * a line at 'solved', that is the moment for it; otherwise the way out just calls. */
+      /* Some chapters have a last thing to say the moment they are solved. A count agreed or
+       * a course plotted has no gauge or door to hang it on, so it lives at 'solved' and we
+       * say it here. A doors/gauges chapter says its closing line from the 'chapter' cue
+       * instead — so here we only need to keep quiet and not stamp our generic banner over
+       * the chapter's own. The way out only "just calls" when the chapter had nothing to say. */
       const done = S.chapter.lines.find((l) => l.at === 'solved');
+      const hasOwnClosing = S.chapter.lines.some((l) => l.at === 'all_doors' || l.at === 'all_gauges');
       if (done) {
         if (done.banner) banner(done.banner);
         setTimeout(() => say(done.chord, done.text), 700);
-      } else {
+      } else if (!hasOwnClosing) {
         banner('THE WAY OUT IS CALLING');
         flash('pulse — you will hear it');
       }
@@ -766,7 +769,10 @@ function frame(now) {
     }
     if (id === 'chapter' && S.flags.all_doors) {
       const line = S.chapter.lines.find((l) => l.at === 'all_doors');
-      if (line) setTimeout(() => say(line.chord, line.text), 1800);
+      if (line) {
+        if (line.banner) banner(line.banner);
+        setTimeout(() => say(line.chord, line.text), 1800);
+      }
     }
   }
 

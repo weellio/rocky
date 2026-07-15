@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock atmospheres numbers longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock atmospheres numbers names longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2772,6 +2772,46 @@ group('NUMBERS: base six was a language all along', () => {
   ok(labs.some((l) => /sixes shelf/i.test(l.text)) && labs.some((l) => /ones shelf/i.test(l.text)),
     'the two shelves say what they are worth');
   ok(mkN().folk[0].kind === 'human', 'and she is across the wall, counting back');
+});
+
+group('NAMES: a note becomes a word you agree on', () => {
+  /* Naming, out of the tuned resonator. Each of her resonators is deaf to everything but one
+   * material's note — her word for that thing. Carry the matching block to it and set it
+   * down; it bangs in its own voice, the resonator that was listening for exactly that voice
+   * hears it, and the word is agreed. The wrong block says nothing, because a word is not a
+   * word if it means anything you like. Played with blocks lifted off the pile, not conjured. */
+  const mkNm = () => R.create(CFG, { seed: 1, chapter: 'names' });
+  const step = (S, t) => steps(S, t == null ? 0.2 : t);
+  const earOpen = (S, id) => S.ears.find((e) => e.id === id).open;
+
+  // lift a real girder off the pile and carry it to HER WORD FOR GIRDER
+  const S = mkNm();
+  S.player.x = 5.5; S.player.y = 3.0; S.player.z = 6.5; S.player.yaw = 0; step(S, 0.2);
+  const took = R.takeBlock(S);
+  ok(took.ok && took.block === 3, 'he lifts a girder off the pile');
+  S.player.x = 12.5; S.player.y = 3.0; S.player.z = 5.5; S.player.yaw = Math.PI; step(S, 0.2);
+  ok(R.placeBlock(S).ok, 'and sets it down in front of her word for it');
+  step(S, 1.4);
+  ok(earOpen(S, 'girder'), 'the resonator hears the girder ring, and the name is agreed');
+
+  // the WRONG block says nothing: a girder at the xenonite resonator is just a girder
+  const W = mkNm();
+  R.setHeld(W, 3);   // a girder in hand
+  W.player.x = 20.5; W.player.y = 3.0; W.player.z = 5.5; W.player.yaw = Math.PI; step(W, 0.2);
+  R.placeBlock(W); step(W, 1.4);
+  ok(!earOpen(W, 'xenonite'), 'but a girder at the XENONITE word does nothing — the resonator is deaf to any note but its own');
+
+  // name all three and the gate home opens; one door per word
+  const A = mkNm();
+  const say = (block, ex, ez) => { R.setHeld(A, block); A.player.x = ex + 0.5; A.player.y = 3.0; A.player.z = ez - 1.5; A.player.yaw = Math.PI; step(A, 0.2); R.placeBlock(A); step(A, 1.4); };
+  ok(!R.solved(A), 'nothing agreed yet');
+  say(3, 12, 7); say(7, 20, 7); say(9, 28, 7);   // girder, xenonite, grit — each to its word
+  ok(earOpen(A, 'girder') && earOpen(A, 'xenonite') && earOpen(A, 'grit'), 'all three words are agreed');
+  ok(R.solved(A), 'and the gate home opens — a shared dictionary, three words long');
+
+  // each material's note really is distinct — a name has to be tellable from the others
+  const notes = A.ears.map((e) => e.tuned);
+  eq(new Set(notes).size, notes.length, 'and no two of her words are the same pitch, or they would not be different words');
 });
 
 group('the model', () => {

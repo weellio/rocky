@@ -616,6 +616,81 @@
     },
 
     /* ==============================================================
+     * ACT V.21 — NAMES
+     *
+     * Pointing at things until a word sticks.
+     *
+     * You have a number now. A number is a start, but you cannot build a ship out of eight.
+     * You need nouns. And the beautiful thing — the thing the whole game has been quietly
+     * setting up — is that Rocky already has a name for everything: its NOTE. Girder rings
+     * at one pitch, xenonite at another, grit at another; he has known each material by its
+     * voice since the first room. So naming is not learning new words. It is agreeing that
+     * HER word and HIS note are the same word. She holds up a note; he brings the thing that
+     * rings at it; and now they both have the noun.
+     *
+     * MECHANIC: the tuned resonator, turned into a conversation. Three of her resonators,
+     * each deaf to everything but one pitch — her word for girder, for xenonite, for grit.
+     * Carry each material to its name and set it down; the block bangs in its own voice, the
+     * resonator that was listening for exactly that voice hears it, and the word is agreed.
+     * ============================================================== */
+    {
+      id: 'names',
+      name: 'Names',
+      world: { w: 40, h: 12, d: 14 },
+      spawn: [4, 3, 7],
+      objective: 'Every material has a note, and every note is now a name. Carry each block to the resonator that is listening for its voice.',
+      exit: [34, 3, 7],
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [39, 11, 13], block: 1 },
+        { op: 'room', from: [2, 1, 3], to: [38, 8, 11], floor: 2 },
+        // the pile of things to name, by the door
+        { op: 'set', at: [5, 2, 5], block: 3 },   // girder
+        { op: 'set', at: [5, 2, 9], block: 7 },   // xenonite
+        { op: 'set', at: [7, 2, 5], block: 9 },   // grit
+        { op: 'set', at: [7, 2, 9], block: 3 },   // a spare girder, in case one goes astray
+        // THE GATE HOME: a wall you cannot get round, whose only door is three cells tall —
+        // one cell per word agreed. Every name you settle opens one of them; all three, and
+        // the passage is clear. (create carves the door cells back to doors after this fill.)
+        { op: 'fill', from: [33, 1, 3], to: [33, 8, 11], block: 1 },
+        // her hull and nook, past the way on
+        { op: 'fill', from: [35, 1, 3], to: [35, 8, 11], block: 13 },
+        { op: 'room', from: [36, 1, 5], to: [38, 6, 9], floor: 2 }
+      ],
+      sources: [
+        { at: [37, 3, 7], kind: 'grind' }
+      ],
+      folk: [
+        { at: [37, 3, 7], name: 'THE OTHER', kind: 'human', chord: '—',
+          line: 'It holds up a sound — one clean note, and then it waits, and points the flat of its head at the pile of my materials. It is asking me which one. It wants the NAME of the thing that rings like that. And the thing is, I have always had a name for it. The name is the note. It just never occurred to me that a note could be a word until there was somebody to hand it to.' }
+      ],
+      /* Each resonator is deaf to all but one material's note — her word for that one thing.
+       * Drop the matching block in front of it and the word is agreed; it opens a segment of
+       * the gate home. */
+      ears: [
+        { id: 'girder',   at: [12, 3, 7], tuned: 311, needs: 0.30, name: 'HER WORD FOR GIRDER — set the girder down here',    opens: 'w1' },
+        { id: 'xenonite', at: [20, 3, 7], tuned: 659, needs: 0.30, name: 'HER WORD FOR XENONITE — set the xenonite down here', opens: 'w2' },
+        { id: 'grit',     at: [28, 3, 7], tuned: 87,  needs: 0.30, name: 'HER WORD FOR GRIT — set the grit down here',         opens: 'w3' }
+      ],
+      doors: [
+        { id: 'w1', cells: [[33, 1, 7]] },
+        { id: 'w2', cells: [[33, 2, 7]] },
+        { id: 'w3', cells: [[33, 3, 7]] }
+      ],
+      labels: [
+        { at: [5, 3, 5], block: 3, text: 'GIRDER', color: '#c88a3a' },
+        { at: [5, 3, 9], block: 7, text: 'XENONITE', color: '#57e08a' },
+        { at: [7, 3, 5], block: 9, text: 'GRIT', color: '#8a5a4a' },
+        { at: [34, 3, 7], block: 15, text: 'THE WAY ON — one word opens each of its three doors', color: '#4dff9e' }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'It has a number and it wants more. Of course it does — you cannot say anything with only eight. It is holding up notes now, one at a time, and pointing at my materials, and I finally understand what it is asking. It wants the names of things. And I have had the names all along.' },
+        { at: 'start', chord: '♩♩♪', text: 'Girder rings high and hard. Xenonite sings. Grit says nothing at all, which is its own kind of name. I know every one of these by its voice — I have my whole life. So I will carry each of them to the note it makes, and set it down, and let it say its own name, and now the name will be ours and not just mine.' },
+        { at: 'ear', chord: '♪♩', text: 'There. That is its name now. Hers and mine.' },
+        { at: 'all_doors', chord: '♩♪♪♩', text: 'Girder. Xenonite. Grit. Three words, agreed, out loud, between two people who share nothing else in the universe but a ship each and a dying star. It is the smallest dictionary there has ever been. We are going to need a much bigger one, and we are going to build it the same way, one banged note at a time.', banner: 'THREE WORDS · A SHARED DICTIONARY' }
+      ]
+    },
+
+    /* ==============================================================
      * THE LONG DARK — a warren nobody has mapped.
      *
      * Every other chapter in this game is measured to the cell, because every other

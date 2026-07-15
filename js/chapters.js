@@ -55,6 +55,7 @@
     'airlock',      /*      first contact — the palette spends its orange; "it heard me" */
     'atmospheres',  /*      seal the breach with xenonite: airtight AND still able to talk */
     'numbers',      /* V · base six becomes a language: say her count in sixes and ones */
+    'names',        /*      every material's note becomes a shared word */
     'longdark'      /*      forty-two light years of quiet */
   ];
 
