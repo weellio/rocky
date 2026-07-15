@@ -1470,6 +1470,18 @@
       const b = blockAt(S, c.seal[0], c.seal[1], c.seal[2]);
       return b === 7 || b === 13;   // loose or cast xenonite
     }
+
+    /* A COUNTING chapter is answered in BASE SIX. She shows a quantity; you say it back the
+     * only way you know how — in sixes and ones, the dot-numerals the game has been putting
+     * in front of you since the first gauge in Chapter One. You lay blocks on two shelves:
+     * one is worth six each, one is worth one each. The number is right when six-times-the-
+     * sixes plus the ones equals hers — AND the ones shelf holds fewer than six, because
+     * six ones is a six, and knowing that is the whole of what base six IS. */
+    if (c.count) {
+      const tally = (cells) => cells.reduce((n, p) => n + (blockAt(S, p[0], p[1], p[2]) !== 0 ? 1 : 0), 0);
+      const sixes = tally(c.count.sixes), ones = tally(c.count.ones);
+      return sixes * 6 + ones === c.count.value && ones < 6;
+    }
     /* In a SHIFT chapter the doors are not the win — they are the shifts themselves, opened
      * one at a time by sleeping. Opening the last of them is not finishing the voyage; it
      * only gets you into the hall where the last gauge is. So a shift chapter is solved by

@@ -54,6 +54,7 @@
     'approach',     /*      board the thin ship: one shout, and you hear all of it */
     'airlock',      /*      first contact — the palette spends its orange; "it heard me" */
     'atmospheres',  /*      seal the breach with xenonite: airtight AND still able to talk */
+    'numbers',      /* V · base six becomes a language: say her count in sixes and ones */
     'longdark'      /*      forty-two light years of quiet */
   ];
 

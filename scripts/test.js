@@ -1633,7 +1633,7 @@ group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
      * A NAVIGATION chapter — the generated warren — has no job to be half done. There
      * is nothing to solve there but the walk itself, so its arch calls from the first
      * second, and getting to it IS the game. Two different promises; both kept. */
-    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length || (c.track && c.track.need) || c.seal;
+    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length || (c.track && c.track.need) || c.seal || c.count;
     steps(S, 6);
     if (isPuzzle) {
       ok(!R.solved(S), `${c.name}: the room is not solved at the start`);
@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock atmospheres longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock atmospheres numbers longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2727,6 +2727,51 @@ group('TWENTY-NINE ATMOSPHERES: the wall is the reason, not the obstacle', () =>
   ok(labs.some((l) => /grit/i.test(l.text) && /deaf/i.test(l.text)), 'the grit is labelled as the deaf one');
   ok(labs.some((l) => /xenonite/i.test(l.text) && /sing/i.test(l.text)), 'and the xenonite as the one that sings');
   ok(X.folk[0] && X.folk[0].kind === 'human', 'and she is right there on the other side of it, the whole time');
+});
+
+group('NUMBERS: base six was a language all along', () => {
+  /* The heart of the game. She counts in ten, Rocky in six, and the dot-numerals the game
+   * has shown on every gauge since Chapter One turn out to be the vocabulary. She shows
+   * EIGHT; he says it back in sixes and ones. The engine has to make "eight, in base six"
+   * a real, checkable thing: six-times-the-sixes plus the ones, and the ones shelf holding
+   * fewer than six, because six ones IS a six and that is the whole idea. */
+  const mkN = () => R.create(CFG, { seed: 1, chapter: 'numbers' });
+  const C = mkN().chapter.count;
+  eq(C.value, 8, 'she shows eight');
+
+  // one six and two ones is eight — and it solves
+  const A = mkN();
+  R.setBlock(A, C.sixes[0][0], C.sixes[0][1], C.sixes[0][2], 3);   // one on the sixes shelf
+  R.setBlock(A, C.ones[0][0], C.ones[0][1], C.ones[0][2], 3);
+  R.setBlock(A, C.ones[1][0], C.ones[1][1], C.ones[1][2], 3);      // two on the ones shelf
+  ok(R.solved(A), 'one six and two ones is eight — that is the number');
+
+  // the wrong counts are wrong: two sixes is twelve, three ones is three, and neither is her eight
+  const B = mkN();
+  R.setBlock(B, C.sixes[0][0], C.sixes[0][1], C.sixes[0][2], 3);
+  R.setBlock(B, C.sixes[1][0], C.sixes[1][1], C.sixes[1][2], 3);
+  ok(!R.solved(B), 'two sixes is twelve, not eight');
+  const D = mkN();
+  for (const c of C.ones) R.setBlock(D, c[0], c[1], c[2], 3);
+  ok(!R.solved(D), 'and you cannot say eight in ones alone — that is exactly what the sixes shelf is FOR');
+
+  // and a real player can lay a block on a shelf, off the pile, and have it counted
+  const P = mkN();
+  const step = (t) => steps(P, t == null ? 0.2 : t);
+  P.player.x = 4.5; P.player.y = 3.0; P.player.z = 5.6; P.player.yaw = 0; step(0.2);
+  const g = R.takeBlock(P);
+  ok(g.ok && CFG.blocks[g.block].carry, 'he lifts a girder off the pile');
+  P.player.x = 8.5; P.player.y = 3.0; P.player.z = 6.2; P.player.yaw = Math.PI; step(0.2);
+  const put = R.placeBlock(P);
+  ok(put.ok, 'and lays it on a shelf');
+  ok(C.ones.some((c) => c[0] === put.at[0] && c[1] === put.at[1] && c[2] === put.at[2]),
+    'and the engine counts it as a one');
+
+  // both shelves are named, in plain words, because the whole point is that he can read them
+  const labs = mkN().chapter.labels || [];
+  ok(labs.some((l) => /sixes shelf/i.test(l.text)) && labs.some((l) => /ones shelf/i.test(l.text)),
+    'the two shelves say what they are worth');
+  ok(mkN().folk[0].kind === 'human', 'and she is across the wall, counting back');
 });
 
 group('the model', () => {

@@ -731,8 +731,17 @@ function frame(now) {
       }
     }
     if (id === 'exitopen') {
-      banner('THE WAY OUT IS CALLING');
-      flash('pulse — you will hear it');
+      /* Some chapters have a last thing to say the moment they are solved — a count agreed,
+       * a course plotted — and there is no gauge or door to hang it on. If the chapter left
+       * a line at 'solved', that is the moment for it; otherwise the way out just calls. */
+      const done = S.chapter.lines.find((l) => l.at === 'solved');
+      if (done) {
+        if (done.banner) banner(done.banner);
+        setTimeout(() => say(done.chord, done.text), 700);
+      } else {
+        banner('THE WAY OUT IS CALLING');
+        flash('pulse — you will hear it');
+      }
     }
     if (id === 'done') {
       const n = CFG.chapters.findIndex((c) => c.id === S.chapter.id);

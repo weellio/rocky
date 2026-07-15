@@ -556,6 +556,66 @@
     },
 
     /* ==============================================================
+     * ACT V.20 — NUMBERS
+     *
+     * The heart of the game. Two creatures with nothing in common but arithmetic.
+     *
+     * She counts in TEN, which is insane — ten, a number with no sensible factors, a number
+     * you would only ever pick if you happened to have ten fingers, which it turns out she
+     * does. Rocky counts in SIX, the way anyone reasonable would. And here is the thing the
+     * game has been doing to you since the very first gauge in Chapter One, quietly, without
+     * telling you: every number it has ever shown you, it showed you in base six, in little
+     * chords of dots. You have been fluent for nine chapters. You just did not know the dots
+     * were a language until there was somebody to speak it to.
+     *
+     * So she shows a quantity, and you say it back the only way you know how — in sixes and
+     * ones. There are two shelves. One is worth six a block; one is worth one a block. Lay
+     * the number out: the count is right when six-times-the-sixes plus the ones is hers. She
+     * shows EIGHT. Eight is one six and two. Of course it is. You have always known that.
+     * ============================================================== */
+    {
+      id: 'numbers',
+      name: 'Numbers',
+      world: { w: 30, h: 12, d: 12 },
+      spawn: [4, 3, 6],
+      objective: 'She shows EIGHT. Say it back in sixes and ones: lay one block on the SIXES shelf and two on the ONES.',
+      exit: [4, 3, 1],
+      count: { value: 8, sixes: [[20, 2, 7], [20, 3, 7], [20, 4, 7]], ones: [[8, 2, 7], [8, 3, 7], [8, 4, 7]] },
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [29, 11, 11], block: 1 },
+        { op: 'room', from: [2, 1, 3], to: [25, 8, 9], floor: 2 },
+        // the two shelves: a rock backstop behind each, so a block laid against it stays put
+        { op: 'fill', from: [8, 2, 8], to: [8, 4, 8], block: 1 },     // ONES backstop
+        { op: 'fill', from: [20, 2, 8], to: [20, 4, 8], block: 1 },   // SIXES backstop
+        // her hull, cast xenonite (still singing), and her nook beyond it
+        { op: 'fill', from: [26, 1, 3], to: [26, 8, 9], block: 13 },
+        { op: 'room', from: [27, 1, 4], to: [28, 6, 8], floor: 2 },
+        // the blocks he counts with — a little pile of girders by the door
+        { op: 'fill', from: [4, 2, 4], to: [5, 4, 4], block: 3 },
+        // the way on
+        { op: 'room', from: [2, 1, 1], to: [6, 5, 3], floor: 2 }
+      ],
+      sources: [
+        { at: [27, 3, 6], kind: 'grind' }
+      ],
+      folk: [
+        { at: [27, 3, 6], name: 'THE OTHER', kind: 'human', chord: '—',
+          line: 'It made a sound eight times, in a row, evenly, and then stopped, and waited. It is COUNTING at me. It counts in some monstrous base I have not worked out yet — but a count is a count, and eight is eight in any sky, and I know exactly how to say eight.' }
+      ],
+      labels: [
+        { at: [8, 3, 7], block: 1, text: 'THE ONES SHELF — a block is worth one', color: '#ffd23c' },
+        { at: [20, 3, 7], block: 1, text: 'THE SIXES SHELF — a block is worth six', color: '#ffd23c' },
+        { at: [4, 3, 4], block: 3, text: 'GIRDERS — lay these on the shelves', color: '#c88a3a' },
+        { at: [4, 3, 1], block: 15, text: 'THE WAY ON', color: '#4dff9e' }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'Eight taps, even and deliberate, and then it waited. It is not making noise at me. It is COUNTING at me — the first thing it has said that is not just "I am here", and it is a number, and a number is the one thing in the universe we were always going to have in common.' },
+        { at: 'start', chord: '♩♩♪', text: 'It counts in some base with no shape to it. I count in six, like a person. But eight is eight. Eight is one six and two — I have known that since I was small, since before I had words, and every gauge on this ship has said its numbers to me in sixes my whole life. So: one on the sixes shelf. Two on the ones. Let me say eight to it.' },
+        { at: 'solved', chord: '♩♪♪♩', text: 'One six, and two. Eight. It went very still, and then it made eight taps back, slowly, and I understand that too: it is saying yes. Yes, that is the number. We have a number. It is not much. It is everything. You cannot lie with a number, and you cannot be lonely in one either.', banner: 'EIGHT · ONE SIX AND TWO' }
+      ]
+    },
+
+    /* ==============================================================
      * THE LONG DARK — a warren nobody has mapped.
      *
      * Every other chapter in this game is measured to the cell, because every other
