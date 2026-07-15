@@ -691,6 +691,65 @@
     },
 
     /* ==============================================================
+     * ACT V.24 — GRIEF
+     *
+     * The quiet gut-punch. It asked how many — how many came, how many are left — and he
+     * has been not-answering since the failure, because to answer he has to SAY the number,
+     * and saying it means laying it out plain where it can see the shape of it. So this is
+     * the counting from NUMBERS again, one shelf of sixes and one of ones, the base-six
+     * vocabulary the game taught him in Chapter One — only now the quantity is not EIGHT, it
+     * is his dead, and the familiar little sum is the cruellest thing the game has ever asked
+     * him to do. Twenty-three is three sixes and five. The mechanic is spare and FAMILIAR,
+     * and that is the point: the arithmetic has not changed. Only what it costs.
+     * ============================================================== */
+    {
+      id: 'grief',
+      name: 'Grief',
+      world: { w: 34, h: 12, d: 14 },
+      spawn: [4, 3, 7],
+      objective: 'It asked how many of you are left. Say it the only way you count: lay THREE on the SIXES shelf and FIVE on the ONES. Three sixes and five. Twenty-three.',
+      exit: [4, 3, 1],
+      count: {
+        value: 23,
+        sixes: [[20, 2, 6], [20, 2, 7], [20, 2, 8]],
+        ones:  [[9, 2, 5], [9, 2, 6], [9, 2, 7], [9, 2, 8], [9, 2, 9]]
+      },
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [33, 11, 13], block: 1 },
+        { op: 'room', from: [2, 1, 3], to: [29, 8, 11], floor: 2 },
+        // the two shelves, each with a rock backstop behind it so a laid block reads as resting there
+        { op: 'fill', from: [10, 2, 5], to: [10, 2, 9], block: 1 },   // ONES backstop (behind, +x)
+        { op: 'fill', from: [21, 2, 6], to: [21, 2, 8], block: 1 },   // SIXES backstop (behind, +x)
+        // her hull, cast xenonite — it still sings, which is how he knows she is there to tell
+        { op: 'fill', from: [30, 1, 3], to: [30, 8, 11], block: 13 },
+        { op: 'room', from: [31, 1, 5], to: [32, 6, 9], floor: 2 },
+        // the girders he counts with — a pile by the door, more than the eight he needs
+        { op: 'fill', from: [4, 2, 4], to: [5, 4, 5], block: 3 },
+        // the way on
+        { op: 'room', from: [2, 1, 1], to: [6, 5, 3], floor: 2 }
+      ],
+      sources: [
+        { at: [31, 3, 7], kind: 'grind' }
+      ],
+      folk: [
+        { at: [31, 3, 7], name: 'GRACE', kind: 'human', chord: '—',
+          line: 'It made the counting shape, once, and then went still and waited — not eight taps this time, not a number it was proud of. It wants to know how many of us there were, and how many are left. It is the gentlest thing it has ever asked me, and it is the one I have been walking away from since the halls went quiet.' }
+      ],
+      labels: [
+        { at: [9, 3, 7],  block: 1,  text: 'THE ONES SHELF — a block is worth one · lay FIVE',   color: '#ffd23c' },
+        { at: [20, 3, 7], block: 1,  text: 'THE SIXES SHELF — a block is worth six · lay THREE', color: '#ffd23c' },
+        { at: [4, 3, 4],  block: 3,  text: 'GIRDERS — one for each of them',                    color: '#c88a3a' },
+        { at: [30, 4, 7], block: 13, text: 'HER HULL — it still sings',                          color: '#a9e8bd' },
+        { at: [4, 3, 1],  block: 15, text: 'THE WAY ON',                                         color: '#4dff9e' }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'It asked me a question. Not "I am here" — a real question, the first quiet one it has ever put to me, and I understood it the moment it made the shape. How many. How many of us came, and how many are still counting. I have known the answer since the last gauge on the last section, and I have not said it to anyone, because there has been no one to say it to, and because saying it makes it a number instead of a weight.' },
+        { at: 'start', chord: '♩♩♪',  text: 'So I will say it the way I say every number — the way I said EIGHT to it, the way I have counted since before I had words. Sixes and ones. Three blocks on the sixes shelf. Five on the ones. Three sixes and five. Laid out plain, on a shelf, like it was nothing. It is not nothing. It is everyone.' },
+        { at: 'solved', chord: '♩♪♪♩', text: 'Three sixes and five. Twenty-three. All of them. Voth. Ark. Seven. Bridge. The ones who asked me to write their names down, and the ones who did not. I am the one who is still here, and I do not know why it is me. It looked at the shape for a long time. Then it laid down two of its own, slow, on the far side of the glass, and neither of us said anything after that, because there is nothing that goes after it. Two people who lost everyone, counting in two bases that agree on nothing — except this.', banner: 'TWENTY-THREE · THREE SIXES AND FIVE' }
+      ]
+    },
+
+    /* ==============================================================
      * THE LONG DARK — a warren nobody has mapped.
      *
      * Every other chapter in this game is measured to the cell, because every other

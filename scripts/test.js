@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock atmospheres numbers names longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock atmospheres numbers names grief longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2812,6 +2812,38 @@ group('NAMES: a note becomes a word you agree on', () => {
   // each material's note really is distinct — a name has to be tellable from the others
   const notes = A.ears.map((e) => e.tuned);
   eq(new Set(notes).size, notes.length, 'and no two of her words are the same pitch, or they would not be different words');
+});
+
+group('GRIEF: he says his dead in sixes and ones — and twenty-three is the only answer the shelves allow', () => {
+  const S = R.create(CFG, { seed: 1, chapter: 'grief' });
+  const c = S.chapter.count;
+
+  // the shelves are sized to the one number there is: 3*6 + 5 = 23, and no other reachable sum
+  eq(c.value, 23, 'the number is twenty-three');
+  eq(c.sixes.length, 3, 'three cells on the sixes shelf — three sixes, and no room for a fourth');
+  eq(c.ones.length, 5, 'five cells on the ones shelf — five, and no room for a sixth');
+
+  ok(!R.solved(S), 'an empty room says nothing — nobody has been counted yet');
+
+  const lay = (cells, n) => cells.slice(0, n).forEach((p) => R.setBlock(S, p[0], p[1], p[2], 3));
+
+  // THE NEAR-MISS. Three sixes and only FOUR ones is twenty-two, and twenty-two is a lie.
+  lay(c.sixes, 3);
+  lay(c.ones, 4);
+  eq(R.solved(S), false, 'three sixes and four is twenty-two — that is not his number, and the room will not agree to it');
+
+  // the fifth one. three sixes and five. twenty-three.
+  const p = c.ones[4];
+  R.setBlock(S, p[0], p[1], p[2], 3);
+  ok(R.solved(S), 'three sixes and five is twenty-three — all of them — and now the way out calls');
+
+  // and the sum is honest arithmetic, not a hardcoded target
+  const tally = (cells) => cells.reduce((n, q) => n + (R.blockAt(S, q[0], q[1], q[2]) !== 0 ? 1 : 0), 0);
+  eq(tally(c.sixes) * 6 + tally(c.ones), 23, 'three sixes and five, done as base six, is twenty-three');
+
+  // it really is the same base-six count from Chapter 20, only now unbearable
+  ok(S.chapter.lines.some((l) => l.at === 'solved' && /twenty-three|all of them/i.test(l.text)),
+    'and the number, said, is everyone');
 });
 
 group('the model', () => {

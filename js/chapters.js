@@ -56,6 +56,7 @@
     'atmospheres',  /*      seal the breach with xenonite: airtight AND still able to talk */
     'numbers',      /* V · base six becomes a language: say her count in sixes and ones */
     'names',        /*      every material's note becomes a shared word */
+    'grief',        /*      say your dead in sixes and ones — twenty-three */
     'longdark'      /*      forty-two light years of quiet */
   ];
 
