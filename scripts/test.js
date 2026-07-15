@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2608,6 +2608,43 @@ group('THE BLIP: plot a course by chasing a thing that will not answer', () => {
 
   ok(S.chapter.lines.some((l) => l.at === 'plotted' && /airlock|door|way in|coming/i.test(l.text)),
     'and the course, plotted, ends exactly where he feared: his own door');
+});
+
+group('APPROACH: a ship so thin you hear all of it at once', () => {
+  /* Rocky's world is thick — basalt metres deep, so a pulse dies at the first wall and he
+   * knows a ship one room at a time. The alien ship is the opposite: every wall is a single
+   * skin of cast xenonite, which barely slows a sound, so ONE shout pours through all of it
+   * and he hears the whole ship ring at once. That contrast is the chapter, and it has to be
+   * true in the engine, not just in the prose. */
+  const forwardReach = (chap, px, pz) => {
+    const S = R.create(CFG, { seed: 1, chapter: chap });
+    S.player.x = px + 0.5; S.player.y = 3.5; S.player.z = (pz || 8) + 0.5; S.player.vy = 0;
+    R.pulse(S);
+    let mx = 0;
+    for (let i = 0; i < 60; i++) { steps(S, 0.05); const l = R.litCells(S, []); if (l.length) mx = Math.max(mx, Math.max(...l.map((c) => c.x)) - px); }
+    return mx;
+  };
+
+  const A = R.create(CFG, { seed: 1, chapter: 'approach' });
+  // the walls really are cast xenonite (the singing, thin-to-sound material), and thin
+  let xen = 0, rock = 0;
+  for (let x = 2; x < 45; x++) for (let y = 1; y < 9; y++) for (let z = 3; z < 13; z++) {
+    const b = R.blockAt(A, x, y, z);
+    if (b === 13) xen++; else if (b === 1) rock++;
+  }
+  ok(xen > 200, `its walls are cast xenonite, not basalt (${xen} cells of the thin, singing stuff)`);
+
+  // ONE pulse crosses the whole ship — far further than the same pulse in basalt
+  const thin = forwardReach('approach', 6);
+  const thick = forwardReach('cold', 20);
+  ok(thin > 35, `one shout reaches ${thin} cells down the thin ship — you hear nearly all of it`);
+  ok(thin > thick + 12, `and far further than in his own basalt ship (${thin} vs ${thick}), because there the walls are the point`);
+
+  // it is a place to cross in wonder, not a puzzle: the hatch calls from the first second
+  ok(R.solved(A), 'nothing to solve — the whole chapter is the crossing');
+  const panel = (A.chapter.labels || []).some((l) => /panel/i.test(l.text));
+  const thinWall = (A.chapter.labels || []).some((l) => /one cell|barely/i.test(l.text));
+  ok(panel && thinWall, 'and it names the two things that make no sense to him: the vast flat panel, and a wall you could put your hand through');
 });
 
 group('the model', () => {

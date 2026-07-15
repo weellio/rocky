@@ -352,6 +352,72 @@
     },
 
     /* ==============================================================
+     * ACT IV.17 — APPROACH
+     *
+     * It docked. And now Rocky is standing inside it, and it is wrong.
+     *
+     * His whole world is thick — twenty-nine atmospheres of hot ammonia pressing on
+     * everything, so everything that holds it in is basalt, metres of it, and a pulse in
+     * his ship shows him one room because the next room is behind a wall that eats sound.
+     * This ship is not like that. This ship is THIN. Every wall is a single skin, and the
+     * skin barely slows a sound at all — so when he pulses, the shout goes straight through
+     * the walls and he hears the WHOLE ship at once, all of it, every chamber, ringing like
+     * one struck thing. A huge flat panel, pointed at nothing. Thin struts, sticking out
+     * into the dark. It is a ship built by somebody who has never once had to hold the sky
+     * out, and Rocky cannot decide if it is the most fragile thing he has ever touched or
+     * the bravest.
+     *
+     * There is no puzzle. There is just the crossing of it, in wonder, to the hatch at the
+     * far end, where the thing that built it is waiting.
+     * ============================================================== */
+    {
+      id: 'approach',
+      name: 'Approach',
+      world: { w: 52, h: 12, d: 16 },
+      spawn: [4, 3, 8],
+      objective: 'You are inside it now. One shout and you hear the whole ship — it is that thin. Cross to the hatch.',
+      exit: [47, 3, 8],
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [51, 11, 15], block: 1 },
+        { op: 'room', from: [2, 1, 3], to: [48, 9, 13], floor: 2 },
+        /* THE WALLS ARE WINDOWS. Each partition is ONE cell of cast xenonite — solid, so you
+         * still have to walk around it through a gap, but so thin to sound that a pulse
+         * pours straight through and lights the chamber beyond. This is the whole feeling of
+         * the chapter: you hear far more of this ship at once than you have ever heard of
+         * your own. The gaps alternate side to side, so the walk is a zig-zag while your
+         * ears have the whole place already. */
+        { op: 'fill', from: [12, 1, 3], to: [12, 8, 13], block: 13 },
+        { op: 'fill', from: [12, 1, 4], to: [12, 3, 6], block: 0 },
+        { op: 'fill', from: [21, 1, 3], to: [21, 8, 13], block: 13 },
+        { op: 'fill', from: [21, 1, 10], to: [21, 3, 12], block: 0 },
+        { op: 'fill', from: [30, 1, 3], to: [30, 8, 13], block: 13 },
+        { op: 'fill', from: [30, 1, 4], to: [30, 3, 6], block: 0 },
+        { op: 'fill', from: [39, 1, 3], to: [39, 8, 13], block: 13 },
+        { op: 'fill', from: [39, 1, 10], to: [39, 3, 12], block: 0 },
+        // THE HUGE FLAT PANEL: a great thin sail of xenonite stretched across the top of the
+        // ship, pointed at nothing — the thing that makes no sense to a creature from a
+        // world with no light
+        { op: 'fill', from: [6, 9, 3], to: [45, 9, 13], block: 13 },
+        // thin struts, poking down into the chambers
+        { op: 'set', at: [16, 8, 8], block: 13 },
+        { op: 'set', at: [25, 8, 5], block: 13 },
+        { op: 'set', at: [34, 8, 11], block: 13 },
+        // the hatch, at the far end, where it is waiting
+        { op: 'room', from: [45, 1, 6], to: [49, 6, 10], floor: 2 }
+      ],
+      sources: [],
+      labels: [
+        { at: [25, 8, 8], block: 13, text: 'THE PANEL — flat, and vast, and pointed at nothing', color: '#a9e8bd' },
+        { at: [12, 4, 8], block: 13, text: 'A WALL ONE CELL THICK — it barely stops a sound', color: '#a9e8bd' },
+        { at: [47, 3, 8], block: 15, text: 'THE HATCH', color: '#4dff9e' }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'I have crossed into it, and I have made one sound, and the sound did not stop. In my ship a shout dies at the first wall — the walls are the whole point, they hold the sky out. Here the shout went through the wall, and the next one, and the one after that, and I heard the entire ship ring at once, like a single struck bell. Every wall in this place is a window.' },
+        { at: 'start', chord: '♩♩♪', text: 'It is so THIN. There is a panel up there the size of a hall, flat, pointed at nothing I can find, thin as a leaf. Struts like reeds. This whole ship would fold like wet paper under one atmosphere of mine, and it has crossed the same impossible distance I have, and I do not understand how, and I have never in my life wanted so badly to ask.' }
+      ]
+    },
+
+    /* ==============================================================
      * THE LONG DARK — a warren nobody has mapped.
      *
      * Every other chapter in this game is measured to the cell, because every other
