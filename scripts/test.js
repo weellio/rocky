@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone longdark',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2483,6 +2483,40 @@ group('THE FAILURE: you find out somebody has died because a sound stops', () =>
   wf.player.x = 26.5; wf.player.y = 3.5; wf.player.z = 8.5;
   const deadWindow = wf.emits; steps(wf, 5); const withoutCrew = wf.emits - deadWindow;
   ok(withoutCrew < withCrew, `the ship quiets as they go: ${withCrew} sounds in five seconds with the crew, ${withoutCrew} without`);
+});
+
+group('ALONE: the only sound left is the one you make', () => {
+  /* The quiet middle. Every other chapter has something in it making noise; this one is
+   * empty, and the silence has to be REAL in the engine — no sources, nothing that lights a
+   * corner for free — and the pulse has to cost you a long wait, because that wait is the
+   * chapter. */
+  const S = R.create(CFG, { seed: 1, chapter: 'alone' });
+  eq(S.sources.length, 0, 'the ship is dead: not one machine, not one voice, nothing that makes a sound on its own');
+
+  /* Without pulsing, nothing lights but what Rocky himself disturbs (his own footfalls).
+   * There is no ambient source to reveal the room — stand still and shout, or stay blind. */
+  const before = S.emits;
+  steps(S, 3, { fwd: 0 });
+  // his own settling may bump a footfall or two, but there is no SOURCE emitting on a clock
+  ok(S.pulses === 0, 'he has not pulsed');
+
+  /* THE COOLDOWN IS THE GRIEF. Alone makes you wait far longer between shouts than anywhere
+   * else — the seconds of dark you cannot fill are the loudest thing in the game. */
+  ok(S.chapter.cooldown > CFG.sonar.cooldown * 2, `the wait between pulses is ${S.chapter.cooldown}s here, against ${CFG.sonar.cooldown}s everywhere else`);
+  S.pulseCd = 0; R.pulse(S);
+  eq(S.pulseCd, S.chapter.cooldown, 'and a pulse really does start that long clock');
+  eq(R.pulse(S).ok, false, 'so you cannot simply shout the darkness away');
+  steps(S, S.chapter.cooldown + 0.1);
+  eq(R.pulse(S).ok, true, 'you wait the whole of it, in the dark, and then you may shout again');
+
+  // the way runs past the dead crew's posts — labelled, silent, in the order you knew them
+  const posts = (S.chapter.labels || []).filter((l) => /station|bench|post|bunk/i.test(l.text));
+  ok(posts.length >= 4, `you walk past ${posts.length} places a voice used to be`);
+  ok(posts.every((l) => /quiet|stopped|no one|humming|children/i.test(l.text)),
+    'and every one of them says, quietly, that nobody is there');
+
+  // there is no puzzle to fail — the bridge calls from the start and you simply have to reach it
+  ok(R.solved(S), 'nothing to solve: only a long dark to cross');
 });
 
 group('the model', () => {

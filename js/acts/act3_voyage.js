@@ -179,6 +179,68 @@
     },
 
     /* ==============================================================
+     * ACT III.14 — ALONE
+     *
+     * The quiet middle of the game, and it is supposed to hurt.
+     *
+     * Every room until now has had something in it making a sound — a vent, a drip, a
+     * person. You have never once been in a silence you had to fill entirely by yourself.
+     * Now the ship is empty. There are no sources. Nothing hums, nothing works, nothing
+     * answers except the rock, and the rock only answers when you shout at it. So the
+     * chapter is navigation through a place where the ONLY noise is the one you make — and
+     * the pulse has a long cooldown here, on purpose, so that between one shout and the
+     * next there are seconds of dark you cannot do anything about but wait. That wait is
+     * the loudest thing in the game.
+     *
+     * The way runs past the stations where the crew were. They are labelled, and they are
+     * silent, and walking a dead man's post in the dark is the whole chapter. At the end is
+     * the bridge, and the way on.
+     * ============================================================== */
+    {
+      id: 'alone',
+      name: 'Alone',
+      world: { w: 58, h: 14, d: 18 },
+      spawn: [5, 3, 9],
+      objective: 'There is no one left to make a sound but you. Pulse, and wait, and find the bridge.',
+      exit: [53, 3, 9],
+      cooldown: 1.5,
+      build: [
+        { op: 'fill', from: [0, 0, 0], to: [57, 13, 17], block: 1 },
+        // the dead ship: a run of chambers, joined by low crawls, dog-legged so you cannot
+        // see end to end and must pulse your way along it a length at a time
+        { op: 'room', from: [3, 1, 6], to: [16, 8, 12], floor: 2 },
+        { op: 'room', from: [16, 1, 3], to: [24, 6, 8], floor: 2 },
+        { op: 'room', from: [24, 1, 8], to: [34, 9, 14], floor: 2 },
+        { op: 'room', from: [34, 1, 4], to: [44, 7, 10], floor: 2 },
+        { op: 'room', from: [44, 1, 7], to: [55, 8, 12], floor: 2 },
+        // the crawls between them (carved so the flood connects; short and low)
+        { op: 'fill', from: [16, 1, 6], to: [16, 3, 8], block: 0 },
+        { op: 'fill', from: [24, 1, 7], to: [24, 3, 9], block: 0 },
+        { op: 'fill', from: [34, 1, 7], to: [34, 3, 9], block: 0 },
+        { op: 'fill', from: [44, 1, 8], to: [44, 3, 10], block: 0 },
+        // a little wreck underfoot — grit come down in the empty halls, nobody to clear it
+        { op: 'rubble', from: [5, 2, 7], to: [54, 4, 11], amount: 0.04 },
+        // the bridge bay
+        { op: 'room', from: [52, 1, 7], to: [56, 6, 11], floor: 2 }
+      ],
+      // NOTHING makes a sound here. The empty `sources` is the whole design.
+      sources: [],
+      /* The dead crew's posts, in the order you pass them. Silent now — labels you walk up
+       * to in the dark, where a voice used to be. */
+      labels: [
+        { at: [10, 3, 9],  block: 2, text: 'VOTH’S STATION — quiet now', color: '#7d93aa' },
+        { at: [20, 3, 5],  block: 2, text: 'SEVEN’S BENCH — the filing has stopped', color: '#7d93aa' },
+        { at: [29, 3, 11], block: 2, text: 'BRIDGE’S POST — no one humming', color: '#7d93aa' },
+        { at: [39, 3, 7],  block: 2, text: 'ARK’S BUNK — three children', color: '#7d93aa' },
+        { at: [53, 3, 9],  block: 15, text: 'THE BRIDGE', color: '#4dff9e' }
+      ],
+      lines: [
+        { at: 'start', chord: '♪♩♪♩', text: 'I have never heard a quiet like this. Not once, in my whole life. There has always been something — the warren settling, a machine, somebody in the next room. Now there is the ship, and there is me, and when I stop shouting there is nothing at all.' },
+        { at: 'start', chord: '♩♩♪', text: 'So I shout, and I wait for the wall to answer, and I count the seconds until I can shout again. That counting is the loudest thing left on this ship. I am going to walk to the bridge past every station I used to be able to hear, and every one of them is going to be silent, and I am going to do it anyway.' }
+      ]
+    },
+
+    /* ==============================================================
      * THE LONG DARK — a warren nobody has mapped.
      *
      * Every other chapter in this game is measured to the cell, because every other

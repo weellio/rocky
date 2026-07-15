@@ -919,7 +919,11 @@
   function pulse(S) {
     if (S.pulseCd > 0) return { ok: false, why: 'cooling' };
     const p = S.player;
-    S.pulseCd = S.cfg.sonar.cooldown;
+    /* A chapter may make you WAIT longer between shouts. Alone does: on a ship with nobody
+     * left to make a sound, your own pulse is the only event there is, and the seconds you
+     * spend waiting for the next one — in a dark you cannot fill any other way — are the
+     * loudest thing in the game. The cooldown IS the grief. */
+    S.pulseCd = S.chapter.cooldown || S.cfg.sonar.cooldown;
     const n = emit(S, p.x, p.y, p.z, voice(S, S.cfg.sonar.pulseAmp), 0);
     S.pulses++;
     cue(S, 'pulse');

@@ -48,6 +48,7 @@
     'launch',       /*      the one chapter you can see everything */
     'sleep',        /* III · four shifts, and the ship changes while you are out */
     'failure',      /*      the crew go silent one by one; a death is a sound that stops */
+    'alone',        /*      the quiet middle: the only sound is the one you make */
     'longdark'      /*      forty-two light years of quiet */
   ];
 
