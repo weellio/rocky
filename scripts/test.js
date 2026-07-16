@@ -296,7 +296,7 @@ group('materials have voices', () => {
    * the repository). */
   for (const b of blocks) {
     ok(b.tex && b.tex !== 'none', b.name + ' has a grain');
-    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear|bell|forge|pane|void|arch)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
+    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear|bell|forge|pane|void|arch|live|ash|flask)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
   }
   ok(new Set(blocks.map((b) => b.tex)).size === blocks.length, 'no two materials share a grain either');
   for (const b of blocks) ok(new RegExp("'" + b.tex + "'").test(SRC.app), `app.js knows how to draw "${b.tex}"`);
@@ -1633,7 +1633,7 @@ group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
      * A NAVIGATION chapter — the generated warren — has no job to be half done. There
      * is nothing to solve there but the walk itself, so its arch calls from the first
      * second, and getting to it IS the game. Two different promises; both kept. */
-    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length || (c.track && c.track.need) || c.seal || c.count || (c.build_target && c.build_target.length);
+    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length || (c.track && c.track.need) || c.seal || c.count || (c.build_target && c.build_target.length) || c.clear;
     steps(S, 6);
     if (isPuzzle) {
       ok(!R.solved(S), `${c.name}: the room is not solved at the start`);

@@ -156,6 +156,18 @@ function tile(kind) {
       g.fillStyle = ink(0.1 + rnd() * 0.5);
       g.fillRect(rnd() * N | 0, rnd() * N | 0, 1, 1);
     }
+  } else if (kind === 'live') {                  // taumoeba: alive, clustered, budding — the green that eats the hole
+    for (let i = 0; i < 90; i++) {
+      const x = rnd() * N | 0, y = rnd() * N | 0, r = 1 + (rnd() * 2 | 0);
+      g.fillStyle = rnd() < 0.5 ? lit(0.28) : ink(0.22);
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+  } else if (kind === 'ash') {                   // dead strain: dull, cracked, voiceless
+    g.fillStyle = ink(0.22); g.fillRect(0, 0, N, N);
+    for (let i = 0; i < 60; i++) { g.fillStyle = ink(0.12 + rnd() * 0.2); g.fillRect(rnd() * N | 0, rnd() * N | 0, 2, 1); }
+  } else if (kind === 'flask') {                 // her air: a sealed sample, a banded canister
+    for (let y = 2; y < N; y += 7) { g.fillStyle = ink(0.3); g.fillRect(0, y, N, 2); g.fillStyle = lit(0.35); g.fillRect(0, y + 2, N, 1); }
+    g.strokeStyle = lit(0.4); g.lineWidth = 2; g.strokeRect(3, 3, N - 6, N - 6);
   }
   const t = new THREE.CanvasTexture(c);
   t.magFilter = THREE.NearestFilter;             // blocky. crisp. Minecraft.

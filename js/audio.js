@@ -151,6 +151,9 @@
      * low note, then a high one — that does NOT resolve, and then holds, waiting. A question
      * has a shape, and this is the shape of one. */
     ask: function () { ping(523, 0.16, 'sine', 0.16); setTimeout(function () { ping(784, 0.55, 'sine', 0.18); }, 130); },
+    /* LIFE. The green eating the red — a soft wet bloom, a note that OPENS where a hole was.
+     * The one hopeful sound in a game built out of holes. */
+    life: function () { ping(392, 0.5, 'sine', 0.05); setTimeout(function () { ping(588, 0.4, 'sine', 0.04); }, 90); },
     /* THE BURN: a low rolling roar with a body under it, throbbing on the drive's clock.
      * It is the loudest thing in the game and it should sit UNDER everything, felt more
      * than heard — the sound of being carried. */

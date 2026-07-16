@@ -1055,6 +1055,41 @@
     s.at = [Math.floor(pos[0]), Math.floor(pos[1]), Math.floor(pos[2])];
   }
 
+  /* LIFE SPREADS. The one thing in this game that GROWS.
+   *
+   * Taumoeba (17) is the living answer: it eats astrophage and it sings. Given a chapter
+   * `life` field it advances one generation every `period` seconds — a scan of a bounded
+   * region, double-buffered (collect the claims, then apply them), so a cell that turns
+   * green this tick does not itself spread until the next. Deterministic to the frame: no
+   * clock, no dice, the same at generation ten thousand as at one. It claims a face-neighbour
+   * if that neighbour is the thing it `eats` (astrophage — it multiplies INTO the murder), or,
+   * in the one chapter where it betrays you, anything in `through` (it leaks through xenonite,
+   * the material the whole game trusted). Region-bounded so it never costs the pulse its frame.
+   */
+  function stepLife(S, dt) {
+    const L = S.chapter.life;
+    if (!L) return;
+    S.lifeCd -= dt;
+    if (S.lifeCd > 0) return;
+    S.lifeCd += (L.period == null ? 0.5 : L.period);
+    const lo = L.region[0], hi = L.region[1];
+    const grow = [];
+    for (let y = lo[1]; y <= hi[1]; y++)
+      for (let z = lo[2]; z <= hi[2]; z++)
+        for (let x = lo[0]; x <= hi[0]; x++) {
+          if (blockAt(S, x, y, z) !== 17) continue;          // only the living spread
+          for (let n = 0; n < FACES; n++) {
+            const nx = x + NB[n][0], ny = y + NB[n][1], nz = z + NB[n][2];
+            if (!inside(S, nx, ny, nz)) continue;
+            const nb = blockAt(S, nx, ny, nz);
+            if (nb === L.eats) grow.push(nx, ny, nz);                        // eats the red, multiplies
+            else if (L.through && L.through.indexOf(nb) >= 0) grow.push(nx, ny, nz);   // leaks through
+          }
+        }
+    for (let i = 0; i < grow.length; i += 3) setBlock(S, grow[i], grow[i + 1], grow[i + 2], 17);
+    if (grow.length) { S.dirty = true; cue(S, 'life'); }
+  }
+
   /* ---------- ambient sources: the warren breathes ---------- */
   function stepSources(S, dt) {
     /* ONCE YOU ARE THROUGH, THE ROOM GOES QUIET. A chapter you have finished stops making
@@ -1534,6 +1569,18 @@
         return b === 7 || b === 13;
       });
     }
+
+    /* A CLEAR chapter is won when the red is GONE. You set the living green against the
+     * astrophage and let it eat: the hole closes, cell by cell, and the room behind the
+     * murder opens up and rings. Solved when no `of`-block is left anywhere in the region. */
+    if (c.clear) {
+      const lo = c.clear.region[0], hi = c.clear.region[1];
+      for (let y = lo[1]; y <= hi[1]; y++)
+        for (let z = lo[2]; z <= hi[2]; z++)
+          for (let x = lo[0]; x <= hi[0]; x++)
+            if (blockAt(S, x, y, z) === c.clear.of) return false;
+      return true;
+    }
     /* In a SHIFT chapter the doors are not the win — they are the shifts themselves, opened
      * one at a time by sleeping. Opening the last of them is not finishing the voyage; it
      * only gets you into the hall where the last gauge is. So a shift chapter is solved by
@@ -1754,6 +1801,7 @@
       shift: 0,
       bunk: chapter.bunk || null,
       fixes: [],   // plotted positions of a moving contact — see recordFix / The Blip
+      lifeCd: 0,   // the taumoeba's growth clock — see stepLife / Act VI
       carryOf: cfg.blocks.map((b) => !!b.carry),
       flags: {},
       cueQ: [],
@@ -1807,6 +1855,7 @@
       if (S.pulseCd > 0) S.pulseCd -= FIXED;
       stepPlayer(S, FIXED, input);
       stepSources(S, FIXED);
+      stepLife(S, FIXED);
       stepQuestions(S, FIXED);
       stepBells(S, FIXED);
       stepFolk(S, FIXED);
@@ -1873,7 +1922,7 @@
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
     stepNow, stepDone, stepWalk, chordOf, solved, stepExit, repressurize, inVacuum,
-    stepFolk, folkClue, sleep, nearBunk, stepQuestions,
+    stepFolk, folkClue, sleep, nearBunk, stepQuestions, stepLife,
     feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED
   };

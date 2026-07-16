@@ -90,7 +90,25 @@
        * blind — except for what you are TOUCHING, because the wave still runs out of
        * your feet into the hull, and the hull still rings. In space you hear through
        * the structure or you hear nothing. */
-      { id: 16, key: 'vac',      name: 'Vacuum',         solid: false, color: '#000000', absorb: 0.0,  cost: 240.0, tex: 'none', carry: false, note: 0 }
+      { id: 16, key: 'vac',      name: 'Vacuum',         solid: false, color: '#000000', absorb: 0.0,  cost: 240.0, tex: 'none', carry: false, note: 0 },
+      /* TAUMOEBA. The answer, and it was ALIVE the whole time.
+       * Astrophage is a hole in perception — it returns nothing. Taumoeba is its living
+       * opposite: it EATS astrophage, and it SINGS while it does. It is the greenest thing
+       * in the game (green is life, and this is the most alive thing there is), it carries
+       * sound nearly as well as xenonite, and you can lift a sample and carry it across the
+       * dark. In Act VI it grows — it spreads into the red and closes the holes — and, once,
+       * it betrays you. */
+      { id: 17, key: 'taumoeba', name: 'Taumoeba',       solid: true,  color: '#39e66a', absorb: 0.02, cost: 1.5,  tex: 'live',  carry: true,  note: 740 },
+      /* THE DEAD STRAIN. A breeding that failed — it ate the wrong thing, or the wrong sky
+       * killed it. Ash-grey, dull, nearly voiceless: it gives almost nothing back, and the
+       * little it does give tells you which way you were wrong. A corpse is not a failure.
+       * It is the instrument talking. */
+      { id: 18, key: 'dead',     name: 'Dead strain',    solid: true,  color: '#5b5f57', absorb: 0.66, cost: 8.0,  tex: 'ash',   carry: true,  note: 110 },
+      /* HER AIR. A sealed sample of the human's atmosphere — the slow-fire stuff, oxygen —
+       * that Rocky needs to breed a strain that can survive her ship as well as his. It is
+       * ORANGE, because it is hers, and orange is the one colour this whole palette holds in
+       * reserve for the humans. */
+      { id: 19, key: 'herair',   name: 'Her air',        solid: true,  color: '#e8730f', absorb: 0.10, cost: 3.0,  tex: 'flask', carry: true,  note: 466 }
     ],
 
     /* And a pocketful of the stuff eats YOUR voice too. Every sample in the vest
