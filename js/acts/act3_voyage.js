@@ -807,8 +807,8 @@
           line: 'It is right there, on the far side of the breach, doing its silent work — and I cannot hear a whisper of it. Between us is vacuum, and vacuum is the one place my ears are no use at all, so it might as well be back at its own dead star. I am going to fix that. Not by crossing to it — my air would end it, and its air would end me, and we both learned that a hand-span apart. I am going to build the one kind of wall a voice can cross even when a body never can.' }
       ],
       labels: [
-        { at: [17, 3, 7], block: 7,  text: 'THE BREACH — lay xenonite here, one six of panes', color: '#57e08a' },
-        { at: [18, 4, 6], block: 13, text: 'HER HULL — xenonite, already singing; build yours to meet it', color: '#a9e8bd' },
+        { at: [17, 3, 7], block: 7,  text: 'THE BREACH — lay xenonite here · just this gap, 6 panes fill it', color: '#57e08a' },
+        { at: [18, 4, 6], block: 13, text: 'HER HULL — already whole; do NOT build this, only the breach', color: '#a9e8bd' },
         { at: [4, 3, 6],  block: 7,  text: 'THE PANES — xenonite you cast; Q to lift, R to lay', color: '#57e08a' },
         { at: [12, 3, 4], block: 12, text: 'THE FORGE — three of grit makes another pane', color: '#ff8a3c' },
         { at: [4, 3, 1],  block: 15, text: 'THE WAY ON — it opens when the wall is whole', color: '#4dff9e' }
