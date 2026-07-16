@@ -1636,6 +1636,20 @@
     for (const p of c.build_target) { const b = blockAt(S, p[0], p[1], p[2]); if (b === 7 || b === 13) done++; }
     return { done: done, total: c.build_target.length };
   }
+  /* How much of the murder is left, for the HUD — the living green eats the astrophage on its
+   * OWN, and a player who cannot see the red count fall thinks it has stalled and starts laying
+   * more samples he does not need. Show the number dropping to zero. */
+  function clearState(S) {
+    const c = S.chapter;
+    if (!c || !c.clear) return null;
+    const lo = c.clear.region[0], hi = c.clear.region[1];
+    let left = 0;
+    for (let x = lo[0]; x <= hi[0]; x++)
+      for (let y = lo[1]; y <= hi[1]; y++)
+        for (let z = lo[2]; z <= hi[2]; z++)
+          if (blockAt(S, x, y, z) === c.clear.of) left++;
+    return { left: left };
+  }
 
   function solved(S) {
     const c = S.chapter;
@@ -2119,7 +2133,7 @@
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
-    stepNow, stepDone, stepWalk, chordOf, solved, countState, buildState, stepExit, repressurize, inVacuum,
+    stepNow, stepDone, stepWalk, chordOf, solved, countState, buildState, clearState, stepExit, repressurize, inVacuum,
     stepFolk, folkClue, sleep, nearBunk, stepQuestions, stepLife,
     feedForge, takeFromForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED

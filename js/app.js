@@ -1186,6 +1186,13 @@ function frame(now) {
     el('ear').style.opacity = '1';
     el('ear').innerHTML = `<span>BREACH SEALED</span><br><span class="${ok ? 'on' : ''}">` +
       `${bs.done} / ${bs.total}${ok ? '  ✓' : ''}</span>`;
+  } else if (S.chapter.clear) {
+    // the green eats the red on its own — show the red count falling, so it clearly IS working
+    const cl = Sim.clearState(S);
+    const ok = cl.left === 0;
+    el('ear').style.opacity = '1';
+    el('ear').innerHTML = `<span>RED LEFT</span><br><span class="${ok ? 'on' : ''}">` +
+      `${cl.left}${ok ? '  ✓ gone' : ''}</span>`;
   } else if (S.ears.length) {
     el('ear').style.opacity = '1';
     el('ear').innerHTML = S.ears.map((e) => {
@@ -1509,7 +1516,7 @@ function load(id) {
   el('objective').textContent = S.chapter.objective;
   // the box holds the gauge count AND the resonator readout: hide it only when a
   // chapter has neither, or the ear goes invisible in every chapter without gauges.
-  el('gbox').style.display = (S.gauges.length || S.ears.length || S.chapter.count || S.chapter.build_target) ? '' : 'none';
+  el('gbox').style.display = (S.gauges.length || S.ears.length || S.chapter.count || S.chapter.build_target || S.chapter.clear) ? '' : 'none';
   el('glabel').style.display = S.gauges.length ? '' : 'none';
   el('gcount').style.display = S.gauges.length ? '' : 'none';
   refreshGauges();

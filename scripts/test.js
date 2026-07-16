@@ -3088,8 +3088,18 @@ group('TAUMOEBA: the answer was alive — the green eats the hole (life + clear)
   for (let y = lo[1]; y <= hi[1]; y++) for (let z = lo[2]; z <= hi[2]; z++) for (let x = lo[0]; x <= hi[0]; x++) if (R.blockAt(N, x, y, z) === 14) R.setBlock(N, x, y, z, 17);
   R.setBlock(N, 32, 6, 9, 14);
   ok(!R.solved(N), 'one red cell left is still a wall — not solved');
+  eq(R.clearState(N).left, 1, 'and the HUD says one red cell left, so it is clearly not done');
   R.setBlock(N, 32, 6, 9, 17);
   ok(R.solved(N), 'clear the last cell and only now is it solved');
+  eq(R.clearState(N).left, 0, 'RED LEFT reads zero — the readout the player watches fall');
+  /* PLAYTEST (ch26): "how much do I need?" — none more; the green grows on its own. One sample
+   * clears the whole wall in a few seconds, and the falling RED LEFT count shows it working. */
+  const G = tau();
+  R.setBlock(G, 30, 3, 6, 17);                     // one sample against the red
+  const start = R.clearState(G).left;
+  for (let i = 0; i < 60 * 5 && R.clearState(G).left > 0; i++) R.step(G, R.FIXED, {});
+  eq(R.clearState(G).left, 0, 'a single sample eats the entire wall unaided');
+  ok(R.solved(G) && start > 20, `and the way out rings — no more samples needed (it cleared ${start} cells on its own)`);
 });
 
 group('BREEDING: one bug, two skies, and the corpses teach you', () => {
