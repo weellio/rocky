@@ -104,11 +104,11 @@
        * little it does give tells you which way you were wrong. A corpse is not a failure.
        * It is the instrument talking. */
       { id: 18, key: 'dead',     name: 'Dead strain',    solid: true,  color: '#5b5f57', absorb: 0.66, cost: 8.0,  tex: 'ash',   carry: true,  note: 110 },
-      /* HER AIR. A sealed sample of the human's atmosphere — the slow-fire stuff, oxygen —
-       * that Rocky needs to breed a strain that can survive her ship as well as his. It is
-       * ORANGE, because it is hers, and orange is the one colour this whole palette holds in
-       * reserve for the humans. */
-      { id: 19, key: 'herair',   name: 'Her air',        solid: true,  color: '#e8730f', absorb: 0.10, cost: 3.0,  tex: 'flask', carry: true,  note: 466 },
+      /* HIS AIR. A sealed sample of the human's atmosphere — the slow-fire stuff, oxygen —
+       * that Rocky needs to breed a strain that can survive the human's ship as well as his own.
+       * It is ORANGE, because it is Grace's, and orange is the one colour this whole palette holds
+       * in reserve for the humans. */
+      { id: 19, key: 'herair',   name: 'His air',        solid: true,  color: '#e8730f', absorb: 0.10, cost: 3.0,  tex: 'flask', carry: true,  note: 466 },
       /* THE FLORA. Erid has never had light, so nothing here photosynthesises — but life does
        * not need light, only energy, and Erid is warm. Around every heat-vent and every seep of
        * ammonia there are GARDENS: soft mats of cavemoss that drink the warmth, and LUMEN BLOOMS
@@ -162,7 +162,7 @@
       /* THE BREEDING RECIPES (Act VI · Breeding). ORDER IS LOAD-BEARING: canMake returns the
        * FIRST recipe whose needs are all met, so the complete strain must come before the
        * partials, or a full hopper would settle for a corpse. A strain must do three
-       * impossible things — eat astrophage (14), survive his ammonia, survive her air (19).
+       * impossible things — eat astrophage (14), survive Rocky's ammonia, survive the human's air (19).
        * Feed the incubator all three living ingredients and it lives; leave one out and it
        * hands you a dead strain (18) whose absence tells you which sky you forgot. */
       {
@@ -170,14 +170,14 @@
         name: 'Flight strain',
         needs: [{ block: 17, n: 1 }, { block: 14, n: 1 }, { block: 19, n: 1 }],
         gives: 17, live: true,
-        note: 'It ate the red, took my ammonia, took her air — and it is still moving. One bug, two skies. This is the one that rides home.'
+        note: 'It ate the red, took my ammonia, took his air — and it is still moving. One bug, two skies. This is the one that rides home.'
       },
       {
         id: 'breed_deadHers',
-        name: 'Dead strain (her air)',
+        name: 'Dead strain (his air)',
         needs: [{ block: 17, n: 1 }, { block: 14, n: 1 }],
         gives: 18, fail: true,
-        note: 'It ate the red and loved my air — and one breath of hers killed it. It cannot ride in her ship. Put her air in the jar.'
+        note: 'It ate the red and loved my air — and one breath of his killed it. It cannot ride in his ship. Put his air in the jar.'
       },
       {
         id: 'breed_deadFood',
@@ -311,7 +311,7 @@
       contact: { period: 1.1, amp: 0.7, range: 15, hue: '#e8eef2' },
       /* THE GRINDING. Whatever the human runs to stay alive makes a sound like a mill that
        * never stops — a low, rough, ceaseless working that Rocky finds almost unbearable and
-       * cannot switch off and slowly stops noticing. It is ORANGE, because it is hers, and
+       * cannot switch off and slowly stops noticing. It is ORANGE, because it is his, and
        * orange is the humans, and this is the room the palette spends it in. */
       grind: { period: 0.9, amp: 0.6, range: 14, hue: '#c85a1a' },
 

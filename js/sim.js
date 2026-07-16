@@ -695,7 +695,7 @@
        * A statement listens forever; a question rings, then holds open a moment, expecting.
        * Answer inside that window and it counts; answer when nothing was asked — a reply to
        * a statement — and it falls on a closed socket. That window is the whole difference
-       * between a question and a statement. (openUntil starts at -1, so before she has ever
+       * between a question and a statement. (openUntil starts at -1, so before he has ever
        * asked, an asking-socket takes nothing.) */
       if (e && e.asks && S.t > e.openUntil) continue;
       if (p.amp > (heard[p.id] || 0)) heard[p.id] = p.amp;
@@ -739,17 +739,17 @@
    * A QUESTION IS A STATEMENT THAT WAITS.
    *
    * Every ear until now has been a STATEMENT: it listens, always, and opens if the right
-   * sound ever reaches it. Grace's sockets ASK. On her own timing a socket rings out — once,
-   * in her question-note — and then holds itself OPEN for a moment, expecting a reply. And
-   * she takes turns (`after`): she will not ask the next thing until you have answered the
+   * sound ever reaches it. Grace's sockets ASK. On his own timing a socket rings out — once,
+   * in his question-note — and then holds itself OPEN for a moment, expecting a reply. And
+   * he takes turns (`after`): he will not ask the next thing until you have answered the
    * last. A conversation, not a checklist. The answer itself is settled by the ordinary
-   * tuned-ear path; this only decides WHEN she is listening for one.
+   * tuned-ear path; this only decides WHEN he is listening for one.
    * ================================================================ */
   function stepQuestions(S, dt) {
     if (S.flags.done) return;
     for (const e of S.ears) {
       if (!e.asks || e.open) continue;
-      if (e.after) {                                     // turn-taking: her earlier question first
+      if (e.after) {                                     // turn-taking: his earlier question first
         const prev = S.ears.find((x) => x.id === e.after);
         if (!prev || !prev.open) continue;
       }
@@ -1715,11 +1715,11 @@
       return b === 7 || b === 13;   // loose or cast xenonite
     }
 
-    /* A COUNTING chapter is answered in BASE SIX. She shows a quantity; you say it back the
+    /* A COUNTING chapter is answered in BASE SIX. He shows a quantity; you say it back the
      * only way you know how — in sixes and ones, the dot-numerals the game has been putting
      * in front of you since the first gauge in Chapter One. You lay blocks on two shelves:
      * one is worth six each, one is worth one each. The number is right when six-times-the-
-     * sixes plus the ones equals hers — AND the ones shelf holds fewer than six, because
+     * sixes plus the ones equals his — AND the ones shelf holds fewer than six, because
      * six ones is a six, and knowing that is the whole of what base six IS. */
     if (c.count) {
       const sixes = countTally(S, c.count.sixes), ones = countTally(S, c.count.ones);
@@ -1741,7 +1741,7 @@
     }
 
     /* A BRED chapter is won when the forge has made the ONE strain that does all three
-     * impossible things — eats the red, survives his air, survives hers. Everything before
+     * impossible things — eats the red, survives Rocky's air, survives Grace's. Everything before
      * it is corpses, and the corpses were the lesson. `c.bred` names the winning recipe. */
     if (c.bred) return S.forges.some((f) => f.made.indexOf(c.bred) >= 0);
 
@@ -2038,7 +2038,7 @@
     for (const e of S.ears) {
       setBlock(S, e.at[0], e.at[1], e.at[2], e.rings ? 11 : 10);
       S.earAt[idx(S, e.at[0], e.at[1], e.at[2])] = e.id;
-      // an asking socket does not ask the instant the room loads — she waits a beat first
+      // an asking socket does not ask the instant the room loads — he waits a beat first
       if (e.asks) e.askCd = (e.asks.period == null ? 5 : e.asks.period) * 0.4;
     }
     for (const d of S.doors) for (const c of d.cells) setBlock(S, c[0], c[1], c[2], 8);

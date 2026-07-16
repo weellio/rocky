@@ -2435,7 +2435,7 @@ group('COUNTING is forgiving, and it shows its work', () => {
    * accept a block laid ANYWHERE on the shelf, count only the blocks he carried (never the rock
    * backstop), and report the running total so he is never guessing. */
   const N = R.create(CFG, { seed: 1, chapter: 'numbers' });
-  eq(N.chapter.count.value, 8, 'she shows eight');
+  eq(N.chapter.count.value, 8, 'he shows eight');
   ok(!R.solved(N), 'nothing laid yet, nothing solved');
   eq(R.countState(N).total, 0, 'and the readout says zero — the rock backstop does not count');
 
@@ -2447,7 +2447,7 @@ group('COUNTING is forgiving, and it shows its work', () => {
   eq(cs.sixes, 1, 'one on sixes, counted though it landed short');
   eq(cs.ones, 2, 'two on ones, counted though they landed short');
   eq(cs.total, 8, 'one six and two — eight');
-  ok(R.solved(N), 'AND IT SOLVES — the answer he actually gave is the answer she was shown');
+  ok(R.solved(N), 'AND IT SOLVES — the answer he actually gave is the answer he was shown');
 
   // PLAYTEST followup: "the blocks were on top of the towers." A block stacks upward, so it is
   // easy to build a little tower whose blocks sit well ABOVE the old three named cells. Height
@@ -2786,10 +2786,10 @@ group('TWENTY-NINE ATMOSPHERES: the wall is the reason, not the obstacle', () =>
   const mk29 = () => R.create(CFG, { seed: 1, chapter: 'atmospheres' });
   const settle = (S) => steps(S, 1);
 
-  // the hole vents HIS chamber to nothing — but not hers; her hull is whole
+  // the hole vents ROCKY's chamber to nothing — but not GRACE's; his hull is whole
   const V = mk29(); settle(V);
   ok(R.blockAt(V, 6, 3, 6) === 16, 'his chamber is emptying: the air where he stands has gone to vacuum');
-  ok(R.blockAt(V, 20, 3, 6) !== 16, 'but her side is untouched — her wall never had the hole, and it holds');
+  ok(R.blockAt(V, 20, 3, 6) !== 16, 'but his side is untouched — his wall never had the hole, and it holds');
 
   // GRIT seals the leak and leaves him deaf: safe, and NOT done
   const G = mk29();
@@ -2818,18 +2818,18 @@ group('TWENTY-NINE ATMOSPHERES: the wall is the reason, not the obstacle', () =>
   const labs = X.chapter.labels || [];
   ok(labs.some((l) => /grit/i.test(l.text) && /deaf/i.test(l.text)), 'the grit is labelled as the deaf one');
   ok(labs.some((l) => /xenonite/i.test(l.text) && /sing/i.test(l.text)), 'and the xenonite as the one that sings');
-  ok(X.folk[0] && X.folk[0].kind === 'human', 'and she is right there on the other side of it, the whole time');
+  ok(X.folk[0] && X.folk[0].kind === 'human', 'and he is right there on the other side of it, the whole time');
 });
 
 group('NUMBERS: base six was a language all along', () => {
-  /* The heart of the game. She counts in ten, Rocky in six, and the dot-numerals the game
-   * has shown on every gauge since Chapter One turn out to be the vocabulary. She shows
+  /* The heart of the game. He counts in ten, Rocky in six, and the dot-numerals the game
+   * has shown on every gauge since Chapter One turn out to be the vocabulary. He shows
    * EIGHT; he says it back in sixes and ones. The engine has to make "eight, in base six"
    * a real, checkable thing: six-times-the-sixes plus the ones, and the ones shelf holding
    * fewer than six, because six ones IS a six and that is the whole idea. */
   const mkN = () => R.create(CFG, { seed: 1, chapter: 'numbers' });
   const C = mkN().chapter.count;
-  eq(C.value, 8, 'she shows eight');
+  eq(C.value, 8, 'he shows eight');
 
   // one six and two ones is eight — and it solves
   const A = mkN();
@@ -2838,7 +2838,7 @@ group('NUMBERS: base six was a language all along', () => {
   R.setBlock(A, C.ones[1][0], C.ones[1][1], C.ones[1][2], 3);      // two on the ones shelf
   ok(R.solved(A), 'one six and two ones is eight — that is the number');
 
-  // the wrong counts are wrong: two sixes is twelve, three ones is three, and neither is her eight
+  // the wrong counts are wrong: two sixes is twelve, three ones is three, and neither is his eight
   const B = mkN();
   R.setBlock(B, C.sixes[0][0], C.sixes[0][1], C.sixes[0][2], 3);
   R.setBlock(B, C.sixes[1][0], C.sixes[1][1], C.sixes[1][2], 3);
@@ -2863,12 +2863,12 @@ group('NUMBERS: base six was a language all along', () => {
   const labs = mkN().chapter.labels || [];
   ok(labs.some((l) => /sixes shelf/i.test(l.text)) && labs.some((l) => /ones shelf/i.test(l.text)),
     'the two shelves say what they are worth');
-  ok(mkN().folk[0].kind === 'human', 'and she is across the wall, counting back');
+  ok(mkN().folk[0].kind === 'human', 'and he is across the wall, counting back');
 });
 
 group('NAMES: a note becomes a word you agree on', () => {
-  /* Naming, out of the tuned resonator. Each of her resonators is deaf to everything but one
-   * material's note — her word for that thing. Carry the matching block to it and set it
+  /* Naming, out of the tuned resonator. Each of his resonators is deaf to everything but one
+   * material's note — his word for that thing. Carry the matching block to it and set it
    * down; it bangs in its own voice, the resonator that was listening for exactly that voice
    * hears it, and the word is agreed. The wrong block says nothing, because a word is not a
    * word if it means anything you like. Played with blocks lifted off the pile, not conjured. */
@@ -2876,13 +2876,13 @@ group('NAMES: a note becomes a word you agree on', () => {
   const step = (S, t) => steps(S, t == null ? 0.2 : t);
   const earOpen = (S, id) => S.ears.find((e) => e.id === id).open;
 
-  // lift a real girder off the pile and carry it to HER WORD FOR GIRDER
+  // lift a real girder off the pile and carry it to HIS WORD FOR GIRDER
   const S = mkNm();
   S.player.x = 5.5; S.player.y = 3.0; S.player.z = 6.5; S.player.yaw = 0; step(S, 0.2);
   const took = R.takeBlock(S);
   ok(took.ok && took.block === 3, 'he lifts a girder off the pile');
   S.player.x = 12.5; S.player.y = 3.0; S.player.z = 5.5; S.player.yaw = Math.PI; step(S, 0.2);
-  ok(R.placeBlock(S).ok, 'and sets it down in front of her word for it');
+  ok(R.placeBlock(S).ok, 'and sets it down in front of his word for it');
   step(S, 1.4);
   ok(earOpen(S, 'girder'), 'the resonator hears the girder ring, and the name is agreed');
 
@@ -2903,20 +2903,20 @@ group('NAMES: a note becomes a word you agree on', () => {
 
   // each material's note really is distinct — a name has to be tellable from the others
   const notes = A.ears.map((e) => e.tuned);
-  eq(new Set(notes).size, notes.length, 'and no two of her words are the same pitch, or they would not be different words');
+  eq(new Set(notes).size, notes.length, 'and no two of his words are the same pitch, or they would not be different words');
 });
 
 group('THE WALL: the engineer builds the thing he is best at', () => {
   /* His hull is open to the void; a doorway of vacuum vents his chamber, and a hand-span
-   * beyond it is her whole xenonite hull. He rebuilds the breach out of xenonite — and only
-   * xenonite, because it must be airtight AND still carry his voice to her. Six cells; one
+   * beyond it is his whole xenonite hull. He rebuilds the breach out of xenonite — and only
+   * xenonite, because it must be airtight AND still carry his voice to him. Six cells; one
    * open cell is still a vacuum and still silent. Grit seals the air but goes deaf. */
   const mkw = () => R.create(CFG, { seed: 1, chapter: 'wall' });
   const cells = [[17, 2, 6], [17, 4, 6], [17, 2, 7], [17, 4, 7], [17, 3, 6], [17, 3, 7]];
 
   const V = mkw(); steps(V, 1);
   ok(R.blockAt(V, 8, 3, 7) === 16, 'the breach vents his chamber: where he stands is vacuum');
-  ok(R.blockAt(V, 24, 3, 7) !== 16, 'but her chamber is whole — her hull never had the hole, and it holds');
+  ok(R.blockAt(V, 24, 3, 7) !== 16, 'but his chamber is whole — his hull never had the hole, and it holds');
   ok(!R.solved(V), 'and nothing is built yet, so the way out says nothing');
 
   const X = mkw();
@@ -2963,10 +2963,10 @@ group('THE WALL: the engineer builds the thing he is best at', () => {
 
 group('QUESTION: the first time somebody wants something back', () => {
   /* Every ear until now has been a STATEMENT — it listens, always, and opens if the right
-   * sound ever arrives. Grace's sockets ASK: each rings out in her own note, then holds open
+   * sound ever arrives. Grace's sockets ASK: each rings out in his own note, then holds open
    * a moment, expecting a reply, and only takes an answer inside that window. Answer when it
-   * did not ask — a reply to a statement — and it falls on a closed socket. And she takes
-   * turns: she will not ask the next thing until the last is answered. */
+   * did not ask — a reply to a statement — and it falls on a closed socket. And he takes
+   * turns: he will not ask the next thing until the last is answered. */
   const mkQ = () => R.create(CFG, { seed: 1, chapter: 'question' });
   const ear = (S, id) => S.ears.find((x) => x.id === id);
   const isOpen = (S, id) => { const e = ear(S, id); return !!(e && e.open); };
@@ -2980,25 +2980,25 @@ group('QUESTION: the first time somebody wants something back', () => {
     'and each ASKS in a note that is not its own answer — the question and the reply are different sounds');
   ok(B.folk[0].kind === 'human', 'and Grace is across the wall, doing the asking');
 
-  // SHE ASKS, unprompted — and holds it open, and does NOT ask the next thing yet
+  // HE ASKS, unprompted — and holds it open, and does NOT ask the next thing yet
   const K = mkQ();
   steps(K, 3);
-  ok(ear(K, 'q1').asked > 0, 'she asks her first question on her own, with no input from him');
-  eq(ear(K, 'q2').asked, 0, 'and she will not ask the second until the first is answered — a conversation, not a checklist');
+  ok(ear(K, 'q1').asked > 0, 'he asks his first question on his own, with no input from him');
+  eq(ear(K, 'q2').asked, 0, 'and he will not ask the second until the first is answered — a conversation, not a checklist');
 
   const answer = (S, id, block) => {
     const e = ear(S, id);
     R.setHeld(S, block);
     S.player.x = e.at[0] + 0.5; S.player.y = 3.0; S.player.z = e.at[2] - 1.5; S.player.yaw = Math.PI;
     steps(S, 0.2);
-    e.openUntil = S.t + 10;              // she is mid-question, waiting for a reply
+    e.openUntil = S.t + 10;              // he is mid-question, waiting for a reply
     R.placeBlock(S);
     steps(S, 1.4);
   };
 
   const A = mkQ();
   ok(!R.solved(A), 'nothing answered yet');
-  answer(A, 'q1', 3); ok(isOpen(A, 'q1'), 'girder, while she waits: the first question is answered');
+  answer(A, 'q1', 3); ok(isOpen(A, 'q1'), 'girder, while he waits: the first question is answered');
   answer(A, 'q2', 7); ok(isOpen(A, 'q2'), 'xenonite answers the second');
   answer(A, 'q3', 9); ok(isOpen(A, 'q3'), 'grit answers the third');
   ok(R.solved(A), 'three questions asked and answered — the gate home opens');
@@ -3015,7 +3015,7 @@ group('QUESTION: the first time somebody wants something back', () => {
   R.setHeld(D, 3);
   D.player.x = e1.at[0] + 0.5; D.player.y = 3.0; D.player.z = e1.at[2] - 1.5; D.player.yaw = Math.PI;
   steps(D, 0.2);
-  e1.openUntil = D.t - 1;                // she is NOT asking right now
+  e1.openUntil = D.t - 1;                // he is NOT asking right now
   R.placeBlock(D);
   steps(D, 1.4);
   ok(!isOpen(D, 'q1'), 'the right answer, to no question: the socket is not listening, and nothing opens');
@@ -3109,7 +3109,7 @@ group('BREEDING: one bug, two skies, and the corpses teach you', () => {
   const S = mk();
   eq(S.forges.length, 1, 'one incubator, and it is a real block');
   ok(!feed(S, 14).made, 'astrophage alone: no recipe wants only the red');
-  ok(!feed(S, 19).made, 'her air too: still nothing');
+  ok(!feed(S, 19).made, 'his air too: still nothing');
   const live = feed(S, 17);
   eq(live.made, 'breed_live', 'taumoeba added LAST, both airs loaded: the FLIGHT STRAIN');
   ok(live.live && live.gives === 17, 'and it is alive');
@@ -3119,14 +3119,14 @@ group('BREEDING: one bug, two skies, and the corpses teach you', () => {
   feed(C, 14);
   const deadHers = feed(C, 17);
   eq(deadHers.made, 'breed_deadHers', 'culture added with only the red: the eager forge settles for a corpse');
-  ok(deadHers.fail && deadHers.gives === 18, 'a DEAD strain — her air killed it');
+  ok(deadHers.fail && deadHers.gives === 18, 'a DEAD strain — his air killed it');
   ok(!R.solved(C), 'a corpse is not the answer');
   eq(C.made, 0, 'a corpse costs a walk, not a win — S.made stays 0');
 
   const D = mk();
   feed(D, 19);
   const deadFood = feed(D, 17);
-  eq(deadFood.made, 'breed_deadFood', 'culture added with only her air: it will not eat the red');
+  eq(deadFood.made, 'breed_deadFood', 'culture added with only his air: it will not eat the red');
   ok(deadFood.fail && !R.solved(D), 'another corpse, still not solved');
 });
 

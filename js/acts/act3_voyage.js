@@ -498,11 +498,11 @@
         { op: 'fill', from: [8, 1, 3], to: [8, 3, 3], block: 8 },
         { op: 'room', from: [6, 1, 1], to: [10, 5, 3], floor: 2 },
 
-        /* --- ROCKY'S SIDE ONLY (x<21): his ship is alive; her side stays sterile and strange --- */
+        /* --- ROCKY'S SIDE ONLY (x<21): his ship is alive; his side stays sterile and strange --- */
         { op: 'flora', from: [2, 2, 4], to: [19, 8, 12], amount: 0.14, bloom: 0.45 },
         { op: 'set', at: [3, 4, 5], block: 4 }
       ],
-      /* The machine on her side that never stops. */
+      /* The machine on his side that never stops. */
       sources: [
         { at: [34, 3, 8], kind: 'grind' },
         // his own side, breathing — a homely hum against the sterile far room
@@ -547,7 +547,7 @@
      * He has exactly two things to seal it with: a lump of grit, and a pane of xenonite.
      *
      * The grit will do it. Grit stops anything; his air would come back and he would be
-     * safe. And he would never hear her again, because grit is DEAF — it is the one material
+     * safe. And he would never hear him again, because grit is DEAF — it is the one material
      * that eats a sound whole, and the far side of a grit wall is silence. He would be
      * alive, and sealed, and alone, a hand-span from the only other mind for forty light
      * years, and unable to say so.
@@ -573,8 +573,8 @@
         { op: 'room', from: [2, 1, 3], to: [12, 8, 9], floor: 2 },
         // THE HOLE, in the join — a single empty cell his whole atmosphere is leaving through
         { op: 'set', at: [13, 3, 6], block: 16 },
-        // the other ship's hull, intact: cast xenonite, so it already sings — her wall was
-        // never the problem, and it is how he knows she is there at all
+        // the other ship's hull, intact: cast xenonite, so it already sings — his wall was
+        // never the problem, and it is how he knows he is there at all
         { op: 'fill', from: [14, 1, 3], to: [14, 8, 9], block: 13 },
         { op: 'room', from: [15, 1, 3], to: [25, 8, 9], floor: 2 },
         // the two things he has to plug it with: the trap and the answer
@@ -583,7 +583,7 @@
         // the way on, once he is sealed and still able to speak
         { op: 'room', from: [7, 1, 1], to: [11, 5, 3], floor: 2 },
 
-        /* --- ROCKY'S SIDE ONLY (x<14): his living wall against her sterile one --- */
+        /* --- ROCKY'S SIDE ONLY (x<14): his living wall against his sterile one --- */
         { op: 'flora', from: [2, 2, 3], to: [12, 8, 9], amount: 0.12, bloom: 0.4 }
       ],
       sources: [
@@ -613,17 +613,17 @@
      *
      * The heart of the game. Two creatures with nothing in common but arithmetic.
      *
-     * She counts in TEN, which is insane — ten, a number with no sensible factors, a number
-     * you would only ever pick if you happened to have ten fingers, which it turns out she
+     * He counts in TEN, which is insane — ten, a number with no sensible factors, a number
+     * you would only ever pick if you happened to have ten fingers, which it turns out he
      * does. Rocky counts in SIX, the way anyone reasonable would. And here is the thing the
      * game has been doing to you since the very first gauge in Chapter One, quietly, without
      * telling you: every number it has ever shown you, it showed you in base six, in little
      * chords of dots. You have been fluent for nine chapters. You just did not know the dots
      * were a language until there was somebody to speak it to.
      *
-     * So she shows a quantity, and you say it back the only way you know how — in sixes and
+     * So he shows a quantity, and you say it back the only way you know how — in sixes and
      * ones. There are two shelves. One is worth six a block; one is worth one a block. Lay
-     * the number out: the count is right when six-times-the-sixes plus the ones is hers. She
+     * the number out: the count is right when six-times-the-sixes plus the ones is his. He
      * shows EIGHT. Eight is one six and two. Of course it is. You have always known that.
      * ============================================================== */
     {
@@ -631,7 +631,7 @@
       name: 'Numbers',
       world: { w: 30, h: 12, d: 12 },
       spawn: [4, 3, 6],
-      objective: 'She shows EIGHT. Say it back in sixes and ones: lay one block on the SIXES shelf and two on the ONES.',
+      objective: 'He shows EIGHT. Say it back in sixes and ones: lay one block on the SIXES shelf and two on the ONES.',
       exit: [4, 3, 1],
       count: { value: 8, sixes: [[20, 2, 7], [20, 3, 7], [20, 4, 7]], ones: [[8, 2, 7], [8, 3, 7], [8, 4, 7]] },
       build: [
@@ -640,7 +640,7 @@
         // the two shelves: a rock backstop behind each, so a block laid against it stays put
         { op: 'fill', from: [8, 2, 8], to: [8, 4, 8], block: 1 },     // ONES backstop
         { op: 'fill', from: [20, 2, 8], to: [20, 4, 8], block: 1 },   // SIXES backstop
-        // her hull, cast xenonite (still singing), and her nook beyond it
+        // his hull, cast xenonite (still singing), and his nook beyond it
         { op: 'fill', from: [26, 1, 3], to: [26, 8, 9], block: 13 },
         { op: 'room', from: [27, 1, 4], to: [28, 6, 8], floor: 2 },
         // the blocks he counts with — a little pile of girders by the door
@@ -648,12 +648,12 @@
         // the way on
         { op: 'room', from: [2, 1, 1], to: [6, 5, 3], floor: 2 },
 
-        /* --- CEILING-BAND LIFE (y>=6): high above the counting shelves; her side left bare --- */
+        /* --- CEILING-BAND LIFE (y>=6): high above the counting shelves; his side left bare --- */
         { op: 'flora', from: [2, 6, 3], to: [24, 8, 9], amount: 0.12, bloom: 0.4 }
       ],
       sources: [
         { at: [27, 3, 6], kind: 'grind' },
-        // his side of the wall, alive; the counting shelf and her hull left quiet
+        // his side of the wall, alive; the counting shelf and his hull left quiet
         { at: [4, 6, 5], kind: 'drone' }
       ],
       folk: [
@@ -683,11 +683,11 @@
      * setting up — is that Rocky already has a name for everything: its NOTE. Girder rings
      * at one pitch, xenonite at another, grit at another; he has known each material by its
      * voice since the first room. So naming is not learning new words. It is agreeing that
-     * HER word and HIS note are the same word. She holds up a note; he brings the thing that
-     * rings at it; and now they both have the noun.
+     * GRACE's word and ROCKY's note are the same word. Grace holds up a note; Rocky brings the
+     * thing that rings at it; and now they both have the noun.
      *
-     * MECHANIC: the tuned resonator, turned into a conversation. Three of her resonators,
-     * each deaf to everything but one pitch — her word for girder, for xenonite, for grit.
+     * MECHANIC: the tuned resonator, turned into a conversation. Three of his resonators,
+     * each deaf to everything but one pitch — his word for girder, for xenonite, for grit.
      * Carry each material to its name and set it down; the block bangs in its own voice, the
      * resonator that was listening for exactly that voice hears it, and the word is agreed.
      * ============================================================== */
@@ -710,7 +710,7 @@
         // one cell per word agreed. Every name you settle opens one of them; all three, and
         // the passage is clear. (create carves the door cells back to doors after this fill.)
         { op: 'fill', from: [33, 1, 3], to: [33, 8, 11], block: 1 },
-        // her hull and nook, past the way on
+        // his hull and nook, past the way on
         { op: 'fill', from: [35, 1, 3], to: [35, 8, 11], block: 13 },
         { op: 'room', from: [36, 1, 5], to: [38, 6, 9], floor: 2 },
 
@@ -725,13 +725,13 @@
         { at: [37, 3, 7], name: 'THE OTHER', kind: 'human', chord: '—',
           line: 'It holds up a sound — one clean note, and then it waits, and points the flat of its head at the pile of my materials. It is asking me which one. It wants the NAME of the thing that rings like that. And the thing is, I have always had a name for it. The name is the note. It just never occurred to me that a note could be a word until there was somebody to hand it to.' }
       ],
-      /* Each resonator is deaf to all but one material's note — her word for that one thing.
+      /* Each resonator is deaf to all but one material's note — his word for that one thing.
        * Drop the matching block in front of it and the word is agreed; it opens a segment of
        * the gate home. */
       ears: [
-        { id: 'girder',   at: [12, 3, 7], tuned: 311, needs: 0.30, name: 'HER WORD FOR GIRDER — set the girder down here',    opens: 'w1' },
-        { id: 'xenonite', at: [20, 3, 7], tuned: 659, needs: 0.30, name: 'HER WORD FOR XENONITE — set the xenonite down here', opens: 'w2' },
-        { id: 'grit',     at: [28, 3, 7], tuned: 87,  needs: 0.30, name: 'HER WORD FOR GRIT — set the grit down here',         opens: 'w3' }
+        { id: 'girder',   at: [12, 3, 7], tuned: 311, needs: 0.30, name: 'HIS WORD FOR GIRDER — set the girder down here',    opens: 'w1' },
+        { id: 'xenonite', at: [20, 3, 7], tuned: 659, needs: 0.30, name: 'HIS WORD FOR XENONITE — set the xenonite down here', opens: 'w2' },
+        { id: 'grit',     at: [28, 3, 7], tuned: 87,  needs: 0.30, name: 'HIS WORD FOR GRIT — set the grit down here',         opens: 'w3' }
       ],
       doors: [
         { id: 'w1', cells: [[33, 1, 7]] },
@@ -747,7 +747,7 @@
       lines: [
         { at: 'start', chord: '♪♩♪♩', text: 'It has a number and it wants more. Of course it does — you cannot say anything with only eight. It is holding up notes now, one at a time, and pointing at my materials, and I finally understand what it is asking. It wants the names of things. And I have had the names all along.' },
         { at: 'start', chord: '♩♩♪', text: 'Girder rings high and hard. Xenonite sings. Grit says nothing at all, which is its own kind of name. I know every one of these by its voice — I have my whole life. So I will carry each of them to the note it makes, and set it down, and let it say its own name, and now the name will be ours and not just mine.' },
-        { at: 'ear', chord: '♪♩', text: 'There. That is its name now. Hers and mine.' },
+        { at: 'ear', chord: '♪♩', text: 'There. That is its name now. His and mine.' },
         { at: 'all_doors', chord: '♩♪♪♩', text: 'Girder. Xenonite. Grit. Three words, agreed, out loud, between two people who share nothing else in the universe but a ship each and a dying star. It is the smallest dictionary there has ever been. We are going to need a much bigger one, and we are going to build it the same way, one banged note at a time.', banner: 'THREE WORDS · A SHARED DICTIONARY' }
       ]
     },
@@ -759,7 +759,7 @@
      * problems — things that eat his voice, things to route around, a hole he had a minute
      * to plug before his air was gone. Here, for the first time, the wall is not the obstacle
      * and not the crisis. It is the WORK. His hull is open to the void along a breach the
-     * size of a doorway, and a hand-span beyond it is her hull — xenonite, like his, already
+     * size of a doorway, and a hand-span beyond it is his hull — xenonite, like his, already
      * singing in the dark. Between them: vacuum, and no voice crosses vacuum. So he closes the
      * gap the only way his people ever have, and it is the one thing he was made for.
      *
@@ -767,7 +767,7 @@
      * xenonite. He lays the panes he cast (carry + placeBlock) into the hole. It reuses
      * `space`/repressurize exactly as ATMOSPHERES does — his chamber has vented, and it is
      * airtight only when the LAST pane is in, so a half-built wall is still a vacuum and still
-     * silent. And because the seal is xenonite meeting xenonite, the instant it is whole her
+     * silent. And because the seal is xenonite meeting xenonite, the instant it is whole his
      * machine comes through it. Airtight AND singing, from one act, built with his own arms.
      * ============================================================== */
     {
@@ -775,7 +775,7 @@
       name: 'The Wall',
       world: { w: 36, h: 12, d: 14 },
       spawn: [8, 3, 7],
-      objective: 'Your hull is open to the void and your air is gone. Build it back — lay xenonite into the breach until the wall is whole. Only xenonite seals the air AND carries your voice to her.',
+      objective: 'Your hull is open to the void and your air is gone. Build it back — lay xenonite into the breach until the wall is whole. Only xenonite seals the air AND carries your voice to him.',
       exit: [4, 3, 1],
       build_target: [[17, 2, 6], [17, 4, 6], [17, 2, 7], [17, 4, 7], [17, 3, 6], [17, 3, 7]],
       space:        [[17, 2, 6], [17, 4, 6], [17, 2, 7], [17, 4, 7], [17, 3, 6], [17, 3, 7]],
@@ -786,7 +786,7 @@
         { op: 'room', from: [3, 1, 1], to: [6, 5, 2], floor: 2 },
         // THE BREACH: a doorway of vacuum in an otherwise solid hull wall at x=17
         { op: 'fill', from: [17, 2, 6], to: [17, 4, 7], block: 16 },
-        // HER HULL, whole: cast xenonite. It sings — it is how he knows she is there.
+        // HIS HULL, whole: cast xenonite. It sings — it is how he knows he is there.
         { op: 'fill', from: [18, 1, 3], to: [18, 8, 10], block: 13 },
         { op: 'room', from: [19, 1, 3], to: [30, 8, 10], floor: 2 },
         // THE PANES he cast: a stack of loose xenonite by the near wall
@@ -794,7 +794,7 @@
         // grit, if he needs to feed the forge and make more
         { op: 'fill', from: [13, 2, 4], to: [14, 2, 5], block: 9 },
 
-        /* --- CEILING-BAND LIFE (y>=6): high above the breach and the forge; her side bare --- */
+        /* --- CEILING-BAND LIFE (y>=6): high above the breach and the forge; his side bare --- */
         { op: 'flora', from: [2, 6, 3], to: [16, 8, 10], amount: 0.11, bloom: 0.4 }
       ],
       sources: [
@@ -808,15 +808,15 @@
       ],
       labels: [
         { at: [17, 3, 7], block: 7,  text: 'THE BREACH — lay xenonite here · just this gap, 6 panes fill it', color: '#57e08a' },
-        { at: [18, 4, 6], block: 13, text: 'HER HULL — already whole; do NOT build this, only the breach', color: '#a9e8bd' },
+        { at: [18, 4, 6], block: 13, text: 'HIS HULL — already whole; do NOT build this, only the breach', color: '#a9e8bd' },
         { at: [4, 3, 6],  block: 7,  text: 'THE PANES — xenonite you cast; Q to lift, R to lay', color: '#57e08a' },
         { at: [12, 3, 4], block: 12, text: 'THE FORGE — three of grit makes another pane', color: '#ff8a3c' },
         { at: [4, 3, 1],  block: 15, text: 'THE WAY ON — it opens when the wall is whole', color: '#4dff9e' }
       ],
       lines: [
-        { at: 'start', chord: '♪♩♪♩', text: 'There is a hole in my ship the size of a doorway, and a hand-span past it is her hull. Xenonite, like mine. I can feel it singing faintly up through the deck, the way you feel a voice in the next room through the floor — and between us there is nothing at all. My air went out through this breach an hour ago and I have been standing in the dark of it ever since. I am not afraid of the dark. I have a job.' },
-        { at: 'start', chord: '♩♩♪', text: 'So I build it. Of course I build it — I am an engineer, and a hole in a hull between two people who cannot share air is the single thing an engineer is FOR. Xenonite seals the air and xenonite carries the voice, the same green stone doing both, which is the whole trick of my people. One six of panes. I will lay them by feel, in the vacuum, and when the last one meets her hull the air will come back, and so will she.' },
-        { at: 'pressure', chord: '♩♪♪♩', text: 'Air. All of it, at once, roaring back into a chamber that was a tomb a breath ago — and under the roar, through the wall I just closed, a sound. Her machine. Grinding away the way it always does, coming to me clean through six panes I laid with my own arms. We are two sealed ships now, welded at the shoulder by a wall that will never let our airs touch and will never once stop us talking. An engineer turned up, and did the work, and now there is a wall — and because there is a wall, there is a friend on the other side of it.', banner: 'THE WALL IS WHOLE — AND IT SINGS' }
+        { at: 'start', chord: '♪♩♪♩', text: 'There is a hole in my ship the size of a doorway, and a hand-span past it is his hull. Xenonite, like mine. I can feel it singing faintly up through the deck, the way you feel a voice in the next room through the floor — and between us there is nothing at all. My air went out through this breach an hour ago and I have been standing in the dark of it ever since. I am not afraid of the dark. I have a job.' },
+        { at: 'start', chord: '♩♩♪', text: 'So I build it. Of course I build it — I am an engineer, and a hole in a hull between two people who cannot share air is the single thing an engineer is FOR. Xenonite seals the air and xenonite carries the voice, the same green stone doing both, which is the whole trick of my people. One six of panes. I will lay them by feel, in the vacuum, and when the last one meets his hull the air will come back, and so will he.' },
+        { at: 'pressure', chord: '♩♪♪♩', text: 'Air. All of it, at once, roaring back into a chamber that was a tomb a breath ago — and under the roar, through the wall I just closed, a sound. His machine. Grinding away the way it always does, coming to me clean through six panes I laid with my own arms. We are two sealed ships now, welded at the shoulder by a wall that will never let our airs touch and will never once stop us talking. An engineer turned up, and did the work, and now there is a wall — and because there is a wall, there is a friend on the other side of it.', banner: 'THE WALL IS WHOLE — AND IT SINGS' }
       ]
     },
 
@@ -825,16 +825,16 @@
      *
      * The first time in the whole game — and, for all Rocky knows, in the history of either
      * species standing in a room together — that one of them ASKS instead of STATES. Every
-     * sound she has made until now has been set down flat and left there: here I am, this is
+     * sound he has made until now has been set down flat and left there: here I am, this is
      * eight, this is the word for xenonite. A question is different. It goes up at the end and
      * then does not fill the silence after it — it holds the silence OPEN, expecting a reply.
      * It has a shape, and the shape is aimed at somebody.
      *
-     * MECHANIC: her three sockets do not merely listen — they ASK. On her own timing a socket
-     * rings out in her question-note and holds a window open for a moment; answer it inside
+     * MECHANIC: his three sockets do not merely listen — they ASK. On his own timing a socket
+     * rings out in his question-note and holds a window open for a moment; answer it inside
      * that window, by setting down the material it is tuned for, and the question is answered.
      * Answer it when it did not ask — a reply to a statement — and your sound falls on a
-     * socket that is not listening. And she takes turns: no next question until the last is
+     * socket that is not listening. And he takes turns: no next question until the last is
      * answered. Rocky says the word "question" as a single whole word, because that is how it
      * came out of the machine and neither of them ever bothered to fix it.
      * ============================================================== */
@@ -843,18 +843,18 @@
       name: 'Question',
       world: { w: 44, h: 12, d: 14 },
       spawn: [4, 3, 7],
-      objective: 'She is not telling you now — she is ASKING. Each socket rings its question and then WAITS. Answer it while it waits: carry the material it wants and set it down. Girder, then xenonite, then grit.',
+      objective: 'He is not telling you now — he is ASKING. Each socket rings its question and then WAITS. Answer it while it waits: carry the material it wants and set it down. Girder, then xenonite, then grit.',
       exit: [35, 3, 7],
       build: [
         { op: 'fill', from: [0, 0, 0], to: [43, 11, 13], block: 1 },
         { op: 'room', from: [2, 1, 3], to: [38, 8, 11], floor: 2 },
-        // the pile of answers, by the door — the three materials she will ask for
+        // the pile of answers, by the door — the three materials he will ask for
         { op: 'set', at: [5, 2, 5], block: 3 },   // girder
         { op: 'set', at: [5, 2, 9], block: 7 },   // xenonite
         { op: 'set', at: [7, 2, 7], block: 9 },   // grit
         // THE GATE HOME: a wall you cannot get round, whose only door is three cells tall
         { op: 'fill', from: [32, 1, 3], to: [32, 8, 11], block: 1 },
-        // her hull — cast xenonite, still singing — and her nook beyond it
+        // his hull — cast xenonite, still singing — and his nook beyond it
         { op: 'fill', from: [37, 1, 3], to: [37, 8, 11], block: 13 },
         { op: 'room', from: [38, 1, 5], to: [41, 6, 9], floor: 2 },
 
@@ -867,22 +867,22 @@
       ],
       folk: [
         { at: [39, 3, 7], name: 'GRACE', kind: 'human', chord: '—',
-          line: 'She made a new sound at me. Not a statement — she has made a thousand of those and I know their flat, finished shape by now. This one rose, and then it stopped, and it left the quiet after it hanging OPEN, unfilled, waiting. I know that shape. It is the shape my own voice makes from the inside when I do not know a thing. She is not telling me anything. She is asking me. She wants something back.' }
+          line: 'He made a new sound at me. Not a statement — he has made a thousand of those and I know their flat, finished shape by now. This one rose, and then it stopped, and it left the quiet after it hanging OPEN, unfilled, waiting. I know that shape. It is the shape my own voice makes from the inside when I do not know a thing. He is not telling me anything. He is asking me. He wants something back.' }
       ],
-      /* HER QUESTIONS. Each socket is tuned to the material that answers it — but each also
-       * ASKS: `asks.note` is the note she rings when she poses it, `asks.window` how long she
+      /* HIS QUESTIONS. Each socket is tuned to the material that answers it — but each also
+       * ASKS: `asks.note` is the note he rings when he poses it, `asks.window` how long he
        * holds the socket open expecting a reply. `after` makes it a conversation: no next
        * question until the last is answered. */
       ears: [
         { id: 'q1', at: [12, 3, 7], tuned: 311, needs: 0.30,
           asks: { note: 784, period: 4.5, window: 4, amp: 0.9, range: 24 },
-          name: 'HER FIRST QUESTION — answer with a GIRDER, while she is still asking', opens: 'w1' },
+          name: 'HIS FIRST QUESTION — answer with a GIRDER, while he is still asking', opens: 'w1' },
         { id: 'q2', at: [20, 3, 7], tuned: 659, needs: 0.30, after: 'q1',
           asks: { note: 784, period: 4.5, window: 4, amp: 0.9, range: 24 },
-          name: 'HER SECOND QUESTION — answer with XENONITE', opens: 'w2' },
+          name: 'HIS SECOND QUESTION — answer with XENONITE', opens: 'w2' },
         { id: 'q3', at: [28, 3, 7], tuned: 87, needs: 0.30, after: 'q2',
           asks: { note: 784, period: 5, window: 4, amp: 0.9, range: 24 },
-          name: 'HER THIRD QUESTION — answer with GRIT', opens: 'w3' }
+          name: 'HIS THIRD QUESTION — answer with GRIT', opens: 'w3' }
       ],
       doors: [
         { id: 'w1', cells: [[32, 1, 7]] },
@@ -893,16 +893,16 @@
         { at: [5, 3, 5], block: 3, text: 'GIRDER', color: '#c88a3a' },
         { at: [5, 3, 9], block: 7, text: 'XENONITE', color: '#57e08a' },
         { at: [7, 3, 7], block: 9, text: 'GRIT', color: '#8a5a4a' },
-        { at: [12, 3, 7], block: 10, text: 'HER FIRST QUESTION — it rings, then WAITS. Answer with a GIRDER.', color: '#9be86b' },
-        { at: [20, 3, 7], block: 10, text: 'HER SECOND QUESTION — answer with XENONITE while she waits', color: '#9be86b' },
-        { at: [28, 3, 7], block: 10, text: 'HER THIRD QUESTION — answer with GRIT while she waits', color: '#9be86b' },
+        { at: [12, 3, 7], block: 10, text: 'HIS FIRST QUESTION — it rings, then WAITS. Answer with a GIRDER.', color: '#9be86b' },
+        { at: [20, 3, 7], block: 10, text: 'HIS SECOND QUESTION — answer with XENONITE while he waits', color: '#9be86b' },
+        { at: [28, 3, 7], block: 10, text: 'HIS THIRD QUESTION — answer with GRIT while he waits', color: '#9be86b' },
         { at: [35, 3, 7], block: 15, text: 'THE WAY ON — one answered question opens each of its three doors', color: '#4dff9e' }
       ],
       lines: [
-        { at: 'start', chord: '♪♩♪♩', text: 'She made a new sound, and it is not like the others. Everything she has ever said to me has been a STATEMENT — a thing laid down flat and left there: here I am; this is eight; this is the word for xenonite. This one goes UP at the end, and then it stops, and it does not fill the silence after it — it holds the silence open. It is waiting. I have heard that shape before, from the inside: it is the shape my own voice makes when I do not know something. She is not telling me. She is ASKING me.' },
-        { at: 'start', chord: '♩♩♪', text: 'The machine hands it to me as one word, whole and unbroken — question — and neither of us has ever bothered to fix it, and now I never will, because that broken little word IS the sound of her wanting something back. So I will answer. When a socket asks — when it rings and then waits — I carry it the thing it is asking for and set it down while it is still listening. Girder. Xenonite. Grit. The answer is the easy part. The trick is answering while she is still asking.' },
-        { at: 'ear', chord: '♪♩', text: 'There. She asked, and I answered into the gap she left for it, and the socket took my answer. A thing was wanted, and given.' },
-        { at: 'all_doors', chord: '♩♪♪♩', text: 'Three questions. She asked, and held each one open, and I set my answer down into the quiet she was keeping for it — girder, xenonite, grit — and every gate she was holding shut has come open. In all the time our two peoples have existed, nobody has done this: not asked a thing of the dark, but asked a PERSON, and been answered by one. A statement you can make to nobody. A question you can only make AT somebody. She made three at me — whole broken word and all — and every one of them meant: you are somebody. I am going to ask her one back.', banner: 'QUESTION · A SHAPE THAT EXPECTS A REPLY' }
+        { at: 'start', chord: '♪♩♪♩', text: 'He made a new sound, and it is not like the others. Everything he has ever said to me has been a STATEMENT — a thing laid down flat and left there: here I am; this is eight; this is the word for xenonite. This one goes UP at the end, and then it stops, and it does not fill the silence after it — it holds the silence open. It is waiting. I have heard that shape before, from the inside: it is the shape my own voice makes when I do not know something. He is not telling me. He is ASKING me.' },
+        { at: 'start', chord: '♩♩♪', text: 'The machine hands it to me as one word, whole and unbroken — question — and neither of us has ever bothered to fix it, and now I never will, because that broken little word IS the sound of his wanting something back. So I will answer. When a socket asks — when it rings and then waits — I carry it the thing it is asking for and set it down while it is still listening. Girder. Xenonite. Grit. The answer is the easy part. The trick is answering while he is still asking.' },
+        { at: 'ear', chord: '♪♩', text: 'There. He asked, and I answered into the gap he left for it, and the socket took my answer. A thing was wanted, and given.' },
+        { at: 'all_doors', chord: '♩♪♪♩', text: 'Three questions. He asked, and held each one open, and I set my answer down into the quiet he was keeping for it — girder, xenonite, grit — and every gate he was holding shut has come open. In all the time our two peoples have existed, nobody has done this: not asked a thing of the dark, but asked a PERSON, and been answered by one. A statement you can make to nobody. A question you can only make AT somebody. He made three at me — whole broken word and all — and every one of them meant: you are somebody. I am going to ask him one back.', banner: 'QUESTION · A SHAPE THAT EXPECTS A REPLY' }
       ]
     },
 
@@ -936,7 +936,7 @@
         // the two shelves, each with a rock backstop behind it so a laid block reads as resting there
         { op: 'fill', from: [10, 2, 5], to: [10, 2, 9], block: 1 },   // ONES backstop (behind, +x)
         { op: 'fill', from: [21, 2, 6], to: [21, 2, 8], block: 1 },   // SIXES backstop (behind, +x)
-        // her hull, cast xenonite — it still sings, which is how he knows she is there to tell
+        // his hull, cast xenonite — it still sings, which is how he knows he is there to tell
         { op: 'fill', from: [30, 1, 3], to: [30, 8, 11], block: 13 },
         { op: 'room', from: [31, 1, 5], to: [32, 6, 9], floor: 2 },
         // the girders he counts with — a pile by the door, more than the eight he needs
@@ -959,7 +959,7 @@
         { at: [9, 3, 7],  block: 1,  text: 'THE ONES SHELF — a block is worth one · lay FIVE',   color: '#ffd23c' },
         { at: [20, 3, 7], block: 1,  text: 'THE SIXES SHELF — a block is worth six · lay THREE', color: '#ffd23c' },
         { at: [4, 3, 4],  block: 3,  text: 'GIRDERS — one for each of them',                    color: '#c88a3a' },
-        { at: [30, 4, 7], block: 13, text: 'HER HULL — it still sings',                          color: '#a9e8bd' },
+        { at: [30, 4, 7], block: 13, text: 'HIS HULL — it still sings',                          color: '#a9e8bd' },
         { at: [4, 3, 1],  block: 15, text: 'THE WAY ON',                                         color: '#4dff9e' }
       ],
       lines: [

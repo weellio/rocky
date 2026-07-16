@@ -55,10 +55,10 @@
     'approach',     /*      board the thin ship: one shout, and you hear all of it */
     'airlock',      /*      first contact — the palette spends its orange; "it heard me" */
     'atmospheres',  /*      seal the breach with xenonite: airtight AND still able to talk */
-    'numbers',      /* V · base six becomes a language: say her count in sixes and ones */
+    'numbers',      /* V · base six becomes a language: say his count in sixes and ones */
     'names',        /*      every material's note becomes a shared word */
     'wall',         /*      the engineer BUILDS the xenonite wall between the ships */
-    'question',     /*      she ASKS — the first time somebody wants something back */
+    'question',     /*      he ASKS — the first time somebody wants something back */
     'grief',        /*      say your dead in sixes and ones — twenty-three */
     'longdark',     /*      forty-two light years of quiet (generated warren) */
     'taumoeba',     /* VI · the answer was alive: the green eats the red */

@@ -152,7 +152,7 @@
     fix: function () { ping(1560, 0.08, 'sine', 0.05); setTimeout(function () { ping(2080, 0.1, 'sine', 0.04); }, 70); },
     /* PLOTTED: the dots join into a line. A small rising figure — you know where it is going. */
     plotted: function () { [784, 988, 1319].forEach(function (f, i) { setTimeout(function () { ping(f, 0.5, 'sine', 0.06); }, i * 120); }); },
-    /* SHE ASKS. The first sound in the game that WANTS something back: a rising figure — a
+    /* HE ASKS. The first sound in the game that WANTS something back: a rising figure — a
      * low note, then a high one — that does NOT resolve, and then holds, waiting. A question
      * has a shape, and this is the shape of one. */
     ask: function () { ping(523, 0.16, 'sine', 0.16); setTimeout(function () { ping(784, 0.55, 'sine', 0.18); }, 130); },

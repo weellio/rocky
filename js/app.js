@@ -159,7 +159,7 @@ function paintTile(g, kind, N) {
   } else if (kind === 'ash') {                   // dead strain: dull, cracked, voiceless
     g.fillStyle = ink(0.22); g.fillRect(0, 0, N, N);
     for (let i = 0; i < 60; i++) { g.fillStyle = ink(0.12 + rnd() * 0.2); g.fillRect(rnd() * N | 0, rnd() * N | 0, 2, 1); }
-  } else if (kind === 'flask') {                 // her air: a sealed sample, a banded canister
+  } else if (kind === 'flask') {                 // his air: a sealed sample, a banded canister
     for (let y = 2; y < N; y += 7) { g.fillStyle = ink(0.3); g.fillRect(0, y, N, 2); g.fillStyle = lit(0.35); g.fillRect(0, y + 2, N, 1); }
     g.strokeStyle = lit(0.4); g.lineWidth = 2; g.strokeRect(3, 3, N - 6, N - 6);
   } else if (kind === 'moss') {                  // cavemoss: a soft clumped mat
@@ -245,7 +245,7 @@ const BLOCK_DESC = {
   vac:     'No air, so no sound. You can walk through it, but in it you are deaf — all you hear is what you are touching, because the wave still runs through the hull.',
   taumoeba:'Alive, and green, and the answer. It EATS astrophage and SINGS while it does. Carry a sample across the dark; in the last act it grows, and spreads, and closes the holes.',
   dead:    'A breeding that failed. Nearly voiceless — but the little it gives back tells you which sky killed it. A corpse is not nothing; it is the instrument talking.',
-  herair:  'A sealed sample of the human’s atmosphere — the slow fire, oxygen. Orange, because orange is hers. You need it to breed a strain that can survive her ship as well as yours.',
+  herair:  'A sealed sample of the human’s atmosphere — the slow fire, oxygen. Orange, because orange is his. You need it to breed a strain that can survive his ship as well as yours.',
   moss:    'Cavemoss: life without light, soft mats that drink the warmth by the vents. Acoustically it is just rock — it changes only what you SEE, and the note it adds to the chord.',
   lumen:   'Lumen bloom: glowing life in a world that never needed light — a light for nobody. It sounds exactly like rock, and adds a high, bright note when your pulse lights it.'
 };
@@ -1248,7 +1248,7 @@ function frame(now) {
     }
   }
 
-  /* A COUNTING CHAPTER shows what you have LAID against what she showed you — the same tally
+  /* A COUNTING CHAPTER shows what you have LAID against what he showed you — the same tally
    * the engine solves by. PLAYTEST: "I put one on the six shelf and two on the ones and it isn't
    * showing as correct." Placing blind, with a block that lands a cell short and silently does
    * not count, is unfair; show him the number so he can see it land (or not). */
@@ -1411,15 +1411,15 @@ function buildFolk() {
 
     /* THE HUMAN IS NOT SHAPED LIKE US. Every other person in this game is an Eridian and is
      * drawn from Rocky's own baked body, tinted — they are the same animal. Grace is not.
-     * She is a biped, upright and thin, with a flat panel on the front of her head that she
-     * keeps pointing at Rocky as if it means something, and it makes no sound at all. And she
+     * He is a biped, upright and thin, with a flat panel on the front of his head that he
+     * keeps pointing at Rocky as if it means something, and it makes no sound at all. And he
      * is ORANGE — the colour this whole palette has been holding in reserve since the first
      * room for exactly this moment: the first thing here that is not Erid. */
     if (f.kind === 'human') {
       const O = 0xe8730f, Od = 0xa34a06, panel = 0xffd9a0;
       /* fog:false — the human is the thing the whole palette has been saving orange for, and
-       * she stands across a window a dozen cells off; let the fog swallow her and the one
-       * moment the game turns orange is a dark smudge. She stays vivid, like Rocky himself. */
+       * he stands across a window a dozen cells off; let the fog swallow him and the one
+       * moment the game turns orange is a dark smudge. He stays vivid, like Rocky himself. */
       const box = (w, h, d, x, y, z, c) => {
         const m = new THREE.Mesh(bakedBox(0.96), new THREE.MeshBasicMaterial({ color: c, fog: false }));
         m.scale.set(w, h, d); m.position.set(x, y, z); g.add(m);
@@ -1652,7 +1652,7 @@ function sunDisc() {
   return new THREE.CanvasTexture(c);
 }
 /* Grace, seated — a dark human silhouette (a shape the whole game learned to draw for the
- * humans) with the flat panel on the front of her head lit warm, so she reads as clearly a
+ * humans) with the flat panel on the front of his head lit warm, so he reads as clearly a
  * person, and clearly not one of them. */
 function endingBiped(x, y, z) {
   const g = new THREE.Group();
@@ -1675,13 +1675,13 @@ function endingBiped(x, y, z) {
   box(0.10, 0.08, 0.10, -0.20, 0.28, 0.21, dark); box(0.10, 0.08, 0.10, 0.20, 0.28, 0.21, dark);   // hands on the knees
   box(0.09, 0.07, 0.09, 0, 0.58, -0.01, dark);    // neck
   box(0.17, 0.17, 0.17, 0, 0.68, -0.01, dark);    // head, smaller
-  box(0.13, 0.09, 0.04, 0, 0.69, 0.09, panel);    // the panel on the front of her head, lit
+  box(0.13, 0.09, 0.04, 0, 0.69, 0.09, panel);    // the panel on the front of his head, lit
   g.position.set(x, y, z);
   return g;
 }
 
 /* A second Eridian, built from Rocky's own baked body — his mate, Adrian. (Grace could never
- * say her real name, so she called her Adrian, after the wife in an old film about winning a
+ * say her real name, so he called her Adrian, after the wife in an old film about winning a
  * fight you were never meant to win. It fit.) Same animal as Rocky, a slightly warmer stone. */
 /* An Eridian, built from Rocky's baked body, as a near-black SILHOUETTE against the sunrise
  * with its bioluminescent cracks left glowing — so the shape reads by its outline (not a
@@ -1774,7 +1774,7 @@ function startEnding() {
 
   // THE THREE OF THEM, at the crest, big and clear and well apart, all facing the light none
   // of them can see: silhouettes against the sunrise, Rocky and his mate ADRIAN with their
-  // cracks glowing (his green, hers pink), and GRACE with her lit visor. The player's own
+  // cracks glowing (his green, hers pink), and GRACE with his lit visor. The player's own
   // body steps aside — everyone here is freshly staged for the frame.
   rocky.visible = false;
 
@@ -1801,7 +1801,7 @@ function startEnding() {
   document.body.appendChild(div);
   const lines = [
     'He made it home. Erid, warm again for the first time in anyone’s life, and him alive to feel it.',
-    'Adrian is beside him — his mate; Grace could never once say her true name, so she called her Adrian, after a film about winning a fight you were never meant to win, and it fit. And Grace is here too, further from her own star than anyone has ever been, home now on the only world that would have her.',
+    'Adrian is beside him — his mate; Grace could never once say her true name, so he called her Adrian, after a film about winning a fight you were never meant to win, and it fit. And Grace is here too, further from his own star than anyone has ever been, home now on the only world that would have him.',
     'None of the three of them can see the sun coming up over the mountain. It does not matter in the least. It is there, and the warmth of it is on all of them, and they are together, at the top of a world that is not dying. That is the whole of it. It is enough. It is.'
   ];
   const ps = div.querySelectorAll('p');

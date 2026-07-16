@@ -48,7 +48,7 @@
         { op: 'fill', from: [31, 2, 4], to: [32, 6, 9], block: 14 },
         // THE BACK CHAMBER — the way on, reachable only through the wall once it is eaten
         { op: 'room', from: [33, 1, 4], to: [38, 8, 9], floor: 2 },
-        // GRACE, behind cast xenonite — she found the green; her machine grinds through the hull
+        // GRACE, behind cast xenonite — he found the green; his machine grinds through the hull
         { op: 'fill', from: [10, 1, 11], to: [20, 7, 11], block: 13 },
         { op: 'room', from: [10, 1, 12], to: [20, 6, 12], floor: 2 },
 
@@ -71,18 +71,18 @@
       ],
       folk: [
         { at: [15, 3, 12], name: 'GRACE', kind: 'human', chord: '—',
-          line: 'She is on the far side of the hull, working the way she always is, and the grinding comes to me clean through the xenonite. She scraped this green off a rock at a star nobody sane would stop at — a dead little world, wet with the one thing in the universe that eats the thing that is killing us both. She found it and could not carry it. I could not have found it in a thousand years. Here we are.' }
+          line: 'He is on the far side of the hull, working the way he always is, and the grinding comes to me clean through the xenonite. He scraped this green off a rock at a star nobody sane would stop at — a dead little world, wet with the one thing in the universe that eats the thing that is killing us both. He found it and could not carry it. I could not have found it in a thousand years. Here we are.' }
       ],
       labels: [
         { at: [8, 3, 6],   block: 17, text: 'THE DISH — the living green; Q to lift, R to set it against the red', color: '#39e66a' },
         { at: [31, 4, 7],  block: 14, text: 'THE WALL OF MURDER — astrophage; the hole made solid. Set the green here.', color: '#ff5a4d' },
-        { at: [15, 4, 11], block: 13, text: 'HER HULL — cast xenonite; her machine grinds through it', color: '#a9e8bd' },
+        { at: [15, 4, 11], block: 13, text: 'HIS HULL — cast xenonite; his machine grinds through it', color: '#a9e8bd' },
         { at: [37, 3, 7],  block: 15, text: 'THE WAY ON — it rings once the red is gone', color: '#4dff9e' }
       ],
       lines: [
         { at: 'start', chord: '♪♩♪♩', text: 'I know this silence. I have known it since the vault under Erid — the patch of the world that does not come home, the hole you find by the shape of what is missing around it. Only now the hole is a WALL, a whole wall of the murder, poured across the only way on, and no shout of mine will ever open it, because there is nothing there to answer. I came forty-two light years and buried twenty-three of my people to stand in front of it, and I have nothing that bites it.' },
-        { at: 'start', chord: '♩♩♪',  text: 'Except I do. It is in the dish at my feet, and it is GREEN, and it is alive, and she pulled it out of a puddle on a rock that neither of our peoples would have crossed the road for. It eats the red. That is all it does, and it is everything. So I will not build, and I will not shout. I will lift a little of it, and set it against the wall, and then I will do the hardest thing an engineer is ever asked to do — I will stand back, and wait, and let something that is not me do the work. Listen. It sings where the murder was.' },
-        { at: 'solved', chord: '♩♪♪♩', text: 'The red is gone. Every cell of it, eaten and gone green, and the corridor rings now where a moment ago it was a hole in the world. The cure for the thing that eats stars was scum on a planet nobody wanted, and it took a woman with no ship to find it and an engineer with no eyes to carry it, and neither of us was ever going to be enough alone — that is not a sad thing, it is the whole of how anything has ever been saved. I lift the living green aside, and I walk through the place where the murder used to be, and it is warm, and it is loud, and it is ALIVE.', banner: 'IT WAS ALIVE THE WHOLE TIME' }
+        { at: 'start', chord: '♩♩♪',  text: 'Except I do. It is in the dish at my feet, and it is GREEN, and it is alive, and he pulled it out of a puddle on a rock that neither of our peoples would have crossed the road for. It eats the red. That is all it does, and it is everything. So I will not build, and I will not shout. I will lift a little of it, and set it against the wall, and then I will do the hardest thing an engineer is ever asked to do — I will stand back, and wait, and let something that is not me do the work. Listen. It sings where the murder was.' },
+        { at: 'solved', chord: '♩♪♪♩', text: 'The red is gone. Every cell of it, eaten and gone green, and the corridor rings now where a moment ago it was a hole in the world. The cure for the thing that eats stars was scum on a planet nobody wanted, and it took a man with no ship to find it and an engineer with no eyes to carry it, and neither of us was ever going to be enough alone — that is not a sad thing, it is the whole of how anything has ever been saved. I lift the living green aside, and I walk through the place where the murder used to be, and it is warm, and it is loud, and it is ALIVE.', banner: 'IT WAS ALIVE THE WHOLE TIME' }
       ]
     },
 
@@ -100,7 +100,7 @@
      * THE TEACHABLE HEART is the FEED ORDER. canMake fires the FIRST satisfied recipe
      * eagerly, and the corpses come first in the tree — so if you drop the living taumoeba in
      * with only ONE partner present, the forge settles for a corpse before you can add the
-     * second. Load BOTH DEAD THINGS FIRST (the red astrophage and her orange air, neither of
+     * second. Load BOTH DEAD THINGS FIRST (the red astrophage and his orange air, neither of
      * which triggers anything alone) and add the GREEN CULTURE LAST.
      * ============================================================== */
     {
@@ -108,7 +108,7 @@
       name: 'Breeding',
       world: { w: 42, h: 12, d: 14 },
       spawn: [4, 3, 7],
-      objective: 'Breed one strain that does three impossible things: eats the red astrophage, survives your ammonia, survives her air. LOAD BOTH DEAD THINGS FIRST — the red, then her air — and drop the living green culture in LAST. Add the culture too early with only one of them and you brew a corpse; read its note to hear which sky you forgot.',
+      objective: 'Breed one strain that does three impossible things: eats the red astrophage, survives your ammonia, survives his air. LOAD BOTH DEAD THINGS FIRST — the red, then his air — and drop the living green culture in LAST. Add the culture too early with only one of them and you brew a corpse; read its note to hear which sky you forgot.',
       exit: [32, 3, 7],
       bred: 'breed_live',
       showAstro: true,   // the red is an ingredient you fetch and feed — it must be visible
@@ -118,7 +118,7 @@
         { op: 'room', from: [2, 1, 3], to: [33, 8, 11], floor: 2 },
         // the three bays — generous (6 each), re-fetchable, so a corpse costs a walk
         { op: 'fill', from: [8, 2, 4], to: [10, 2, 5], block: 14 },    // ASTROPHAGE (the red)
-        { op: 'fill', from: [8, 2, 9], to: [10, 2, 10], block: 19 },   // HER AIR (orange)
+        { op: 'fill', from: [8, 2, 9], to: [10, 2, 10], block: 19 },   // HIS AIR (orange)
         { op: 'fill', from: [15, 2, 6], to: [16, 2, 8], block: 17 },   // TAUMOEBA (the culture — add LAST)
         // the shelf where the dead ones pile
         { op: 'fill', from: [27, 2, 6], to: [30, 2, 6], block: 1 },
@@ -145,21 +145,21 @@
       ],
       folk: [
         { at: [36, 3, 7], name: 'GRACE', kind: 'human', chord: '—',
-          line: 'She is right there through the glass, at her machine, grinding away, and every time my forge hands me another grey little corpse I hear her go still for a moment, and then start again. She cannot help me. Her hands are the wrong shape and her air would kill the very thing we need and she knows it. So she waits. She has been waiting a long time. So have I. This is the one I do alone, with her listening.' }
+          line: 'He is right there through the glass, at his machine, grinding away, and every time my forge hands me another grey little corpse I hear him go still for a moment, and then start again. He cannot help me. His hands are the wrong shape and his air would kill the very thing we need and he knows it. So he waits. He has been waiting a long time. So have I. This is the one I do alone, with him listening.' }
       ],
       labels: [
         { at: [9, 3, 4],  block: 14, text: 'ASTROPHAGE — the red; the murderer it must learn to EAT',      color: '#ff5a4d' },
-        { at: [9, 3, 9],  block: 19, text: 'HER AIR — the slow fire; a strain must SURVIVE it to ride her ship', color: '#e8730f' },
+        { at: [9, 3, 9],  block: 19, text: 'HIS AIR — the slow fire; a strain must SURVIVE it to ride his ship', color: '#e8730f' },
         { at: [15, 3, 7], block: 17, text: 'TAUMOEBA — the living culture; add THIS ONE LAST',             color: '#39e66a' },
-        { at: [24, 3, 7], block: 12, text: 'THE INCUBATOR — load the RED and HER AIR first, THEN the green', color: '#ff8a3c' },
+        { at: [24, 3, 7], block: 12, text: 'THE INCUBATOR — load the RED and HIS AIR first, THEN the green', color: '#ff8a3c' },
         { at: [28, 3, 6], block: 1,  text: 'THE SHELF — where the dead strains pile; each one is a sentence', color: '#8a8175' },
         { at: [34, 4, 7], block: 13, text: 'GRACE — through the glass, grinding, waiting for one that lives', color: '#a9e8bd' },
         { at: [32, 3, 7], block: 15, text: 'THE WAY ON — it hums the moment a strain lives',               color: '#4dff9e' }
       ],
       lines: [
-        { at: 'start', chord: '♪♩♪♩', text: 'One bug. It has to do three things that no one bug does. It has to EAT the astrophage — the red, the hole in the world, the thing eating both our stars. It has to live in my ammonia, twenty-nine atmospheres of it, hot. And it has to live in HER air, the slow fire, the oxygen, which burns anything of mine that so much as thinks about it. Eat the murderer, breathe two skies. There is no such creature. I am going to make one anyway.' },
-        { at: 'start', chord: '♩♩♪', text: 'And there is a trick to it, and it is grim, and it is this: the incubator is greedy. Feed it the living green culture while only ONE partner is in the jar and it stops right there and hands me a corpse — it will not wait for the second. So I load the dead things FIRST. The red, then her air. Neither of those does anything on its own; the forge just holds them. THEN, last of all, I drop the green in, and only then are all three in the jar at once. Get it wrong and it dies, but a dead one is not nothing — the little grey body tells me exactly which sky I forgot. Read the corpse. Fetch what it asks for. Try again.' },
-        { at: 'solved', chord: '♩♪♪♩', text: 'It is moving. I fed it the red and it ATE — it took the murderer down like it was owed. I gave it my ammonia and it held. I gave it one breath of hers, the slow fire, the thing that has killed every strain before it on this shelf — and it is STILL MOVING. One bug. Two skies. It ate the thing that is killing us and it can ride in either ship. There is a small heap of the dead ones beside me who got me here, and I am not going to pretend they were not the whole of it. Grace has gone quiet through the glass. I think she can tell.', banner: 'IT LIVES — ONE BUG, TWO SKIES' }
+        { at: 'start', chord: '♪♩♪♩', text: 'One bug. It has to do three things that no one bug does. It has to EAT the astrophage — the red, the hole in the world, the thing eating both our stars. It has to live in my ammonia, twenty-nine atmospheres of it, hot. And it has to live in HIS air, the slow fire, the oxygen, which burns anything of mine that so much as thinks about it. Eat the murderer, breathe two skies. There is no such creature. I am going to make one anyway.' },
+        { at: 'start', chord: '♩♩♪', text: 'And there is a trick to it, and it is grim, and it is this: the incubator is greedy. Feed it the living green culture while only ONE partner is in the jar and it stops right there and hands me a corpse — it will not wait for the second. So I load the dead things FIRST. The red, then his air. Neither of those does anything on its own; the forge just holds them. THEN, last of all, I drop the green in, and only then are all three in the jar at once. Get it wrong and it dies, but a dead one is not nothing — the little grey body tells me exactly which sky I forgot. Read the corpse. Fetch what it asks for. Try again.' },
+        { at: 'solved', chord: '♩♪♪♩', text: 'It is moving. I fed it the red and it ATE — it took the murderer down like it was owed. I gave it my ammonia and it held. I gave it one breath of his, the slow fire, the thing that has killed every strain before it on this shelf — and it is STILL MOVING. One bug. Two skies. It ate the thing that is killing us and it can ride in either ship. There is a small heap of the dead ones beside me who got me here, and I am not going to pretend they were not the whole of it. Grace has gone quiet through the glass. I think he can tell.', banner: 'IT LIVES — ONE BUG, TWO SKIES' }
       ]
     },
 
@@ -206,7 +206,7 @@
         { op: 'fill', from: [9, 2, 11], to: [11, 3, 11], block: 7 },
         // THE RIGHT ANSWER (generous): grit. Deaf, dead, and the only thing that holds.
         { op: 'fill', from: [4, 2, 11], to: [6, 3, 11], block: 9 },
-        // GRACE, behind her own cast-xenonite hull — it still SINGS her voice through, the
+        // GRACE, behind his own cast-xenonite hull — it still SINGS his voice through, the
         // very stuff that will not hold the bug (the cruel joke of the whole chapter)
         { op: 'fill', from: [20, 2, 11], to: [22, 5, 11], block: 13 },
         { op: 'fill', from: [20, 2, 12], to: [22, 4, 12], block: 0 },
@@ -231,14 +231,14 @@
       ],
       folk: [
         { at: [21, 3, 12], name: 'GRACE', kind: 'human', chord: '—',
-          line: 'She is right there, past a wall of her own hull — and her hull is xenonite, and it sings her machine straight through to me, so I hear HER perfectly through the very stuff that will not hold the cure. She cannot know what I have just learned: this wall keeps her voice and would lose the bug. If the strain gets loose in my ship there is no her, no home, no point to a single one of the light-years. She is humming to herself. She does not know. I am going to make very sure she never has to.' }
+          line: 'He is right there, past a wall of his own hull — and his hull is xenonite, and it sings his machine straight through to me, so I hear HIM perfectly through the very stuff that will not hold the cure. He cannot know what I have just learned: this wall keeps his voice and would lose the bug. If the strain gets loose in my ship there is no him, no home, no point to a single one of the light-years. He is humming to himself. He does not know. I am going to make very sure he never has to.' }
       ],
       labels: [
         { at: [15, 2, 4], block: 17, text: 'TAUMOEBA — the cure, and it will not stay put', color: '#39e66a' },
         { at: [16, 3, 7], block: 1,  text: 'THE BREACH — wall it, or it is loose in the ship', color: '#e8730f' },
         { at: [10, 3, 11], block: 7, text: 'XENONITE — it sings. It leaks. It will betray you.', color: '#57e08a' },
         { at: [5, 3, 11],  block: 9, text: 'GRIT — deaf, dead, cursed. The one thing that HOLDS it.', color: '#8a5a4a' },
-        { at: [21, 4, 11], block: 13, text: 'GRACE — her voice still comes through the xenonite', color: '#e8730f' },
+        { at: [21, 4, 11], block: 13, text: 'GRACE — his voice still comes through the xenonite', color: '#e8730f' },
         { at: [31, 3, 9], block: 15, text: 'THE WAY ON', color: '#4dff9e' }
       ],
       lines: [
@@ -251,11 +251,11 @@
     /* ==============================================================
      * ACT VI.28 — THE TURN
      *
-     * The only choice in the game, and the game refuses to make it. Grace is dying, and her
+     * The only choice in the game, and the game refuses to make it. Grace is dying, and his
      * ship is already turned for home. Rocky is carrying the one cure-and-fuel there will ever
-     * be. He can give it to HER ship (she lives; she reaches a home she will be seen in; he
+     * be. He can give it to HIS ship (he lives; he reaches a home he will be seen in; he
      * finishes the mission alone, and dies out here doing it) or keep it for the MISSION (the
-     * thing twenty-three people died to reach; he lets her go). BOTH STARS WARM EITHER WAY —
+     * thing twenty-three people died to reach; he lets him go). BOTH STARS WARM EITHER WAY —
      * that is the whole cruelty and the whole mercy of it: the branch is not which world lives
      * (both do), it is which GOODBYE Rocky gets. Which is exactly why it has to be the player's,
      * and why the game will not score it. Two arms of a Y, mirror-image to the cell; both arches
@@ -267,11 +267,11 @@
       name: 'The Turn',
       world: { w: 56, h: 12, d: 25 },
       spawn: [6, 3, 12],
-      objective: 'You are carrying the only cure-and-fuel there will ever be. One arch is Grace’s ship, turned for home — give it to her and she lives, and you finish this alone. The other is the mission twenty-three people died to reach. Both stars warm either way; the only difference is the goodbye. This is the one question the game will not answer. Carry the sample — both arches will call — and walk into the one you can live inside.',
+      objective: 'You are carrying the only cure-and-fuel there will ever be. One arch is Grace’s ship, turned for home — give it to him and he lives, and you finish this alone. The other is the mission twenty-three people died to reach. Both stars warm either way; the only difference is the goodbye. This is the one question the game will not answer. Carry the sample — both arches will call — and walk into the one you can live inside.',
       hold: 17,
       exits: [
         { id: 'grace',   at: [44, 3, 18], line: { chord: '♪♩♪', text: 'Go home, Grace. Go and be seen.' } },
-        { id: 'mission', at: [44, 3, 6],  line: { chord: '♪♩♪', text: 'I kept it. She would have kept it too. That is why I could let her go.' } }
+        { id: 'mission', at: [44, 3, 6],  line: { chord: '♪♩♪', text: 'I kept it. He would have kept it too. That is why I could let him go.' } }
       ],
       build: [
         { op: 'fill', from: [0, 0, 0], to: [55, 11, 24], block: 1 },
@@ -280,7 +280,7 @@
         // GRACE ARM (+z)
         { op: 'room', from: [24, 1, 15], to: [36, 8, 19], floor: 2 },
         { op: 'room', from: [36, 1, 15], to: [46, 8, 21], floor: 2 },
-        { op: 'fill', from: [47, 1, 15], to: [47, 8, 21], block: 13 },   // her hull — sings
+        { op: 'fill', from: [47, 1, 15], to: [47, 8, 21], block: 13 },   // his hull — sings
         { op: 'room', from: [48, 1, 16], to: [50, 6, 20], floor: 2 },
         // MISSION ARM (-z): EXACT MIRROR, every z -> 24-z
         { op: 'room', from: [24, 1, 5], to: [36, 8, 9], floor: 2 },
@@ -303,7 +303,7 @@
         { op: 'set', at: [3, 5, 11], block: 4 }, { op: 'set', at: [3, 5, 13], block: 4 }  // mirrored ammonia seeps
       ],
       sources: [
-        { at: [49, 3, 17], kind: 'grind' },   // her machine — down the GRACE arm ONLY
+        { at: [49, 3, 17], kind: 'grind' },   // his machine — down the GRACE arm ONLY
         // ambient life on the STEM ONLY, mirrored about z12, so the two arms stay identical
         { at: [5, 2, 10], kind: 'skitter' },
         { at: [5, 2, 14], kind: 'skitter' },
@@ -311,18 +311,18 @@
       ],
       folk: [
         { at: [49, 3, 18], name: 'GRACE', kind: 'human', chord: '—',
-          line: 'She is right there, through a hand-span of singing rock, and she is going. Her ship is already pointed home — she turned it before she got too weak to — and if I carry this to her she makes it, and somebody sees her walk off it. I can hear how much of her is left. It is not much. It is enough to get home on, if I give her the thing in my arms.' }
+          line: 'He is right there, through a hand-span of singing rock, and he is going. His ship is already pointed home — he turned it before he got too weak to — and if I carry this to him he makes it, and somebody sees him walk off it. I can hear how much of him is left. It is not much. It is enough to get home on, if I give him the thing in my arms.' }
       ],
       labels: [
         { at: [9, 3, 12],  block: 17, text: 'THE CURE — the one sample. Carry it, then choose.', color: '#57e08a' },
-        { at: [44, 3, 18], block: 15, text: 'TOWARD GRACE’S SHIP — home, and her alive',      color: '#4dff9e' },
+        { at: [44, 3, 18], block: 15, text: 'TOWARD GRACE’S SHIP — home, and him alive',      color: '#4dff9e' },
         { at: [44, 3, 6],  block: 15, text: 'TOWARD THE MISSION — the thing they died for',   color: '#4dff9e' },
-        { at: [47, 4, 18], block: 13, text: 'HER HULL — cast xenonite; that grinding is Grace', color: '#a9e8bd' },
+        { at: [47, 4, 18], block: 13, text: 'HIS HULL — cast xenonite; that grinding is Grace', color: '#a9e8bd' },
         { at: [47, 4, 6],  block: 13, text: 'THE FAR HULL — cast xenonite; quiet beyond it',    color: '#a9e8bd' }
       ],
       lines: [
         { at: 'start', chord: '♪♩♪♩', text: 'Two ways out, and one sample, and for the first time since I left Erid there is no gauge to read, no number to trust, nobody to ask. I have carried a question the whole voyage and told myself it was "can it be fixed". It can. The question was always going to be this one instead, and it was always going to be mine to answer, and I am standing at the fork of it now with the answer in my arms.' },
-        { at: 'start', chord: '♩♩♪', text: 'Down the one arm I can hear her — her machine, her hull, her, turned toward a home she reaches if I give her this. Down the other there is only the mission, humming the exact same as her arch, no louder, no nearer, asking nothing at all. Both of them warm the sky. Only one of them lets me say goodbye to her face. I do not get told which is right — there is no right — there is only the one I can still be inside of, after. So. Which of these can I carry home and live.' },
+        { at: 'start', chord: '♩♩♪', text: 'Down the one arm I can hear him — his machine, his hull, him, turned toward a home he reaches if I give him this. Down the other there is only the mission, humming the exact same as his arch, no louder, no nearer, asking nothing at all. Both of them warm the sky. Only one of them lets me say goodbye to his face. I do not get told which is right — there is no right — there is only the one I can still be inside of, after. So. Which of these can I carry home and live.' },
         { at: 'solved', chord: '♩♪♩', text: 'It is in my arms. Both arches are calling now, exactly alike, the way they should. Whichever one I walk into, I walked into it on purpose.', banner: 'BOTH WAYS ARE OPEN' }
       ]
     },
@@ -391,7 +391,7 @@
         { at: 'start', chord: '♩♩♪',  text: 'Three halls, three gauges. Once they only ever fell. I have come to read them one more time — not because I doubt it. Because I want to hear the numbers climb, in sixes, back up to where they started.' },
         { at: 'all_gauges', chord: '♩♪♪♩',
           text: 'Ninety-six. Home. The workshop reads exactly what it read when I was young; the throat is one breath behind it; the deep hall is still climbing, slow, in sixes, the way heat always came back. Erid is warm. Somewhere I will never stand, a planet I will never hear is warm too, and two suns that were going out are not going out. I did the work. I turned up. And I will never see any of it — I have no eyes, I never will, I am out here in the dark, and the warmth is for someone else, in rooms I will never be in. It is enough. It has to be. It is.',
-          alt: 'Ninety-six. Home. The workshop reads exactly what it read when I was young; the throat is one breath behind it; the deep hall is still climbing, slow, in sixes, the way heat always came back. Erid is warm. And Grace is home under her own sun, being seen — a thing I cannot picture and did the arithmetic for anyway. Two suns that were going out are not going out. I did the work. I turned up. And I will never see any of it — I have no eyes, I never will, I am out here in the dark, and the warmth is for someone else, in rooms I will never be in. It is enough. It has to be. It is.',
+          alt: 'Ninety-six. Home. The workshop reads exactly what it read when I was young; the throat is one breath behind it; the deep hall is still climbing, slow, in sixes, the way heat always came back. Erid is warm. And Grace is home under his own sun, being seen — a thing I cannot picture and did the arithmetic for anyway. Two suns that were going out are not going out. I did the work. I turned up. And I will never see any of it — I have no eyes, I never will, I am out here in the dark, and the warmth is for someone else, in rooms I will never be in. It is enough. It has to be. It is.',
           banner: 'WARM AGAIN — AND YOU NEVER SEE IT' }
       ]
     }
