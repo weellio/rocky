@@ -45,13 +45,7 @@ function bakedBox(size) {
  * SEEING these — he is resolving a surface. Coarse basalt scatters the wave, a
  * machined plate returns a hard grid, grit returns almost nothing at all.
  * The pattern to draw comes from config (`block.tex`), like everything else. */
-function tile(kind) {
-  const N = 32;
-  const c = document.createElement('canvas');
-  c.width = c.height = N;
-  const g = c.getContext('2d');
-  g.fillStyle = '#ffffff';
-  g.fillRect(0, 0, N, N);
+function paintTile(g, kind, N) {
   const ink = (a) => `rgba(0,0,0,${a})`;
   const lit = (a) => `rgba(255,255,255,${a})`;
   // deterministic speckle, so the world does not shimmer between reloads
@@ -183,11 +177,107 @@ function tile(kind) {
       g.fillStyle = grd; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
     }
   }
+}
+
+/* A 32² grayscale pattern on white, meant to be MULTIPLIED by the block's colour —
+ * which is exactly what the 3D material does (map × vertexColor). */
+function tile(kind) {
+  const N = 32;
+  const c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d');
+  g.fillStyle = '#ffffff';
+  g.fillRect(0, 0, N, N);
+  paintTile(g, kind, N);
   const t = new THREE.CanvasTexture(c);
   t.magFilter = THREE.NearestFilter;             // blocky. crisp. Minecraft.
   t.minFilter = THREE.NearestMipmapLinearFilter;
   return t;
 }
+
+/* THE SAME BLOCK, AS A FLAT SWATCH FOR THE CODEX.
+ * The tiny colour chips did not represent the materials — you could not tell grit from
+ * basalt. So paint the real thing: fill the block's colour, then multiply its actual
+ * grayscale texture over it, scaled up CRISP (no smoothing) so it reads as the material
+ * it is in the world. */
+function blockSwatch(b, px) {
+  const c = document.createElement('canvas');
+  c.width = c.height = px;
+  const g = c.getContext('2d');
+  g.fillStyle = b.color; g.fillRect(0, 0, px, px);
+  if (b.tex && b.tex !== 'none') {
+    const N = 32;
+    const pc = document.createElement('canvas'); pc.width = pc.height = N;
+    const pg = pc.getContext('2d');
+    pg.fillStyle = '#ffffff'; pg.fillRect(0, 0, N, N);
+    paintTile(pg, b.tex, N);
+    g.imageSmoothingEnabled = false;
+    g.globalCompositeOperation = 'multiply';
+    g.drawImage(pc, 0, 0, px, px);
+    g.globalCompositeOperation = 'source-over';
+  } else if (b.key === 'vac') {
+    // vacuum: a few cold stars in the nothing
+    let s = 99; const rnd = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+    for (let i = 0; i < 12; i++) { g.fillStyle = `rgba(200,215,235,${0.25 + rnd() * 0.55})`; g.fillRect(rnd() * px | 0, rnd() * px | 0, 1, 1); }
+  }
+  g.strokeStyle = 'rgba(255,255,255,0.16)'; g.lineWidth = 1; g.strokeRect(0.5, 0.5, px - 1, px - 1);
+  return c;
+}
+
+/* WHAT EACH MATERIAL IS, in one honest sentence — the thing the colour chip never said.
+ * Keyed by block.key; drawn into the Codex beside its real swatch and its measured stats. */
+const BLOCK_DESC = {
+  rock:    'The bones of Erid. Coarse and loud — it scatters your pulse straight back, so a basalt wall is the easiest thing there is to hear.',
+  plate:   'Machined decking, harder and smoother than raw basalt. It is the floor of every built place in the warren.',
+  girder:  'A cast strut you can lift. It rings at a clean, specific pitch — one of the voices a tuned resonator or a forge is listening for.',
+  pipe:    'Carries the warm ammonia the warren breathes. It hums with a note of its own, so you can hear the plumbing in the dark.',
+  vent:    'Where the warren’s heat comes up out of the rock. It breathes on its own rhythm, so you are never quite blind standing next to one.',
+  gauge:   'Reads a temperature — and what that temperature is supposed to be. Stand at one and press F. Every number it gives is in base six.',
+  xenonite:'Your people’s whole craft. It does not scatter sound, it CARRIES it — almost for free — which is why ships are built of it and a wall of it is a doorway. You can lift it.',
+  door:    'Opens when a resonator nearby has heard enough. A locked door is never a key hunt; it is a question of getting sound to the listener.',
+  sand:    'Grit — the deafest stuff on Erid. It swallows sound whole; pack a channel with it and that channel goes silent. Liftable, and three of it forge into xenonite.',
+  ear:     'A resonator: a listener that opens its door when enough sound reaches it. Some are TUNED — deaf to everything but one exact note.',
+  bell:    'A resonator that shouts BACK — louder and farther than you can. Set a line of them down to carry a sound clean across a warren too big for one voice. Liftable.',
+  forge:   'The engineer’s bench. Feed it blocks with F, one trip at a time, and when the hopper holds what a recipe wants it makes the thing and hands it to you.',
+  pane:    'Xenonite poured in place. It sings like the loose kind, but it will NOT come up again — a wall you can hear through but never remove.',
+  astro:   'Astrophage: the thing killing the star. It eats everything that reaches it and returns nothing, so you cannot hear it — only the HOLE where it is. A sample in your vest eats your own voice too.',
+  exit:    'The way out. Every chapter ends here — solve the room and it begins to HUM, so a pulse anywhere will tell you where it is.',
+  vac:     'No air, so no sound. You can walk through it, but in it you are deaf — all you hear is what you are touching, because the wave still runs through the hull.',
+  taumoeba:'Alive, and green, and the answer. It EATS astrophage and SINGS while it does. Carry a sample across the dark; in the last act it grows, and spreads, and closes the holes.',
+  dead:    'A breeding that failed. Nearly voiceless — but the little it gives back tells you which sky killed it. A corpse is not nothing; it is the instrument talking.',
+  herair:  'A sealed sample of the human’s atmosphere — the slow fire, oxygen. Orange, because orange is hers. You need it to breed a strain that can survive her ship as well as yours.',
+  moss:    'Cavemoss: life without light, soft mats that drink the warmth by the vents. Acoustically it is just rock — it changes only what you SEE, and the note it adds to the chord.',
+  lumen:   'Lumen bloom: glowing life in a world that never needed light — a light for nobody. It sounds exactly like rock, and adds a high, bright note when your pulse lights it.'
+};
+
+function buildBlockGallery() {
+  const host = document.getElementById('blockgallery');
+  if (!host) return;
+  const solids = CFG.blocks.filter((b) => b.solid);
+  const maxCost = Math.max.apply(null, solids.map((b) => b.cost));
+  host.innerHTML = '';
+  for (const b of CFG.blocks) {
+    if (b.key === 'air') continue;               // plain air needs no card
+    const card = document.createElement('div');
+    card.className = 'bcard';
+    card.appendChild(blockSwatch(b, 48));
+    const meta = document.createElement('div');
+    meta.className = 'bmeta';
+    let stats;
+    if (!b.solid) {
+      stats = b.key === 'vac' ? '<span>sound cannot cross it</span>' : '<span>you pass through it</span>';
+    } else {
+      const loud = Math.round((1 - b.absorb) * 100);
+      const carry = Math.round((1 - (b.cost - 1) / (maxCost - 1)) * 100);
+      stats = `<span>Loudness <b>${loud}%</b></span><span>Carries <b>${carry}%</b></span>` +
+        (b.carry ? '<span class="lift">liftable</span>' : '');
+    }
+    meta.innerHTML = `<h4>${b.name}</h4><p>${BLOCK_DESC[b.key] || ''}</p><div class="bstats">${stats}</div>`;
+    card.appendChild(meta);
+    host.appendChild(card);
+  }
+}
+buildBlockGallery();
 
 /* One InstancedMesh per material: nine draw calls, each with its own grain, and
  * the echo brightness rides in on instanceColor. */

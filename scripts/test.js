@@ -2130,14 +2130,20 @@ group('curriculum', () => {
   ok(!/id="how"/.test(gateMarkup), 'and the manual is NOT on the front door — it is in the codex');
   ok(/id="how"/.test((SRC.html.split('<div id="codex">')[1] || '').split('\n</div>')[0]), 'which is where the cards live now');
 
-  /* AND THE CODEX HAS THE MATERIALS TABLE.
-   * PLAYTEST: "add a tutorial that has all the different materials." Every block, its
-   * colour, how loud it answers and how well it CARRIES sound — read straight off the
-   * same table the engine plays by, so the chart and the world can never drift. */
-  ok(/id="mats"/.test(SRC.html), 'the codex lists every material');
-  ok(/CFG\.blocks\.filter/.test(SRC.html), 'and reads them off the ENGINE\'s own block table, not a retyped copy');
-  ok(/1 - b\.absorb/.test(SRC.html), 'showing how LOUD each one comes back');
-  ok(/b\.cost/.test(SRC.html), 'and how well it CARRIES sound, which is the whole puzzle game');
+  /* AND THE CODEX HAS THE MATERIALS GALLERY.
+   * PLAYTEST: "add a tutorial that has all the different materials", then: "the tiny
+   * squares do not represent them well." So every block is drawn as the swatch it really
+   * is (its actual texture, tinted its actual colour), with a written description and its
+   * measured stats — built in app.js from the same table the engine plays by, so the
+   * gallery and the world can never drift. */
+  ok(/id="blockgallery"/.test(SRC.html), 'the codex has a materials gallery');
+  ok(/function buildBlockGallery/.test(SRC.app) && /CFG\.blocks/.test(SRC.app), 'built from the ENGINE\'s own block table, not a retyped copy');
+  ok(/blockSwatch\(/.test(SRC.app) && /paintTile\(/.test(SRC.app), 'and each material is drawn as the real textured swatch, not a flat colour chip');
+  ok(/1 - b\.absorb/.test(SRC.app), 'showing how LOUD each one comes back');
+  ok(/b\.cost/.test(SRC.app), 'and how well it CARRIES sound, which is the whole puzzle game');
+  ok(/const BLOCK_DESC/.test(SRC.app), 'and a written description of each');
+  // no material may ship without a codex description
+  for (const b of CFG.blocks) if (b.key !== 'air') ok(new RegExp('\\b' + b.key + ':').test(SRC.app), `material "${b.key}" has a codex description`);
 
   // the cards are still generated FROM the config — the words and the rules cannot drift
   ok(/CFG\.how\.forEach|ROCKY_CFG\.how/.test(SRC.html), 'the codex is generated FROM the config, not retyped into the HTML');

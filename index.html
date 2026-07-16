@@ -178,6 +178,19 @@
   #mats .loud{background:linear-gradient(90deg,#3a4a5e,#7fe0a0)}
   #mats .carry{background:linear-gradient(90deg,#3a4a5e,#9be86b)}
   #mats td small{color:#5d708a;margin-left:7px;font-size:10px}
+  /* THE MATERIALS GALLERY — each block drawn as the swatch it really is, with a
+     description and its measured stats. Built by app.js (buildBlockGallery). */
+  #blockgallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:10px;margin-top:4px}
+  .bcard{display:flex;gap:12px;align-items:flex-start;padding:10px 11px;border-radius:4px;
+    border:1px solid rgba(93,112,138,.16);background:rgba(10,16,26,.42)}
+  .bcard canvas{width:48px;height:48px;flex:0 0 auto;border-radius:3px;image-rendering:pixelated;
+    box-shadow:0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1)}
+  .bcard .bmeta{min-width:0}
+  .bcard h4{margin:1px 0 3px;color:#e6f2ff;font-size:13px;font-weight:500;letter-spacing:.01em}
+  .bcard p{margin:0 0 6px;color:#8fa6be;font-size:11.5px;line-height:1.45}
+  .bcard .bstats{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:10px;color:#5d708a;letter-spacing:.03em}
+  .bcard .bstats b{color:#9be86b;font-weight:500}
+  .bcard .bstats .lift{color:#ffd23c}
   #codex .note{color:#5d708a;font-size:11px;line-height:1.6;margin-top:10px}
   #codex .note b{color:#8fa6be;font-weight:400}
   #shut{display:block;margin:8px auto 0;background:transparent;border:1px solid var(--dim);color:var(--dim);
@@ -367,10 +380,10 @@
   <div class="hint">everything Erid has taught him</div>
   <div class="grp" id="matgrp">
     <h3>The materials</h3>
-    <table id="mats"></table>
+    <div id="blockgallery"></div>
     <div class="note">The colour you see IS the sound it gives back. <b>Loudness</b> is how much
       of your pulse comes home off it. <b>Carries</b> is how easily sound passes THROUGH it — and
-      that column is the whole puzzle game.</div>
+      that is the whole puzzle game.</div>
   </div>
   <div id="how"></div>
   <button id="shut">Close</button>
@@ -447,28 +460,11 @@
       setTimeout(function () { requestAnimationFrame(step); }, 260);
     })();
 
-    /* THE MATERIALS TABLE. Read straight off the block table the ENGINE plays by, so
-       the chart and the world can never drift apart. `absorb` is how much a material
-       EATS, so loudness is what is left of it; `cost` is what it charges sound to pass
-       through, so carrying is the inverse. Both are drawn as bars because a number
-       nobody can compare is a number nobody reads. */
-    const solids = CFG.blocks.filter(function (b) { return b.solid; });
-    const maxCost = Math.max.apply(null, solids.map(function (b) { return b.cost; }));
-    document.getElementById('mats').innerHTML =
-      '<tr><th>Material</th><th>Loudness</th><th>Carries sound</th><th></th></tr>' +
-      solids.map(function (b) {
-        const loud = Math.round((1 - b.absorb) * 100);
-        const carry = Math.round((1 - (b.cost - 1) / (maxCost - 1)) * 100);
-        const note = b.carry ? 'you can lift it' : '';
-        return '<tr>' +
-          '<td class="n"><i style="background:' + b.color + '"></i>' + b.name + '</td>' +
-          '<td><span class="bar loud" style="width:' + Math.max(2, loud * 0.9) + 'px"></span><small>' + loud + '%</small></td>' +
-          '<td><span class="bar carry" style="width:' + Math.max(2, carry * 0.9) + 'px"></span><small>' + carry + '%</small></td>' +
-          '<td><small>' + note + '</small></td>' +
-          '</tr>';
-      }).join('');
+    /* THE MATERIALS GALLERY is built in app.js (buildBlockGallery), where the real block
+       TEXTURES live — each material is drawn as the swatch it actually is in the world,
+       with a description and its measured loudness / carrying / voice. */
 
-    // the codex, grouped, straight out of the same table
+    // the codex how-to, grouped, straight out of the same table
     const groups = [];
     CFG.how.forEach(function (h) {
       let g = groups.find(function (x) { return x.name === h.group; });
