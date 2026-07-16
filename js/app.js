@@ -1403,14 +1403,21 @@ function endingBiped(x, y, z) {
     const m = new THREE.Mesh(bakedBox(0.98), new THREE.MeshBasicMaterial({ color: col, fog: false }));
     m.scale.set(w, h, d); m.position.set(bx, by, bz); g.add(m);
   };
-  // seated: knees up in front, torso back, head bowed toward the light
-  box(0.34, 0.32, 0.20, 0, 0.32, 0, dark);        // torso
-  box(0.16, 0.16, 0.36, -0.09, 0.10, 0.15, dark); // left leg, folded forward
-  box(0.16, 0.16, 0.36, 0.09, 0.10, 0.15, dark);  // right leg
-  box(0.13, 0.24, 0.12, -0.21, 0.30, 0.10, dark); // left arm, resting on the knee
-  box(0.13, 0.24, 0.12, 0.21, 0.30, 0.10, dark);  // right arm
-  box(0.20, 0.20, 0.20, 0, 0.56, 0.02, dark);     // head
-  box(0.15, 0.10, 0.04, 0, 0.57, 0.13, panel);    // the panel on the front of her head, lit
+  // A SEATED HUMAN, built out of enough small parts to read as a person and not a robot:
+  // legs folded up, a tapered torso with shoulders and a neck, arms resting on the knees.
+  box(0.13, 0.13, 0.28, -0.08, 0.12, 0.15, dark); box(0.13, 0.13, 0.28, 0.08, 0.12, 0.15, dark);   // thighs, forward
+  box(0.12, 0.20, 0.12, -0.08, 0.05, 0.29, dark); box(0.12, 0.20, 0.12, 0.08, 0.05, 0.29, dark);   // shins, down
+  box(0.13, 0.06, 0.17, -0.08, -0.01, 0.33, dark); box(0.13, 0.06, 0.17, 0.08, -0.01, 0.33, dark); // feet
+  box(0.27, 0.12, 0.18, 0, 0.20, 0.02, dark);     // hips
+  box(0.24, 0.13, 0.16, 0, 0.32, 0.00, dark);     // lower torso, tucked
+  box(0.30, 0.13, 0.17, 0, 0.44, -0.01, dark);    // chest, wider
+  box(0.37, 0.08, 0.16, 0, 0.52, -0.01, dark);    // shoulders, widest
+  box(0.09, 0.17, 0.10, -0.21, 0.44, 0.03, dark); box(0.09, 0.17, 0.10, 0.21, 0.44, 0.03, dark);   // upper arms
+  box(0.09, 0.10, 0.18, -0.21, 0.34, 0.12, dark); box(0.09, 0.10, 0.18, 0.21, 0.34, 0.12, dark);   // forearms, to the knees
+  box(0.10, 0.08, 0.10, -0.20, 0.28, 0.21, dark); box(0.10, 0.08, 0.10, 0.20, 0.28, 0.21, dark);   // hands on the knees
+  box(0.09, 0.07, 0.09, 0, 0.58, -0.01, dark);    // neck
+  box(0.17, 0.17, 0.17, 0, 0.68, -0.01, dark);    // head, smaller
+  box(0.13, 0.09, 0.04, 0, 0.69, 0.09, panel);    // the panel on the front of her head, lit
   g.position.set(x, y, z);
   return g;
 }
