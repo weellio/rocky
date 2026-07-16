@@ -2360,6 +2360,14 @@ group('LAUNCH: the one chapter you can see everything — and then you cannot', 
   ok(bubble > 90, `and he can see anyway — ${bubble} cells lit around him at the top of the breath, on a drive he never pulsed`);
   ok(far > 18, `the bubble reaches ${far.toFixed(0)} cells — wider than a single pulse, and it does not fade`);
 
+  /* AND IT DOES NOT STROBE. PLAYTEST: "it is constantly flickering and most of the floor
+   * disappears." The old tests only measured the PEAK of the breath, so a bubble that blinked
+   * out at the trough passed anyway. Measure the dimmest moment across a full cycle: the steady
+   * light must still be there, or the floor is flashing on and off under him. */
+  let trough = Infinity;
+  for (let k = 0; k < 13; k++) { tick(0.05); trough = Math.min(trough, R.litCells(S, []).length); }
+  ok(trough > 90, `and it holds at the TROUGH of the breath too (${trough} cells at its dimmest) — a steady light, not a strobe`);
+
   /* AND THE BUBBLE FOLLOWS HIM. Walk forward and the front of the ship, dark a moment ago,
    * comes up into the light — so across the chapter he sees the whole hull, a length at a
    * time, without ever pulsing. */

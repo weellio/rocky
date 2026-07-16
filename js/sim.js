@@ -2002,6 +2002,33 @@
     out = out || [];
     out.length = 0;
     const cap = S.cfg.sonar.lit;
+
+    /* A FLOODLIT CHAPTER — the launch. The drive holds a bright BUBBLE around Rocky that travels
+     * with him and never fades, so he sees the ship a length at a time without ever pulsing. The
+     * burn is a repeating point pulse, and left to the echo alone it draws a sweeping ring that
+     * STROBES — the floor blinks out between throbs. So while the drive is running, fill a steady
+     * bubble around him instead: every solid cell within reach gets a base brightness (softening
+     * toward the edge so there is no hard rim), and the burn's echo rides BRIGHTER on top. The
+     * instant he straps in (flags.done) this stops, and the last of the real echo fades to the
+     * dark on its own — the forty-two years of quiet, not faked. */
+    if (S.chapter && S.chapter.floodlit && !S.flags.done) {
+      const p = S.player, px = p.x, py = p.y, pz = p.z;
+      const REACH = 24, R2 = REACH * REACH;
+      const N = S.w * S.h * S.d, wd = S.w * S.d;
+      for (let i = 0; i < N && out.length < cap; i++) {
+        const b = S.vox[i];
+        if (!S.solidOf[b]) continue;
+        const x = i % S.w, z = ((i / S.w) | 0) % S.d, y = (i / wd) | 0;
+        const dx = x + 0.5 - px, dy = y + 0.5 - py, dz = z + 0.5 - pz;
+        const d2 = dx * dx + dy * dy + dz * dz;
+        if (d2 > R2) continue;                                  // outside the drive's bubble
+        const amb = 0.18 + 0.55 * (1 - Math.sqrt(d2) / REACH);  // steady, softening to the edge
+        const v = S.heat[i] > amb ? S.heat[i] : amb;
+        out.push({ i: i, x: x, z: z, y: y, b: b, v: v, src: S.src[i] });
+      }
+      return out;
+    }
+
     for (let k = 0; k < S.nActive && out.length < cap; k++) {
       const i = S.active[k];
       const v = S.heat[i];

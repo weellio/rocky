@@ -529,6 +529,7 @@
       spawn: [6, 3, 10],
       objective: 'The drive lights the whole ship — you do not need to pulse. Run the launch boards and get to the couch.',
       exit: [52, 3, 10],
+      floodlit: true,   // the drive is a STEADY light, not a sweeping pulse — draw the whole ship, always
       build: [
         { op: 'fill', from: [0, 0, 0], to: [57, 15, 19], block: 1 },
 

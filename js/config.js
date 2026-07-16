@@ -252,7 +252,10 @@
       minHeat: 0.02,
       pulseAmp: 1.0,
       cooldown: 0.55,
-      lit: 6000,
+      /* The render cap: how many lit cubes can be on screen at once. A normal pulse lights a
+       * couple thousand; a FLOODLIT chapter (the launch) draws every solid cell in the ship at
+       * once, so the cap has to clear that (~12.5k) or the ship strobes as the drawn set churns. */
+      lit: 16000,
 
       /* A dropped block lands with a bang, and a bang is a sound like any other —
        * which means you can THROW your voice by throwing something else. */
