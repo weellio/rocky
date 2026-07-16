@@ -141,6 +141,11 @@
     /* THE CONTACT: a strange two-tone chirp, close but wrong — not a material's voice, not
      * a person's. The first sound in the game that belongs to nobody you know. */
     'source:contact': function () { ping(1320, 0.09, 'square', 0.03); setTimeout(function () { ping(990, 0.12, 'square', 0.028); }, 90); },
+    /* THE FAUNA — the warren is alive. A skitter of small feet, a call-and-answer across a
+     * hall, the low warm drone of the vent-gardens. Quiet, close, and always there. */
+    'source:skitter': function () { for (var i = 0; i < 3; i++) setTimeout(function () { ping(1500 + Math.random() * 700, 0.03, 'triangle', 0.03); }, i * 45); },
+    'source:warble':  function () { ping(720, 0.1, 'sine', 0.05); setTimeout(function () { ping(960, 0.14, 'sine', 0.045); }, 120); },
+    'source:drone':   function () { noise(0.4, 130, 0.035); ping(70, 0.35, 'sine', 0.03); },
     /* THE HUMAN'S MACHINERY: a low rough grind that never quite resolves, wrong and alive. */
     'source:grind': function () { noise(0.5, 200, 0.05); ping(96, 0.4, 'sawtooth', 0.02); },
     /* FIX: a clean confirming blip — you caught it, a point on its course pinned down. */

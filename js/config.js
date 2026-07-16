@@ -108,7 +108,17 @@
        * that Rocky needs to breed a strain that can survive her ship as well as his. It is
        * ORANGE, because it is hers, and orange is the one colour this whole palette holds in
        * reserve for the humans. */
-      { id: 19, key: 'herair',   name: 'Her air',        solid: true,  color: '#e8730f', absorb: 0.10, cost: 3.0,  tex: 'flask', carry: true,  note: 466 }
+      { id: 19, key: 'herair',   name: 'Her air',        solid: true,  color: '#e8730f', absorb: 0.10, cost: 3.0,  tex: 'flask', carry: true,  note: 466 },
+      /* THE FLORA. Erid has never had light, so nothing here photosynthesises — but life does
+       * not need light, only energy, and Erid is warm. Around every heat-vent and every seep of
+       * ammonia there are GARDENS: soft mats of cavemoss that drink the warmth, and LUMEN BLOOMS
+       * that glow their own faint light in a world that has never once needed it — a light for
+       * nobody, the way the cracks in an Eridian's own carapace glow for nobody. Rocky cannot see
+       * either of them. He knows the gardens the way he knows everything: they have a voice.
+       * (Both grow on walls, ceilings, the lips of pools — never underfoot; they are not liftable,
+       * so keep them out of the walk.) */
+      { id: 20, key: 'moss',   name: 'Cavemoss',    solid: true, color: '#3a5a2e', absorb: 0.55, cost: 4.0, tex: 'moss',  carry: false, note: 293 },
+      { id: 21, key: 'lumen',  name: 'Lumen bloom', solid: true, color: '#8fffc0', absorb: 0.05, cost: 1.6, tex: 'bloom', carry: false, note: 831 }
     ],
 
     /* And a pocketful of the stuff eats YOUR voice too. Every sample in the vest
@@ -296,7 +306,18 @@
        * never stops — a low, rough, ceaseless working that Rocky finds almost unbearable and
        * cannot switch off and slowly stops noticing. It is ORANGE, because it is hers, and
        * orange is the humans, and this is the room the palette spends it in. */
-      grind: { period: 0.9, amp: 0.6, range: 14, hue: '#c85a1a' }
+      grind: { period: 0.9, amp: 0.6, range: 14, hue: '#c85a1a' },
+
+      /* THE FAUNA. Erid is not empty. A world with no light is still a world with LIFE in it,
+       * and life makes noise — so the warren is full of small sounds that are not machines and
+       * are not people: things scuttling in the grit, things calling to each other across a
+       * hall, a low warm drone from the vent-gardens. Rocky has heard them his whole life and
+       * stopped noticing, the way you stop hearing your own house. They are quiet and close and
+       * they make the dark feel INHABITED — which, for a creature who navigates by sound, is the
+       * whole difference between a home and a hole. */
+      skitter: { period: 2.6, amp: 0.34, range: 9,  hue: '#9be86b' },   // something small, quick, in the grit
+      warble:  { period: 5.0, amp: 0.46, range: 13, hue: '#7fd8ff' },   // a call across the hall, and an answer
+      drone:   { period: 1.4, amp: 0.28, range: 7,  hue: '#c8a24a' }    // the low hum of the vent-gardens
     },
 
     audio: {

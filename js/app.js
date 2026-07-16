@@ -168,6 +168,20 @@ function tile(kind) {
   } else if (kind === 'flask') {                 // her air: a sealed sample, a banded canister
     for (let y = 2; y < N; y += 7) { g.fillStyle = ink(0.3); g.fillRect(0, y, N, 2); g.fillStyle = lit(0.35); g.fillRect(0, y + 2, N, 1); }
     g.strokeStyle = lit(0.4); g.lineWidth = 2; g.strokeRect(3, 3, N - 6, N - 6);
+  } else if (kind === 'moss') {                  // cavemoss: a soft clumped mat
+    for (let i = 0; i < 120; i++) {
+      const x = rnd() * N | 0, y = rnd() * N | 0;
+      g.fillStyle = rnd() < 0.4 ? lit(0.16) : ink(0.28);
+      g.fillRect(x, y, 1 + (rnd() * 2 | 0), 1 + (rnd() * 3 | 0));
+    }
+  } else if (kind === 'bloom') {                 // lumen bloom: soft glowing spots on a dark ground
+    g.fillStyle = ink(0.35); g.fillRect(0, 0, N, N);
+    for (let i = 0; i < 14; i++) {
+      const x = rnd() * N | 0, y = rnd() * N | 0, r = 2 + (rnd() * 3 | 0);
+      const grd = g.createRadialGradient(x, y, 0, x, y, r);
+      grd.addColorStop(0, 'rgba(255,255,255,0.9)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = grd; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
   }
   const t = new THREE.CanvasTexture(c);
   t.magFilter = THREE.NearestFilter;             // blocky. crisp. Minecraft.

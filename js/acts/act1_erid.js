@@ -154,11 +154,30 @@
         { op: 'cave', at: [20, 5, 31], r: 6, ry: 4, wobble: 0.45 },
         { op: 'spikes', from: [3, 5, 3], to: [36, 12, 36], amount: 0.06 },
         { op: 'rubble', from: [3, 2, 3], to: [36, 8, 36], amount: 0.07 },
+
+        /* THE VENT-GARDEN. Life clusters where the warmth and the ammonia seep — soft mats of
+         * cavemoss on the stone, and lumen blooms that glow for nobody in a world that never
+         * needed light. On the walls and the ceiling, never underfoot. */
+        { op: 'set', at: [24, 5, 37], block: 21 }, { op: 'set', at: [24, 6, 37], block: 21 },   // blooms over the heat vent
+        { op: 'set', at: [23, 4, 38], block: 20 }, { op: 'set', at: [25, 4, 38], block: 20 },   // moss by the vent
+        { op: 'set', at: [16, 4, 36], block: 21 }, { op: 'set', at: [15, 3, 37], block: 20 }, { op: 'set', at: [17, 3, 37], block: 20 },  // by the ammonia pipe
+        { op: 'set', at: [20, 8, 30], block: 21 }, { op: 'set', at: [11, 9, 20], block: 21 }, { op: 'set', at: [29, 8, 28], block: 21 },  // blooms hanging from the cave ceiling
+
+        /* A DWELLING. An Eridian keeps their own small room off the main hall — this is where
+         * they live. A rest-pad of worn xenonite, a little garden of their own in the corner. */
+        { op: 'room', from: [29, 1, 30], to: [32, 4, 33], floor: 2 },
+        { op: 'fill', from: [30, 1, 31], to: [31, 1, 32], block: 7 },
+        { op: 'set', at: [32, 3, 31], block: 20 }, { op: 'set', at: [32, 2, 32], block: 21 },
+
         { op: 'set', at: [20, 2, 8], block: 15 }
       ],
       sources: [
         { at: [24, 3, 37], kind: 'vent' },
-        { at: [16, 2, 36], kind: 'pipe' }
+        { at: [16, 2, 36], kind: 'pipe' },
+        // the warren is INHABITED: things scuttling, calling, humming in the dark
+        { at: [25, 4, 36], kind: 'skitter' },
+        { at: [14, 5, 30], kind: 'warble' },
+        { at: [24, 3, 38], kind: 'drone' }
       ],
       gauges: [],
       /* `needs` is tuned against MEASURED numbers, not guessed ones. The suite

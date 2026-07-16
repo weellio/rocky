@@ -296,7 +296,7 @@ group('materials have voices', () => {
    * the repository). */
   for (const b of blocks) {
     ok(b.tex && b.tex !== 'none', b.name + ' has a grain');
-    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear|bell|forge|pane|void|arch|live|ash|flask)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
+    ok(/^(mottle|plate|stripe|rings|grille|dial|facet|panel|grain|ear|bell|forge|pane|void|arch|live|ash|flask|moss|bloom)$/.test(b.tex), b.name + '\'s grain is one app.js can actually draw');
   }
   ok(new Set(blocks.map((b) => b.tex)).size === blocks.length, 'no two materials share a grain either');
   for (const b of blocks) ok(new RegExp("'" + b.tex + "'").test(SRC.app), `app.js knows how to draw "${b.tex}"`);
