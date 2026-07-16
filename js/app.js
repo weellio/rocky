@@ -563,6 +563,7 @@ addEventListener('mousemove', (e) => {
 const gp = { fwd: 0, right: 0, jump: false, down: false };
 let gpPrev = [];
 let gpSeen = false;
+let gpNavCd = 0;                 // debounce for stick-driven menu navigation on the landing page
 const GP_DEAD = 0.16;
 const gpAxis = (v) => (Math.abs(v) < GP_DEAD ? 0 : (v - Math.sign(v) * GP_DEAD) / (1 - GP_DEAD));
 /* TELL THE PLAYER THE PAD IS LIVE, and show its controls — once, the first time we actually SEE
@@ -587,11 +588,28 @@ function pollGamepad(dt) {
   const b = pad.buttons.map((x) => x.pressed);
   const hit = (i) => b[i] && !gpPrev[i];                  // rising edge — fire once
 
-  // still on the landing page? any button is LISTEN — start the game, and steer nothing behind it.
+  // STILL ON THE LANDING PAGE: drive the level menu with the pad. D-pad or left stick moves the
+  // highlight through the chapter list; A (or RT/Start) is LISTEN and starts the highlighted one.
   const gate = document.getElementById('gate');
   if (gate && !gate.classList.contains('gone')) {
     gp.fwd = gp.right = 0; gp.jump = gp.down = false;
-    if (b.some((pressed, i) => pressed && !gpPrev[i])) document.getElementById('go').click();
+    const chaps = document.querySelectorAll('.chap');
+    if (chaps.length) {
+      let idx = 0;
+      for (let i = 0; i < chaps.length; i++) if (chaps[i].classList.contains('sel')) { idx = i; break; }
+      let move = 0;
+      if (hit(15) || hit(13)) move = 1;                 // d-pad right / down
+      if (hit(14) || hit(12)) move = -1;                // d-pad left / up
+      const lx = gpAxis(pad.axes[0] || 0), ly = gpAxis(pad.axes[1] || 0);
+      gpNavCd -= dt;
+      if (Math.abs(lx) < 0.4 && Math.abs(ly) < 0.4) gpNavCd = 0;          // centred: next flick is instant
+      else if (gpNavCd <= 0) { move = (lx > 0.4 || ly > 0.4) ? 1 : -1; gpNavCd = 0.16; }
+      if (move) {
+        const ni = Math.max(0, Math.min(chaps.length - 1, idx + move));
+        if (ni !== idx) { chaps[ni].click(); chaps[ni].scrollIntoView({ block: 'nearest' }); }
+      }
+    }
+    if (hit(0) || hit(7) || hit(9)) document.getElementById('go').click();   // A / RT / Start = Listen
     gpPrev = b;
     return;
   }
