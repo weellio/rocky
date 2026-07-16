@@ -2431,6 +2431,19 @@ group('COUNTING is forgiving, and it shows its work', () => {
   eq(cs.total, 8, 'one six and two — eight');
   ok(R.solved(N), 'AND IT SOLVES — the answer he actually gave is the answer she was shown');
 
+  // PLAYTEST followup: "the blocks were on top of the towers." A block stacks upward, so it is
+  // easy to build a little tower whose blocks sit well ABOVE the old three named cells. Height
+  // must not matter — a block on the shelf is a block on the shelf, however high it ends up.
+  const H = R.create(CFG, { seed: 1, chapter: 'numbers' });
+  R.setBlock(H, 20, 6, 7, 3);                          // one on sixes, up a tower
+  R.setBlock(H, 8, 5, 7, 3); R.setBlock(H, 8, 7, 7, 3); // two on ones, up a tower
+  R.rebuildSurface(H);
+  eq(R.countState(H).total, 8, 'blocks stacked high on the towers still count — height does not matter');
+  ok(R.solved(H), 'and it solves even when the answer was laid up a tower');
+
+  // and the girder supply pile is NOT mistaken for a shelf
+  eq(R.countState(R.create(CFG, { seed: 1, chapter: 'numbers' })).total, 0, 'the loose girder pile by the door counts for nothing');
+
   // six ones is a six: the base-six lesson still holds
   const M = R.create(CFG, { seed: 1, chapter: 'numbers' });
   for (let z = 5; z <= 7; z++) { R.setBlock(M, 8, 2, z, 3); R.setBlock(M, 8, 3, z, 3); R.setBlock(M, 8, 4, z, 3); }

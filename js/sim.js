@@ -1575,15 +1575,21 @@
    * rock backstop or the plate floor) in a small box around the shelf, one cell of slack every
    * horizontal way. The two shelves sit far apart, so their boxes never touch. */
   function countTally(S, cells) {
-    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, z0 = Infinity, z1 = -Infinity;
     for (const p of cells) {
       if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0];
-      if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1];
+      if (p[1] < y0) y0 = p[1];
       if (p[2] < z0) z0 = p[2]; if (p[2] > z1) z1 = p[2];
     }
+    /* Count every CARRIED block on the shelf, at any HEIGHT. A block laid against the shelf
+     * stacks upward, and it is far too easy to build a little tower whose top blocks sit above
+     * three named cells and silently do not count — which is exactly the "I laid them and it is
+     * wrong" bug. So this is "how many blocks are on the sixes shelf / the ones shelf", full
+     * stop: the shelf's footprint (one cell of slack each horizontal way) all the way up. Only
+     * carried blocks count — never the rock backstop, the plate floor, or the ceiling flora. */
     let n = 0;
     for (let x = x0 - 1; x <= x1 + 1; x++)
-      for (let y = y0; y <= y1; y++)
+      for (let y = y0; y < S.h; y++)
         for (let z = z0 - 1; z <= z1 + 1; z++) {
           const b = blockAt(S, x, y, z);
           if (b !== 0 && S.cfg.blocks[b] && S.cfg.blocks[b].carry) n++;
