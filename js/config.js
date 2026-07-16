@@ -117,8 +117,12 @@
        * either of them. He knows the gardens the way he knows everything: they have a voice.
        * (Both grow on walls, ceilings, the lips of pools — never underfoot; they are not liftable,
        * so keep them out of the walk.) */
-      { id: 20, key: 'moss',   name: 'Cavemoss',    solid: true, color: '#3a5a2e', absorb: 0.55, cost: 4.0, tex: 'moss',  carry: false, note: 293 },
-      { id: 21, key: 'lumen',  name: 'Lumen bloom', solid: true, color: '#8fffc0', absorb: 0.05, cost: 1.6, tex: 'bloom', carry: false, note: 831 }
+      /* Acoustically these are ROCK (cost 6.5, absorb 0.35) — a living wall is still a wall,
+       * and making it so means flora can be scattered across any chamber without shifting a
+       * single measured puzzle threshold. All they change is what you SEE (and the note they
+       * add to the chord) when your pulse lights them: green mats, and blooms that glow. */
+      { id: 20, key: 'moss',   name: 'Cavemoss',    solid: true, color: '#3a5a2e', absorb: 0.35, cost: 6.5, tex: 'moss',  carry: false, note: 293 },
+      { id: 21, key: 'lumen',  name: 'Lumen bloom', solid: true, color: '#8fffc0', absorb: 0.35, cost: 6.5, tex: 'bloom', carry: false, note: 831 }
     ],
 
     /* And a pocketful of the stuff eats YOUR voice too. Every sample in the vest

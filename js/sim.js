@@ -125,6 +125,32 @@
       return;
     }
 
+    if (op.op === 'flora') {
+      /* LIFE ON THE STONE. Convert ROCK that already faces air — a wall face, a ceiling —
+       * into cavemoss (20) or a lumen bloom (21). Because it only ever turns a solid cell
+       * into another solid cell, it can never change what is reachable and never lands a
+       * block underfoot: a wall stays a wall, it just comes alive. Ceilings favour blooms
+       * (they hang and glow); walls favour moss. Respects the puzzle stone (protectedAt),
+       * deterministic (S.rnd), so the garden grows the same every time. */
+      const [x0, y0, z0] = op.from, [x1, y1, z1] = op.to;
+      const amount = op.amount == null ? 0.16 : op.amount;
+      const bloom = op.bloom == null ? 0.4 : op.bloom;   // fraction of the growth that glows
+      for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++)
+        for (let z = Math.min(z0, z1); z <= Math.max(z0, z1); z++)
+          for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) {
+            if (blockAt(S, x, y, z) !== 1) continue;                 // rock only
+            if (!free(x, y, z)) continue;                            // never the stone a puzzle is measured on
+            const airBelow = blockAt(S, x, y - 1, z) === 0;          // a ceiling face (air beneath)
+            const airBeside = blockAt(S, x + 1, y, z) === 0 || blockAt(S, x - 1, y, z) === 0 ||
+              blockAt(S, x, y, z + 1) === 0 || blockAt(S, x, y, z - 1) === 0;
+            if (!airBelow && !airBeside) continue;                   // must face air (a real surface)
+            if (rnd() >= amount) continue;
+            // blooms hang from ceilings; walls are mostly moss with the odd bloom
+            setBlock(S, x, y, z, (airBelow ? rnd() < 0.7 : rnd() < bloom) ? 21 : 20);
+          }
+      return;
+    }
+
     if (op.op === 'rubble' || op.op === 'spikes') {
       /* Lumps on the floor and teeth on the ceiling — but ONLY where there is headroom
        * to spare, because a boulder in a one-block crawl is not atmosphere, it is a
