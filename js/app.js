@@ -497,7 +497,11 @@ function doRead() {
   if (r.done) {
     const line = S.chapter.lines.find((l) => l.at === 'all_gauges');
     if (line) {
-      setTimeout(() => say(line.chord, line.text), 2200);
+      /* THE LAST WORDS CAN KNOW WHAT YOU CHOSE. Home's closing line has an `alt` for the
+       * player who sent Grace home in The Turn — both variants land on the same final three
+       * sentences, so the game's last breath is constant either way. */
+      const text = (lastChoice === 'grace' && line.alt) ? line.alt : line.text;
+      setTimeout(() => say(line.chord, text), 2200);
       /* The dramatic banner is the CHAPTER's, not the Cold's — it used to be hardcoded to
        * "it is not my vents that are failing", which then flashed at the end of every
        * chapter that happened to end on gauges (Launch, for one). The line carries its own
@@ -677,6 +681,7 @@ let last = performance.now();
 let fps = 0, frames = 0, fpsT = 0;
 let camDist = 5.4;
 let flare = 0;
+let lastChoice = null;   // which goodbye the player chose in The Turn — outlives the chapter, for the epilogue
 let drawn = 0;
 let gaitT = 0;
 let faceYaw = 0;
@@ -765,10 +770,14 @@ function frame(now) {
       const n = CFG.chapters.findIndex((c) => c.id === S.chapter.id);
       const next = CFG.chapters[n + 1];
       banner(next ? 'CHAPTER COMPLETE' : 'THAT IS ALL OF IT — SO FAR');
-      /* Some chapters have a last word to say between the couch and the next room — the
-       * burn going quiet, for one — so if the chapter left a line at 'done', let him say
-       * it into the gap before the screen moves on. */
-      const parting = S.chapter.lines.find((l) => l.at === 'done');
+      /* THE GOODBYE THAT WAS ACTUALLY CHOSEN. When a chapter offers a real choice of exits
+       * (The Turn), the two arches carry two different last words, and only the one he walked
+       * through gets said. It also has to OUTLIVE this chapter: each load() is a fresh state,
+       * so the choice is stashed at the app level for the epilogue to read. Otherwise, a plain
+       * chapter's 'done' line. */
+      if (S.flags.chose) lastChoice = S.flags.chose;
+      const chosen = S.exits && S.exits.find((e) => e.id === S.flags.chose);
+      const parting = (chosen && chosen.line) || S.chapter.lines.find((l) => l.at === 'done');
       if (parting) setTimeout(() => say(parting.chord, parting.text), 700);
       if (next) setTimeout(() => load(next.id), parting ? 6200 : 3400);
     }

@@ -24,7 +24,8 @@
         act0_workshop: require('./acts/act0_workshop.js'),
         act1_erid: require('./acts/act1_erid.js'),
         act2_ship: require('./acts/act2_ship.js'),
-        act3_voyage: require('./acts/act3_voyage.js')
+        act3_voyage: require('./acts/act3_voyage.js'),
+        act6_home: require('./acts/act6_home.js')
       }
     );
   } else {
@@ -59,7 +60,12 @@
     'wall',         /*      the engineer BUILDS the xenonite wall between the ships */
     'question',     /*      she ASKS — the first time somebody wants something back */
     'grief',        /*      say your dead in sixes and ones — twenty-three */
-    'longdark'      /*      forty-two light years of quiet */
+    'longdark',     /*      forty-two light years of quiet (generated warren) */
+    'taumoeba',     /* VI · the answer was alive: the green eats the red */
+    'breeding',     /*      the forge grown up: breed the bug that survives two skies */
+    'betrayal',     /*      the greenest thing betrays you: only grit holds the cure */
+    'turn',         /*      the only choice in the game — and it will not make it for you */
+    'home'          /*      warm again, and you never see it */
   ];
 
   const all = [];

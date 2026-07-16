@@ -20,7 +20,7 @@ const SRC = {
   sim: fs.readFileSync(path.join(ROOT, 'js/sim.js'), 'utf8'),
   app: fs.readFileSync(path.join(ROOT, 'js/app.js'), 'utf8'),
   cfg: fs.readFileSync(path.join(ROOT, 'js/config.js'), 'utf8'),
-  acts: ['act0_workshop', 'act1_erid', 'act2_ship', 'act3_voyage']
+  acts: ['act0_workshop', 'act1_erid', 'act2_ship', 'act3_voyage', 'act6_home']
     .map((a) => fs.readFileSync(path.join(ROOT, 'js/acts/' + a + '.js'), 'utf8')).join('\n'),
   html: fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'),
   sw: fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8')
@@ -2244,7 +2244,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * They are four act files now. The danger of that move is not that it breaks; it is
    * that it QUIETLY DROPS A CHAPTER, the game still boots one room shorter, and nobody
    * notices for a month. So the loader refuses to boot, and here is the proof. */
-  const ACTS = ['act0_workshop', 'act1_erid', 'act2_ship', 'act3_voyage']
+  const ACTS = ['act0_workshop', 'act1_erid', 'act2_ship', 'act3_voyage', 'act6_home']
     .map((a) => require(path.join(ROOT, 'js/acts/' + a + '.js')));
 
   const written = ACTS.flat().map((c) => c.id);
@@ -2257,7 +2257,7 @@ group('the running order: a split that can lose a level is worse than the long f
    * into chapter N+1 by INDEX — so a shuffle here is not a filing error, it is a player
    * waking up in the wrong room. */
   eq(played.join(' '),
-    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock atmospheres numbers names wall question grief longdark',
+    'workshop cold deep consensus astronomers forge petrova hull drive volunteers launch sleep failure alone tauceti blip approach airlock atmospheres numbers names wall question grief longdark taumoeba breeding betrayal turn home',
     'and they are in the order you play them in');
 
   /* Every act file stands alone. That is the whole point: you can open the ship act,
@@ -2956,6 +2956,175 @@ group('GRIEF: he says his dead in sixes and ones — and twenty-three is the onl
   // it really is the same base-six count from Chapter 20, only now unbearable
   ok(S.chapter.lines.some((l) => l.at === 'solved' && /twenty-three|all of them/i.test(l.text)),
     'and the number, said, is everyone');
+});
+
+group('TAUMOEBA: the answer was alive — the green eats the hole (life + clear)', () => {
+  const tau = () => R.create(CFG, { seed: 1, chapter: 'taumoeba' });
+  eq(CFG.blocks[17].key, 'taumoeba', 'the living green is a block in the world');
+  eq(CFG.blocks[14].key, 'astro', 'and the murder is the one it eats');
+  ok(CFG.blocks[17].carry, 'the green can be lifted and carried to the wall');
+
+  const c = tau().chapter;
+  const redLeft = (S) => {
+    const lo = c.clear.region[0], hi = c.clear.region[1];
+    let n = 0;
+    for (let y = lo[1]; y <= hi[1]; y++) for (let z = lo[2]; z <= hi[2]; z++) for (let x = lo[0]; x <= hi[0]; x++) if (R.blockAt(S, x, y, z) === 14) n++;
+    return n;
+  };
+  const A = tau();
+  ok(redLeft(A) > 0, `the wall is a solid slab of the murder at load (${redLeft(A)} cells)`);
+  ok(!R.solved(A), 'and the room is not solved — the way out is a dead arch');
+
+  const S = tau();
+  R.setBlock(S, 30, 4, 7, 17);
+  const before = redLeft(S);
+  steps(S, 4);
+  ok(redLeft(S) < before, `the green is eating the red — it is GROWING (${before} -> ${redLeft(S)})`);
+  steps(S, 15);
+  eq(redLeft(S), 0, 'the murder is gone — every cell of it eaten and turned green');
+  ok(R.solved(S), 'and the room is SOLVED: the region is clear of the red');
+
+  // near-miss: one cell of the murder left = not clear
+  const N = tau();
+  const lo = c.clear.region[0], hi = c.clear.region[1];
+  for (let y = lo[1]; y <= hi[1]; y++) for (let z = lo[2]; z <= hi[2]; z++) for (let x = lo[0]; x <= hi[0]; x++) if (R.blockAt(N, x, y, z) === 14) R.setBlock(N, x, y, z, 17);
+  R.setBlock(N, 32, 6, 9, 14);
+  ok(!R.solved(N), 'one red cell left is still a wall — not solved');
+  R.setBlock(N, 32, 6, 9, 17);
+  ok(R.solved(N), 'clear the last cell and only now is it solved');
+});
+
+group('BREEDING: one bug, two skies, and the corpses teach you', () => {
+  const mk = () => R.create(CFG, { seed: 1, chapter: 'breeding' });
+  const feed = (S, b) => { R.setHeld(S, b); S.player.x = 25.5; S.player.y = 3; S.player.z = 7.5; return R.feedForge(S); };
+
+  const S = mk();
+  eq(S.forges.length, 1, 'one incubator, and it is a real block');
+  ok(!feed(S, 14).made, 'astrophage alone: no recipe wants only the red');
+  ok(!feed(S, 19).made, 'her air too: still nothing');
+  const live = feed(S, 17);
+  eq(live.made, 'breed_live', 'taumoeba added LAST, both airs loaded: the FLIGHT STRAIN');
+  ok(live.live && live.gives === 17, 'and it is alive');
+  ok(R.solved(S), 'the room is SOLVED — a strain that does all three exists');
+
+  const C = mk();
+  feed(C, 14);
+  const deadHers = feed(C, 17);
+  eq(deadHers.made, 'breed_deadHers', 'culture added with only the red: the eager forge settles for a corpse');
+  ok(deadHers.fail && deadHers.gives === 18, 'a DEAD strain — her air killed it');
+  ok(!R.solved(C), 'a corpse is not the answer');
+  eq(C.made, 0, 'a corpse costs a walk, not a win — S.made stays 0');
+
+  const D = mk();
+  feed(D, 19);
+  const deadFood = feed(D, 17);
+  eq(deadFood.made, 'breed_deadFood', 'culture added with only her air: it will not eat the red');
+  ok(deadFood.fail && !R.solved(D), 'another corpse, still not solved');
+});
+
+group('BETRAYAL: xenonite is a sieve — only grit holds the living thing', () => {
+  const mk = () => R.create(CFG, { seed: 1, chapter: 'betrayal' });
+
+  ok(!R.solved(mk()), 'open breach: the cure is loose and nothing contains it');
+
+  // the obvious move — box it in xenonite, the trusted material — LEAKS
+  const X = mk();
+  R.setBlock(X, 15, 2, 7, 7); R.setBlock(X, 15, 3, 7, 7);
+  ok(!R.solved(X), 'a xenonite wall does NOT hold it — the flood crosses the green and reaches the corridor');
+
+  // grit, deaf and dead, is the one thing it cannot cross — HELD
+  const G = mk();
+  R.setBlock(G, 15, 2, 7, 9); R.setBlock(G, 15, 3, 7, 9);
+  ok(R.solved(G), 'a grit wall holds it — death contains life, and the chapter is done');
+
+  // a half-built wall is still a leak
+  const H = mk();
+  R.setBlock(H, 15, 2, 7, 9);
+  ok(!R.solved(H), 'you cannot leave a hole in it and call it a wall');
+
+  // THE LEAK IS AUDIBLE: through xenonite the bloom grows into the wall itself
+  const XL = mk();
+  R.setBlock(XL, 15, 2, 7, 7); R.setBlock(XL, 15, 3, 7, 7);
+  steps(XL, 3);
+  ok(R.blockAt(XL, 15, 2, 7) === 17, 'the taumoeba grows straight into the xenonite you sealed with — the wall goes alive');
+  ok(!R.solved(XL), 'and it is greener than ever, and still not contained');
+
+  // against grit it stops dead
+  const GL = mk();
+  R.setBlock(GL, 15, 2, 7, 9); R.setBlock(GL, 15, 3, 7, 9);
+  steps(GL, 3);
+  ok(R.blockAt(GL, 15, 2, 7) === 9, 'against grit the bloom stops dead — the deaf stuff will not let it in');
+  ok(R.solved(GL), 'and it stays contained: the greenest thing in the game, held by the one material it hates');
+
+  // HONESTY: the porous behaviour is CHAPTER DATA. Xenonite still seals air everywhere else.
+  ok(mk().chapter.life.through.indexOf(7) >= 0, 'here — and only here — xenonite is in the porous set');
+  const A = R.create(CFG, { seed: 1, chapter: 'atmospheres' });
+  R.setBlock(A, 13, 3, 6, 7); R.repressurize(A);
+  ok(R.solved(A), 'and in Atmospheres a xenonite seal still holds air and still sings — untouched');
+});
+
+group('THE TURN: two goodbyes, and no such thing as the wrong one', () => {
+  const spawn = [6, 3, 12];
+  const dist = (a) => Math.hypot(a[0] - spawn[0], a[1] - spawn[1], a[2] - spawn[2]);
+
+  const S = R.create(CFG, { seed: 1, chapter: 'turn' });
+  ok(!R.solved(S), 'The Turn is not solved before he is carrying the cure');
+  const g = S.exits.find((e) => e.id === 'grace');
+  const m = S.exits.find((e) => e.id === 'mission');
+  ok(g && m, 'two real ways out: grace and mission');
+
+  ok(Math.abs(dist(g.at) - dist(m.at)) < 1e-9, 'the two arches are exactly equidistant from the stem');
+  eq(g.at[0], m.at[0], 'same reach down each arm (x)');
+  eq(g.at[1], m.at[1], 'same height (y)');
+  eq(g.at[2] - 12, -(m.at[2] - 12), 'mirror images across the axis — neither arm is closer');
+  ok(g.line && m.line, 'each way out carries its OWN honoured goodbye');
+
+  S.belt[0] = 17;
+  ok(R.solved(S), 'the instant the cure is in his belt, both ways call and the room is solved');
+
+  const A = R.create(CFG, { seed: 1, chapter: 'turn' });
+  A.belt[0] = 17;
+  A.player.x = g.at[0] + 0.5; A.player.y = g.at[1] + 0.5; A.player.z = g.at[2] + 0.5;
+  steps(A, 0.1);
+  ok(A.flags.done && A.flags.chose === 'grace', 'walk into the grace arch: done, and it remembers grace');
+
+  const B = R.create(CFG, { seed: 1, chapter: 'turn' });
+  B.belt[0] = 17;
+  B.player.x = m.at[0] + 0.5; B.player.y = m.at[1] + 0.5; B.player.z = m.at[2] + 0.5;
+  steps(B, 0.1);
+  ok(B.flags.done && B.flags.chose === 'mission', 'or the mission arch: done, and it remembers the mission');
+  ok(A.flags.fail === undefined && B.flags.fail === undefined, 'and there is no wrong one to fail on');
+
+  // commitment: arriving at the other arch does not un-make it
+  A.player.x = m.at[0] + 0.5; A.player.z = m.at[2] + 0.5;
+  steps(A, 0.1);
+  eq(A.flags.chose, 'grace', 'a goodbye does not un-say — you cannot go back and try the other');
+});
+
+group('HOME: the numbers that only ever fell, climbing home', () => {
+  const S = R.create(CFG, { seed: 1, chapter: 'home' });
+  ok(!R.solved(S), 'at the door, nothing read, the epilogue is not solved yet');
+  for (const g of S.gauges) {
+    S.player.x = g.at[0] + 0.5; S.player.y = g.at[1] + 0.5; S.player.z = g.at[2] + 0.5;
+    ok(R.readGauge(S).ok, `${g.name}: read one last time`);
+  }
+  ok(R.solved(S), 'with the gauges read, Home is solved — one last arch to walk to');
+
+  // the mirror: same halls, same nominal, RESTORED vs The Cold's fallen readings
+  const cold = CFG.chapters.find((c) => c.id === 'cold').gauges;
+  const home = CFG.chapters.find((c) => c.id === 'home').gauges;
+  const coldBy = Object.fromEntries(cold.map((g) => [g.name, g]));
+  eq(home.length, cold.length, 'the same three gauges The Cold had');
+  for (const h of home) {
+    const c = coldBy[h.name];
+    ok(c, `${h.name}: the same hall The Cold measured`);
+    eq(h.nominal, c.nominal, `${h.name}: same nominal — nothing moved but the heat`);
+    ok(h.reading > c.reading, `${h.name}: risen above where The Cold left it (${c.reading} -> ${h.reading})`);
+    ok(h.reading <= h.nominal && h.reading >= h.nominal - 6, `${h.name}: home, or within one base-six place, climbing`);
+  }
+  ok(home.some((g) => g.reading === g.nominal), 'and at least one reads exactly home');
+  ok(S.chapter.lines.some((l) => l.at === 'all_gauges' && /never see/i.test(l.text) && l.alt),
+    'and the last words never see it — with a variant for the goodbye you chose');
 });
 
 group('the model', () => {
