@@ -343,6 +343,7 @@
       spawn: [6, 3, 15],
       objective: 'Three intakes. Each is deaf to everything but one material. Shouting will not do it.',
       exit: [44, 3, 15],
+      showAstro: true,   // you must SEE the sample here to carry it — this is not the Petrova hunt
       build: [
         { op: 'fill', from: [0, 0, 0], to: [47, 17, 29], block: 1 },
 
@@ -359,8 +360,11 @@
         { op: 'set', at: [6, 2, 11], block: 5 },
         { op: 'fill', from: [8, 2, 18], to: [10, 2, 18], block: 9 },
         { op: 'fill', from: [8, 2, 20], to: [10, 2, 20], block: 9 },
-        { op: 'set', at: [14, 2, 20], block: 3 },
-        { op: 'set', at: [18, 2, 20], block: 7 },
+        /* A PILE of girders and xenonite, not one of each — the intake wants a GIRDER dropped on
+         * it, but the forge will also eat a girder into a (useless) bell, and one girder made that
+         * a soft-lock. Give enough that a wrong turn at the forge is a lesson, not a dead end. */
+        { op: 'fill', from: [13, 2, 20], to: [15, 2, 20], block: 3 },   // girders
+        { op: 'fill', from: [17, 2, 20], to: [18, 2, 20], block: 7 },   // xenonite (and 6 grit forges more)
 
         // and the astrophage, in its own cell, behind cast xenonite so it cannot eat
         // the rest of the ship's hearing
@@ -435,6 +439,7 @@
       spawn: [20, 3, 28],
       objective: 'They cannot be ordered. Show them what it is, and let them decide.',
       exit: [20, 2, 4],
+      showAstro: true,   // you carry the sample to each of them — it must be visible to lift
       build: [
         { op: 'fill', from: [0, 0, 0], to: [39, 15, 33], block: 1 },
         { op: 'room', from: [4, 1, 8], to: [35, 9, 30], floor: 2 },

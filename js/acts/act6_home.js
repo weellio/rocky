@@ -36,6 +36,7 @@
       spawn: [6, 3, 7],
       objective: 'A wall of the murder itself seals the way on — the hole you have hunted all game, made solid. By your feet is a dish of the living green that EATS it. Carry a sample, set it against the red, and listen: it grows into the murder and closes the hole. When the red is gone, the way out rings.',
       exit: [37, 3, 7],
+      showAstro: true,   // the murder-WALL must be visible — you set the green against it, not hunt it
       life:  { region: [[29, 2, 4], [32, 6, 9]], eats: 14, period: 0.4 },
       clear: { of: 14, region: [[31, 2, 4], [32, 6, 9]] },
       build: [
@@ -110,6 +111,7 @@
       objective: 'Breed one strain that does three impossible things: eats the red astrophage, survives your ammonia, survives her air. LOAD BOTH DEAD THINGS FIRST — the red, then her air — and drop the living green culture in LAST. Add the culture too early with only one of them and you brew a corpse; read its note to hear which sky you forgot.',
       exit: [32, 3, 7],
       bred: 'breed_live',
+      showAstro: true,   // the red is an ingredient you fetch and feed — it must be visible
       forges: [{ at: [24, 2, 7] }],
       build: [
         { op: 'fill', from: [0, 0, 0], to: [41, 11, 13], block: 1 },

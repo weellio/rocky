@@ -713,12 +713,14 @@ function doTake() {
     : b.key === 'bell' ? 'It will answer when it hears you. Stand it somewhere useful.'
     : 'Into the vest with it.';
   say('♪♩', `${b.name}. ${note}`);
+  if (r.block === 14) buildAstroMarkers();   // the sample left its cell — move its marker with it
 }
 
 function doPlace() {
   const r = Sim.placeBlock(S);
   if (!r.ok) { flash(r.why); return; }
   ringFrom({ x: r.at[0] + 0.5, y: r.at[1] + 0.5, z: r.at[2] + 0.5 });   // the bang is a sound like any other
+  if (r.block === 14) buildAstroMarkers();   // a sample set down — mark it where it now sits
 }
 
 /* ---------- HUD ---------- */
@@ -1258,6 +1260,32 @@ function frame(now) {
 const folkGroup = new THREE.Group();
 scene.add(folkGroup);
 
+/* ---------- ASTROPHAGE, MADE FINDABLE ----------
+ * Astrophage eats sound, so it returns no echo and is drawn BLACK — invisible. In PETROVA
+ * that is the entire puzzle (you find it by the hole it leaves). But in the chapters where you
+ * must pick it up and CARRY it — the drive, the volunteers, the incubator, the murder-wall you
+ * feed the green to — an invisible thing you cannot find is just broken. So a chapter can opt in
+ * with `showAstro`, and those samples get a faint crimson presence: still sinister, still no
+ * echo, but there to be seen and lifted. Rebuilt on load and whenever a block is moved, so it
+ * follows the sample from its cell, to nowhere (in the vest), to the intake you set it on. */
+const astroGroup = new THREE.Group();
+scene.add(astroGroup);
+const astroGeo = bakedBox(1.04);
+const astroMat = new THREE.MeshBasicMaterial({ color: 0x8f1a30, transparent: true, opacity: 0.82, fog: false, depthWrite: false });
+function buildAstroMarkers() {
+  astroGroup.clear();
+  if (!S.chapter.showAstro) return;
+  const W = S.chapter.world;
+  for (let x = 0; x < W.w; x++)
+    for (let y = 0; y < W.h; y++)
+      for (let z = 0; z < W.d; z++)
+        if (Sim.blockAt(S, x, y, z) === 14) {
+          const m = new THREE.Mesh(astroGeo, astroMat);
+          m.position.set(x + 0.5, y + 0.5, z + 0.5);
+          astroGroup.add(m);
+        }
+}
+
 function buildFolk() {
   folkGroup.clear();
   const M = window.ROCKY_MODEL;
@@ -1468,6 +1496,7 @@ function load(id) {
   refreshGauges();
   buildLabels();
   buildFolk();
+  buildAstroMarkers();
   const open = S.chapter.lines.filter((l) => l.at === 'start');
   if (open[0]) say(open[0].chord, open[0].text);
   if (open[1]) setTimeout(() => say(open[1].chord, open[1].text), 5600);
