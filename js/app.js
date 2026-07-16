@@ -548,6 +548,66 @@ addEventListener('mousemove', (e) => {
   pitch = Math.max(-0.9, Math.min(1.1, pitch + e.movementY * 0.0022));
 });
 
+/* ---------- GAMEPAD ----------
+ * A controller is the same three inputs as everything else: a move vector, a look vector, and a
+ * handful of buttons for the verbs. Left stick moves, right stick looks, the face/trigger buttons
+ * ARE the keys. The Gamepad API has no events for held state, so it is polled once a frame — with
+ * a dead zone (a worn stick must not drift) and rising-edge detection (a press fires its verb ONCE,
+ * not every frame it is held). It needs no pointer lock, so it works the moment a pad is plugged in.
+ *
+ *   left stick  move          right stick  look
+ *   RT  pulse                 A   jump
+ *   X   lift (Q)              Y   place (R)          B  use — read a gauge / feed a forge
+ *   LT  descend a wall        LB / RB  previous / next pocket        Start  codex
+ */
+const gp = { fwd: 0, right: 0, jump: false, down: false };
+let gpPrev = [];
+const GP_DEAD = 0.16;
+const gpAxis = (v) => (Math.abs(v) < GP_DEAD ? 0 : (v - Math.sign(v) * GP_DEAD) / (1 - GP_DEAD));
+addEventListener('gamepadconnected', () => {
+  flash('CONTROLLER READY');
+  const pk = document.getElementById('padkeys');
+  if (pk) pk.style.display = '';
+});
+function pollGamepad(dt) {
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  let pad = null;
+  for (const p of pads) if (p && p.connected) { pad = p; break; }
+  if (!pad) { gp.fwd = gp.right = 0; gp.jump = gp.down = false; gpPrev = []; return; }
+
+  const b = pad.buttons.map((x) => x.pressed);
+  const hit = (i) => b[i] && !gpPrev[i];                  // rising edge — fire once
+
+  // still on the landing page? any button is LISTEN — start the game, and steer nothing behind it.
+  const gate = document.getElementById('gate');
+  if (gate && !gate.classList.contains('gone')) {
+    gp.fwd = gp.right = 0; gp.jump = gp.down = false;
+    if (b.some((pressed, i) => pressed && !gpPrev[i])) document.getElementById('go').click();
+    gpPrev = b;
+    return;
+  }
+
+  gp.right = gpAxis(pad.axes[0] || 0);
+  gp.fwd = -gpAxis(pad.axes[1] || 0);                     // stick up = forward
+  const lx = gpAxis(pad.axes[2] || 0), ly = gpAxis(pad.axes[3] || 0);
+  const SENS = 2.7;                                       // radians/sec at full deflection
+  if (lx || ly) {
+    yaw -= lx * SENS * dt;
+    pitch = Math.max(-0.9, Math.min(1.1, pitch + ly * SENS * dt));
+  }
+  gp.jump = !!b[0];                                       // A
+  gp.down = !!b[6];                                       // LT — walk down a wall
+  if (hit(7)) doPulse();                                  // RT — the sonar
+  if (hit(2)) doTake();                                   // X — lift / take from forge
+  if (hit(3)) doPlace();                                  // Y — place
+  if (hit(1)) doUse();                                    // B — read a gauge, feed a forge
+  const n = S.belt.length;
+  if (hit(5) || hit(15)) Sim.selectSlot(S, (S.slot + 1) % n);         // RB / dpad-right — next pocket
+  if (hit(4) || hit(14)) Sim.selectSlot(S, (S.slot + n - 1) % n);     // LB / dpad-left — previous pocket
+  if (hit(9)) dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyC' }));   // Start — codex
+  gpPrev = b;
+}
+
 function doPulse() {
   const r = Sim.pulse(S);
   if (!r.ok) { flash('cooling…'); return; }
@@ -824,13 +884,20 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
 
-  // keys and thumb are the same input: whichever is pushing hardest wins
+  pollGamepad(dt);   // controller: moves a stick, looks a stick, fires the verbs — same input as the rest
+
+  // keys, thumb-stick and gamepad are the same input: whichever is pushing hardest wins
   const kf = (held(MOVE.fwd) ? 1 : 0) - (held(MOVE.back) ? 1 : 0);
   const kr = (held(MOVE.right) ? 1 : 0) - (held(MOVE.left) ? 1 : 0);
-  input.fwd = Math.abs(stickV.y) > Math.abs(kf) ? -stickV.y : kf;
-  input.right = Math.abs(stickV.x) > Math.abs(kr) ? stickV.x : kr;
-  input.jump = !!keys.Space;
-  input.down = !!(keys.ShiftLeft || keys.ShiftRight);
+  let mf = kf, mr = kr;
+  if (Math.abs(stickV.y) > Math.abs(mf)) mf = -stickV.y;   // touch thumb-stick
+  if (Math.abs(stickV.x) > Math.abs(mr)) mr = stickV.x;
+  if (Math.abs(gp.fwd) > Math.abs(mf)) mf = gp.fwd;        // gamepad left stick
+  if (Math.abs(gp.right) > Math.abs(mr)) mr = gp.right;
+  input.fwd = mf;
+  input.right = mr;
+  input.jump = !!keys.Space || gp.jump;
+  input.down = !!(keys.ShiftLeft || keys.ShiftRight) || gp.down;
   input.yaw = yaw;
 
   Sim.step(S, dt, input);
