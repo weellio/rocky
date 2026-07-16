@@ -983,6 +983,9 @@ function frame(now) {
     const d = sp.position.distanceTo(camera.position);
     if (sp.userData.exit) {
       sp.material.opacity = wayOpen ? Math.max(0.35, Math.min(1, (60 - d) / 20)) : 0;
+    } else if (sp.userData.beacon) {
+      // a guidance beacon: visible from across the room so you can FIND the thing it marks
+      sp.material.opacity = Math.max(0.32, Math.min(1, (64 - d) / 26));
     } else {
       sp.material.opacity = Math.max(0, Math.min(1, (16 - d) / 5));
     }
@@ -991,7 +994,7 @@ function frame(now) {
     /* THE NAME TRANSLATES THE FIRST TIME YOU CAN READ IT. A label crossing into legible
      * range boots the decode once; after that it is just its English self. THE WAY OUT is
      * left alone — a beacon you need instantly is no place for a puzzle. */
-    if (sp.userData.paint && !sp.userData.exit) {
+    if (sp.userData.paint && !sp.userData.exit && !sp.userData.beacon) {
       if (!sp.userData.done && sp.userData.decT0 < 0 && sp.material.opacity > 0.5) {
         sp.userData.decT0 = now;
       }
@@ -1335,7 +1338,12 @@ function buildLabels() {
   const list = S.chapter.labels || [];
   for (const L of list) {
     const b = L.block != null ? CFG.blocks[L.block] : null;
-    const sp = makeLabel(L.text || (b ? b.name : '?'), L.color || (b ? b.color : '#7fe0a0'), false);
+    // L.see makes a label a beacon: visible THROUGH the rock, so it can point at
+    // something sealed away (a buried engineer, a hidden vault) the way THE WAY OUT does.
+    const sp = makeLabel(L.text || (b ? b.name : '?'), L.color || (b ? b.color : '#7fe0a0'), !!L.see);
+    // a see:true label is a guidance beacon — shown from across the level (like THE WAY OUT)
+    // and NOT run through the alien-name decode, because it is plain directions, not a name.
+    if (L.see) sp.userData.beacon = true;
     sp.position.set(L.at[0] + 0.5, L.at[1] + 1.35, L.at[2] + 0.5);
     labels.add(sp);
   }

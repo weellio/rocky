@@ -324,6 +324,15 @@
         { at: [26, 3, 39], kind: 'drone' }
       ],
       gauges: [],
+      /* --- DIRECTIONAL BEACONS. Each engineer is sealed away and deaf for a DIFFERENT
+       * reason; without a pointer the player cannot even find them, let alone guess the fix.
+       * These float THROUGH the rock (see:true) right over each one, naming the reason and the
+       * cure. They are guidance only — rendered in app.js, invisible to the solver/suite. */
+      labels: [
+        { at: [8, 4, 36],  see: true, color: '#8fd6ff', text: 'VOTH · behind grit' },
+        { at: [36, 8, 32], see: true, color: '#8fd6ff', text: 'ARK · down the shaft' },
+        { at: [30, 5, 19], see: true, color: '#8fd6ff', text: 'SEVEN · under floor' }
+      ],
       /* MEASURED, all three, and printed by the suite. From anywhere on the
        * assembly floor every one of them is stone deaf; each opens only to a
        * different idea, and no idea opens two of them. */
@@ -338,6 +347,7 @@
       lines: [
         { at: 'start', chord: '♩♪♩♪', text: 'Three of them will speak for the rest. Voth, who is old. Ark, who is careful. Seven, who is right more often than anyone likes.' },
         { at: 'start', chord: '♪♩♩', text: 'No Eridian can be made to do anything. That is not a weakness. It is why we are still here. But it does mean I must convince all three, and they are not sitting where I can reach them.' },
+        { at: 'start', chord: '♩♪♩', text: 'And each is deaf to me in his own way. Voth is walled behind grit — dig it out (Q) and he will hear me. Ark is buried at the bottom of a shaft; no grit, only distance — I must climb, crawl the ceiling, and go down to him. Seven is under a floor of grit — lift one block and my pulse falls straight through. Grit is always the trick: it eats sound whole.' },
         { at: 'ear', chord: '♪♪♩', text: 'One.' },
         { at: 'all_doors', chord: '♩♪♪♩♩', text: 'Agreed. Forty-one engineers, and we agree. Now we build a ship, and none of us has ever seen the sky.' }
       ]

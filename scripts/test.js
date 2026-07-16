@@ -1677,7 +1677,10 @@ group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
    * level is its entire job. */
   ok(/depthTest: !seeThrough/.test(SRC.app), 'labels are hidden behind rock, like everything else in this game');
   ok(/makeLabel\('THE WAY OUT', '#4dff9e', true\)/.test(SRC.app), 'and the way out is the ONE that shines through it');
-  ok(/makeLabel\(L\.text[\s\S]{0,90}?false\)/.test(SRC.app), 'every other label obeys the walls');
+  // Chapter labels obey the walls BY DEFAULT; a chapter may opt a single guidance beacon
+  // through the rock with see:true (used to point at a sealed-away target, like a buried
+  // councillor). The default must stay wall-obeying so labels never spuriously float.
+  ok(/makeLabel\(L\.text[\s\S]{0,140}?!!L\.see\)/.test(SRC.app), 'and every other label obeys the walls unless it opts through with see:true');
 
   /* THE TUTORIAL'S CRAWL IS A CRAWL YOU CAN GET INTO, AND IT IS SIGNPOSTED.
    * It was a 1x1 hole at y=6 sitting directly above a solid girder. */
