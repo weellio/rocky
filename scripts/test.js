@@ -3145,6 +3145,13 @@ group('BETRAYAL: xenonite is a sieve — only grit holds the living thing', () =
   R.setBlock(G, 15, 2, 7, 9); R.setBlock(G, 15, 3, 7, 9);
   ok(R.solved(G), 'a grit wall holds it — death contains life, and the chapter is done');
 
+  /* PLAYTEST (ch28): "I'm not sure how to contain this with only 6 blocks." You need TWO, of
+   * grit — and the HUD must say whether the seal took, because a xenonite wall looks fine and
+   * still leaks. containState feeds the readout LEAKING vs HELD. */
+  ok(R.containState(mk()).contained === false, 'open breach reads LEAKING');
+  ok(R.containState(X).contained === false, 'a xenonite wall still reads LEAKING — the betrayal made visible');
+  ok(R.containState(G).contained === true, 'and only the grit wall reads HELD');
+
   // a half-built wall is still a leak
   const H = mk();
   R.setBlock(H, 15, 2, 7, 9);

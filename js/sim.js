@@ -1650,6 +1650,33 @@
           if (blockAt(S, x, y, z) === c.clear.of) left++;
     return { left: left };
   }
+  /* Is the breach HELD or LEAKING, for the HUD — the taumoeba leaks through xenonite and only grit
+   * holds it, so a player who walls it wrong gets no sign the seal failed. Flood from the sample the
+   * same way solved() does; if it reaches the walkway, it is loose. */
+  function containState(S) {
+    const c = S.chapter;
+    if (!c || !c.contain) return null;
+    const cross = c.contain.cross || [0, 7, 13, 17];
+    const outside = {};
+    for (const o of c.contain.outside) outside[idx(S, o[0], o[1], o[2])] = 1;
+    const seen = {};
+    const q = [];
+    for (const s of c.contain.sample) { const i = idx(S, s[0], s[1], s[2]); if (!seen[i]) { seen[i] = 1; q.push(i); } }
+    while (q.length) {
+      const i = q.pop();
+      if (outside[i]) return { contained: false };
+      const x = i % S.w, z = ((i / S.w) | 0) % S.d, y = (i / (S.w * S.d)) | 0;
+      for (let n = 0; n < FACES; n++) {
+        const nx = x + NB[n][0], ny = y + NB[n][1], nz = z + NB[n][2];
+        if (!inside(S, nx, ny, nz)) continue;
+        const j = idx(S, nx, ny, nz);
+        if (seen[j]) continue;
+        if (cross.indexOf(blockAt(S, nx, ny, nz)) < 0) continue;
+        seen[j] = 1; q.push(j);
+      }
+    }
+    return { contained: true };
+  }
 
   function solved(S) {
     const c = S.chapter;
@@ -2133,7 +2160,7 @@
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
-    stepNow, stepDone, stepWalk, chordOf, solved, countState, buildState, clearState, stepExit, repressurize, inVacuum,
+    stepNow, stepDone, stepWalk, chordOf, solved, countState, buildState, clearState, containState, stepExit, repressurize, inVacuum,
     stepFolk, folkClue, sleep, nearBunk, stepQuestions, stepLife,
     feedForge, takeFromForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED

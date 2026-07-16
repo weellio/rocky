@@ -1269,6 +1269,12 @@ function frame(now) {
     el('ear').style.opacity = '1';
     el('ear').innerHTML = `<span>RED LEFT</span><br><span class="${ok ? 'on' : ''}">` +
       `${cl.left}${ok ? '  ✓ gone' : ''}</span>`;
+  } else if (S.chapter.contain) {
+    // walling a leak that seeps through xenonite — say plainly whether it is HELD or still LEAKING
+    const cn = Sim.containState(S);
+    el('ear').style.opacity = '1';
+    el('ear').innerHTML = `<span>THE LEAK</span><br><span class="${cn.contained ? 'on' : ''}">` +
+      `${cn.contained ? 'HELD  ✓' : 'LEAKING'}</span>`;
   } else if (S.ears.length) {
     el('ear').style.opacity = '1';
     el('ear').innerHTML = S.ears.map((e) => {
@@ -1592,7 +1598,7 @@ function load(id) {
   el('objective').textContent = S.chapter.objective;
   // the box holds the gauge count AND the resonator readout: hide it only when a
   // chapter has neither, or the ear goes invisible in every chapter without gauges.
-  el('gbox').style.display = (S.gauges.length || S.ears.length || S.chapter.count || S.chapter.build_target || S.chapter.clear) ? '' : 'none';
+  el('gbox').style.display = (S.gauges.length || S.ears.length || S.chapter.count || S.chapter.build_target || S.chapter.clear || S.chapter.contain) ? '' : 'none';
   el('glabel').style.display = S.gauges.length ? '' : 'none';
   el('gcount').style.display = S.gauges.length ? '' : 'none';
   refreshGauges();
