@@ -55,14 +55,33 @@
         { op: 'fill', from: [3, 1, 6], to: [3, 1, 8], block: 7 },
 
         // the way out, fore
-        { op: 'room', from: [43, 1, 5], to: [46, 6, 9], floor: 2 }
+        { op: 'room', from: [43, 1, 5], to: [46, 6, 9], floor: 2 },
+
+        /* --- VENT-GARDENS, one per shift-chamber, richer aft (home) and thinning forward --- */
+        { op: 'flora', from: [1, 2, 2], to: [14, 9, 12], amount: 0.16, bloom: 0.50 },
+        { op: 'flora', from: [15, 2, 2], to: [24, 9, 12], amount: 0.11, bloom: 0.40 },
+        { op: 'flora', from: [25, 2, 2], to: [34, 9, 12], amount: 0.13, bloom: 0.40 },
+        { op: 'flora', from: [35, 2, 2], to: [46, 9, 12], amount: 0.10, bloom: 0.35 },
+        // the bunk-side garden, and a crew loft over the bunk (verticality + dwelling)
+        { op: 'set', at: [1, 3, 6], block: 20 }, { op: 'set', at: [1, 3, 8], block: 20 }, { op: 'set', at: [1, 4, 7], block: 21 },
+        { op: 'set', at: [2, 9, 7], block: 21 }, { op: 'set', at: [2, 9, 8], block: 21 },
+        { op: 'fill', from: [2, 5, 6], to: [5, 5, 9], block: 2 },
+        { op: 'set', at: [3, 6, 7], block: 7 }, { op: 'set', at: [4, 6, 8], block: 7 },
+        // colour: ribs and a pipe run
+        { op: 'set', at: [16, 9, 7], block: 3 }, { op: 'set', at: [26, 9, 7], block: 3 },
+        { op: 'set', at: [12, 4, 12], block: 4 }, { op: 'set', at: [12, 5, 12], block: 4 }
       ],
       // a little life in each chamber, so a room that goes quiet later is a room you KNEW
       sources: [
         { at: [10, 3, 4], kind: 'pipe' },
         { at: [20, 3, 10], kind: 'drip' },
         { at: [30, 3, 4], kind: 'pipe' },
-        { at: [40, 3, 10], kind: 'vent' }
+        { at: [40, 3, 10], kind: 'vent' },
+        // shipboard fauna, one per chamber
+        { at: [3, 3, 9], kind: 'drone' },
+        { at: [20, 4, 6], kind: 'warble' },
+        { at: [30, 3, 4], kind: 'skitter' },
+        { at: [38, 2, 10], kind: 'skitter' }
       ],
       /* Four gauges, one per shift. The reactor creeps, then the shielding fails. The
        * numbers are the plot; base six is how Rocky reads them. */
@@ -141,12 +160,22 @@
         { op: 'fill', from: [35, 1, 7], to: [35, 3, 9], block: 0 },
         { op: 'fill', from: [45, 1, 3], to: [45, 3, 13], block: 1 },
         { op: 'fill', from: [45, 1, 7], to: [45, 3, 9], block: 0 },
-        { op: 'room', from: [49, 1, 6], to: [52, 6, 10], floor: 2 }
+        { op: 'room', from: [49, 1, 6], to: [52, 6, 10], floor: 2 },
+
+        /* --- FAILING GARDENS: the aft sections still cling to life, the fore ones are dying --- */
+        { op: 'flora', from: [2, 2, 2], to: [24, 9, 14], amount: 0.06, bloom: 0.25 },
+        { op: 'flora', from: [25, 2, 2], to: [40, 9, 14], amount: 0.035, bloom: 0.15 },
+        // a green seep gone grey — colour draining forward
+        { op: 'set', at: [3, 4, 3], block: 4 }
       ],
       // the ship's own machines keep running — it is the PEOPLE who stop
       sources: [
         { at: [8, 3, 4], kind: 'pipe' },
-        { at: [46, 3, 12], kind: 'vent' }
+        { at: [46, 3, 12], kind: 'vent' },
+        // the last of the ship's life, thinning toward the fore
+        { at: [6, 3, 5], kind: 'skitter' },
+        { at: [18, 4, 10], kind: 'drone' },
+        { at: [33, 3, 4], kind: 'skitter' }
       ],
       /* Four sections, four gauges. Reading one is checking that section — and finding it
        * lethal. The numbers only ever get worse. */
@@ -272,12 +301,18 @@
         // it rings the whole length of the ship, and that is how you hear what you cannot see.
         { op: 'fill', from: [3, 1, 11], to: [46, 8, 11], block: 13 },
         // the airlock, forward — the way into the rest of the story
-        { op: 'room', from: [43, 1, 5], to: [47, 6, 9], floor: 2 }
+        { op: 'room', from: [43, 1, 5], to: [47, 6, 9], floor: 2 },
+
+        /* --- INBOARD LIFE ONLY (z<=6): nothing near the z11 hull skin the contact rings on --- */
+        { op: 'flora', from: [2, 2, 2], to: [45, 8, 6], amount: 0.05, bloom: 0.3 }
       ],
       /* THE CONTACT. A moving source, out past the hull, patrolling the length of the ship
        * and back. It is faint and it is wrong and it will not hold still. */
       sources: [
-        { kind: 'contact', path: [[4, 4, 12], [45, 4, 12]], speed: 7 }
+        { kind: 'contact', path: [[4, 4, 12], [45, 4, 12]], speed: 7 },
+        // the ship's own faint life, well inboard of the hull — so the WRONG sound stands out
+        { at: [8, 3, 3], kind: 'skitter' },
+        { at: [30, 4, 4], kind: 'drone' }
       ],
       /* THE ARRAY: three bearings to the thing outside. There should be NOTHING here —
        * nominal zero — and every reading says something, closer each time. */
@@ -331,11 +366,17 @@
         // the observation hull: cast xenonite the length of the deck, so the blip outside
         // rings through it and you can hear where it is well enough to chase
         { op: 'fill', from: [3, 1, 11], to: [54, 8, 11], block: 13 },
-        { op: 'room', from: [51, 1, 5], to: [55, 6, 9], floor: 2 }
+        { op: 'room', from: [51, 1, 5], to: [55, 6, 9], floor: 2 },
+
+        /* --- INBOARD LIFE ONLY (z<=6): clear of the z11 observation hull --- */
+        { op: 'flora', from: [3, 2, 4], to: [54, 8, 6], amount: 0.05, bloom: 0.3 }
       ],
       /* The contact, faster now and closer in, running the length of the deck and back. */
       sources: [
-        { kind: 'contact', path: [[4, 4, 12], [52, 4, 12]], speed: 6 }
+        { kind: 'contact', path: [[4, 4, 12], [52, 4, 12]], speed: 6 },
+        // the deck's own life, inboard — a fixed thing to chase the moving one against
+        { at: [10, 3, 5], kind: 'skitter' },
+        { at: [40, 4, 4], kind: 'drone' }
       ],
       /* PLOT ITS COURSE. Four fixes, each a fresh stretch of its path — you cannot get them
        * all from one spot; you have to keep up with it. */
@@ -455,11 +496,18 @@
         { op: 'room', from: [22, 1, 4], to: [40, 8, 12], floor: 2 },
         // the hatch back into his ship, that opens once contact is made
         { op: 'fill', from: [8, 1, 3], to: [8, 3, 3], block: 8 },
-        { op: 'room', from: [6, 1, 1], to: [10, 5, 3], floor: 2 }
+        { op: 'room', from: [6, 1, 1], to: [10, 5, 3], floor: 2 },
+
+        /* --- ROCKY'S SIDE ONLY (x<21): his ship is alive; her side stays sterile and strange --- */
+        { op: 'flora', from: [2, 2, 4], to: [19, 8, 12], amount: 0.14, bloom: 0.45 },
+        { op: 'set', at: [3, 4, 5], block: 4 }
       ],
       /* The machine on her side that never stops. */
       sources: [
-        { at: [34, 3, 8], kind: 'grind' }
+        { at: [34, 3, 8], kind: 'grind' },
+        // his own side, breathing — a homely hum against the sterile far room
+        { at: [5, 3, 6], kind: 'skitter' },
+        { at: [15, 4, 10], kind: 'drone' }
       ],
       /* THE OTHER. A biped, orange, thin, with a flat panel on its head — drawn nothing like
        * an Eridian, because it is nothing like one. Rocky has no name for it yet. */
@@ -533,10 +581,15 @@
         { op: 'set', at: [6, 2, 6], block: 9 },   // grit — airtight, and deaf
         { op: 'set', at: [8, 2, 6], block: 7 },   // xenonite — airtight, and it sings
         // the way on, once he is sealed and still able to speak
-        { op: 'room', from: [7, 1, 1], to: [11, 5, 3], floor: 2 }
+        { op: 'room', from: [7, 1, 1], to: [11, 5, 3], floor: 2 },
+
+        /* --- ROCKY'S SIDE ONLY (x<14): his living wall against her sterile one --- */
+        { op: 'flora', from: [2, 2, 3], to: [12, 8, 9], amount: 0.12, bloom: 0.4 }
       ],
       sources: [
-        { at: [22, 3, 6], kind: 'grind' }
+        { at: [22, 3, 6], kind: 'grind' },
+        // his side, still alive even as it leaks — the thing he is fighting to keep
+        { at: [4, 4, 4], kind: 'drone' }
       ],
       folk: [
         { at: [20, 3, 6], name: 'THE OTHER', kind: 'human', chord: '—',
@@ -593,10 +646,15 @@
         // the blocks he counts with — a little pile of girders by the door
         { op: 'fill', from: [4, 2, 4], to: [5, 4, 4], block: 3 },
         // the way on
-        { op: 'room', from: [2, 1, 1], to: [6, 5, 3], floor: 2 }
+        { op: 'room', from: [2, 1, 1], to: [6, 5, 3], floor: 2 },
+
+        /* --- CEILING-BAND LIFE (y>=6): high above the counting shelves; her side left bare --- */
+        { op: 'flora', from: [2, 6, 3], to: [24, 8, 9], amount: 0.12, bloom: 0.4 }
       ],
       sources: [
-        { at: [27, 3, 6], kind: 'grind' }
+        { at: [27, 3, 6], kind: 'grind' },
+        // his side of the wall, alive; the counting shelf and her hull left quiet
+        { at: [4, 6, 5], kind: 'drone' }
       ],
       folk: [
         { at: [27, 3, 6], name: 'THE OTHER', kind: 'human', chord: '—',
@@ -654,8 +712,12 @@
         { op: 'fill', from: [33, 1, 3], to: [33, 8, 11], block: 1 },
         // her hull and nook, past the way on
         { op: 'fill', from: [35, 1, 3], to: [35, 8, 11], block: 13 },
-        { op: 'room', from: [36, 1, 5], to: [38, 6, 9], floor: 2 }
+        { op: 'room', from: [36, 1, 5], to: [38, 6, 9], floor: 2 },
+
+        /* --- CEILING-BAND LIFE (y>=6): high above the resonators, so no ambient voice reaches them --- */
+        { op: 'flora', from: [2, 6, 3], to: [32, 8, 11], amount: 0.11, bloom: 0.4 }
       ],
+      // no ambient fauna here — the resonators must hear only the blocks he sets, not the walls
       sources: [
         { at: [37, 3, 7], kind: 'grind' }
       ],
@@ -730,10 +792,15 @@
         // THE PANES he cast: a stack of loose xenonite by the near wall
         { op: 'fill', from: [4, 2, 5], to: [5, 2, 8], block: 7 },
         // grit, if he needs to feed the forge and make more
-        { op: 'fill', from: [13, 2, 4], to: [14, 2, 5], block: 9 }
+        { op: 'fill', from: [13, 2, 4], to: [14, 2, 5], block: 9 },
+
+        /* --- CEILING-BAND LIFE (y>=6): high above the breach and the forge; her side bare --- */
+        { op: 'flora', from: [2, 6, 3], to: [16, 8, 10], amount: 0.11, bloom: 0.4 }
       ],
       sources: [
-        { at: [24, 3, 7], kind: 'grind' }
+        { at: [24, 3, 7], kind: 'grind' },
+        // the life he is fighting the vacuum to keep, high on his own wall
+        { at: [3, 6, 8], kind: 'drone' }
       ],
       folk: [
         { at: [22, 3, 7], name: 'THE OTHER', kind: 'human', chord: '—',
@@ -789,8 +856,12 @@
         { op: 'fill', from: [32, 1, 3], to: [32, 8, 11], block: 1 },
         // her hull — cast xenonite, still singing — and her nook beyond it
         { op: 'fill', from: [37, 1, 3], to: [37, 8, 11], block: 13 },
-        { op: 'room', from: [38, 1, 5], to: [41, 6, 9], floor: 2 }
+        { op: 'room', from: [38, 1, 5], to: [41, 6, 9], floor: 2 },
+
+        /* --- CEILING-BAND LIFE (y>=6): far above the asking sockets, so no wall answers for him --- */
+        { op: 'flora', from: [2, 6, 3], to: [31, 8, 11], amount: 0.11, bloom: 0.4 }
       ],
+      // no ambient fauna — the asking sockets must hear only Rocky's answer, never the room
       sources: [
         { at: [39, 3, 7], kind: 'grind' }
       ],
@@ -871,8 +942,12 @@
         // the girders he counts with — a pile by the door, more than the eight he needs
         { op: 'fill', from: [4, 2, 4], to: [5, 4, 5], block: 3 },
         // the way on
-        { op: 'room', from: [2, 1, 1], to: [6, 5, 3], floor: 2 }
+        { op: 'room', from: [2, 1, 1], to: [6, 5, 3], floor: 2 },
+
+        /* --- a thin, dying warmth high on the walls (y>=6): the halls have gone quiet --- */
+        { op: 'flora', from: [2, 6, 3], to: [28, 8, 11], amount: 0.04, bloom: 0.15 }
       ],
+      // no fauna: the silence is the chapter. The living hum is gone.
       sources: [
         { at: [31, 3, 7], kind: 'grind' }
       ],
@@ -923,7 +998,9 @@
       reseed: true,
       build: [
         { op: 'fill', from: [0, 0, 0], to: [51, 19, 51], block: 1 },
-        { op: 'warren', from: [1, 1, 1], to: [50, 16, 50], density: 0.57, passes: 5, smooth: 2, folk: 3 }
+        { op: 'warren', from: [1, 1, 1], to: [50, 16, 50], density: 0.57, passes: 5, smooth: 2, folk: 3 },
+        // life clinging to whatever walls this seed carved — inert bioluminescence, safe on any warren
+        { op: 'flora', from: [1, 1, 1], to: [50, 16, 50], amount: 0.08, bloom: 0.4 }
       ],
       sources: [],
       gauges: [],
