@@ -914,13 +914,23 @@
     if (!held(S)) return { ok: false, why: 'that pocket is empty' };
     const p = S.player;
     const dx = -Math.sin(p.yaw), dz = -Math.cos(p.yaw);
+    // THE CELLS ROCKY'S BODY OCCUPIES. He straddles a cell edge more often than not, so
+    // his collision box spans TWO cells horizontally — guarding only floor(p.x) let a block
+    // land in the other half of him and brick him in place. Guard the WHOLE footprint (the
+    // exact box physics collides against): a block can never intersect the body that placed
+    // it, but building flush against him is still allowed (he can always back away).
+    const ph = S.cfg.physics, hx = ph.halfWidth, hy = ph.halfHeight;
+    const px0 = Math.floor(p.x - hx), px1 = Math.floor(p.x + hx);
+    const py0 = Math.floor(p.y - hy), py1 = Math.floor(p.y + hy);
+    const pz0 = Math.floor(p.z - hx), pz1 = Math.floor(p.z + hx);
+    // Prefer setting a block on the floor ahead (a step, a plinth) over shoving one at
+    // body height right in his face.
     for (let t = 0.8; t <= 2.6; t += 0.2) {
-      for (const dy of [0, -1, 1]) {
+      for (const dy of [-1, 0, 1]) {
         const x = Math.floor(p.x + dx * t), y = Math.floor(p.y) + dy, z = Math.floor(p.z + dz * t);
         if (!inside(S, x, y, z) || isSolid(S, x, y, z)) continue;
-        // never brick yourself into the wall
-        const pb = [Math.floor(p.x), Math.floor(p.y), Math.floor(p.z)];
-        if (x === pb[0] && z === pb[2] && (y === pb[1] || y === pb[1] - 1)) continue;
+        // never place inside — or flush against — the body doing the placing
+        if (x >= px0 && x <= px1 && y >= py0 && y <= py1 && z >= pz0 && z <= pz1) continue;
         const b = held(S);
         setBlock(S, x, y, z, b);
         repressurize(S);            // ...and seal a breach and it comes straight back

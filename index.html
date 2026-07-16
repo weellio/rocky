@@ -26,7 +26,9 @@
   #top > div:first-child{max-width:26ch}
   #chapname{font-size:13px;letter-spacing:.24em;color:var(--amber);text-transform:uppercase}
   #objective{font-size:13px;color:#9fb6cc;margin-top:5px;max-width:52ch;line-height:1.5}
-  #gbox{text-align:right;font-size:12px;color:var(--dim);letter-spacing:.14em}
+  /* drop the readout below the CODEX button (top-right, ~40px tall) so the button never
+     covers the gauge counter / door % / folk status, whatever their width */
+  #gbox{text-align:right;font-size:12px;color:var(--dim);letter-spacing:.14em;margin-top:34px}
   #gcount{display:block;font-size:26px;color:#ffd23c;letter-spacing:.06em;margin-top:2px}
   #ear{display:block;font-size:11px;color:var(--death);letter-spacing:.14em;margin-top:8px;opacity:0;
     transition:opacity .3s;line-height:1.9}
@@ -56,9 +58,11 @@
   #forge span.got{color:#8fe36b}
   #forge i{display:block;font-style:normal;color:#4c5f77;font-size:10px;letter-spacing:.14em;margin-top:6px}
 
-  #hud2{bottom:12px;left:18px;font-size:11px;color:#4c5f77;letter-spacing:.1em}
-  #keys{bottom:12px;right:18px;font-size:11px;color:#4c5f77;letter-spacing:.08em;text-align:right;line-height:1.7}
-  #keys b{color:#8fa6be;font-weight:400}
+  #hud2{bottom:12px;left:18px;font-size:13px;color:#b9cbdc;letter-spacing:.1em;
+    text-shadow:0 1px 4px rgba(0,0,0,.95),0 0 3px rgba(0,0,0,.9)}
+  #keys{bottom:12px;right:18px;font-size:12px;color:#93a9bf;letter-spacing:.08em;text-align:right;line-height:1.7;
+    text-shadow:0 1px 4px rgba(0,0,0,.95),0 0 3px rgba(0,0,0,.9)}
+  #keys b{color:#d3e2f0;font-weight:400}
 
   /* THE WALKTHROUGH. One thing to do, in words, always on screen — because a player
      who does not know what the game wants is a player who quietly stops playing. */
