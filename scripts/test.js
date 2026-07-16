@@ -940,6 +940,22 @@ group('CONSENSUS: no Eridian can be made to do anything', () => {
   one('ARK — climb down the shaft and shout in it', 'ark', ark);
   one('SEVEN — lift the grit floor and shout through the hole', 'seven', seven);
 
+  /* AND ARK IS ACTUALLY CLIMBABLE. The other Ark test TELEPORTS to the shaft bottom to prove
+   * the ear opens — which it did, while the route to it was quietly unreachable: the roughen
+   * pass had chewed gaps in the wall Rocky grips, and he fell at the "dip" every time. So this
+   * one WALKS: drop him in the chute and push into the grip wall, and he must actually rise. */
+  {
+    const A = con();
+    const q = A.player;
+    q.x = 30.5; q.y = 2.5; q.z = 32.5; q.vx = q.vy = q.vz = 0;
+    steps(A, 0.4, {});
+    const y0 = q.y;
+    steps(A, 6.0, { fwd: 1, yaw: -Math.PI / 2 });          // push into the grip wall and ride it up
+    ok(q.y > y0 + 8, `he climbs the chute to Ark instead of falling at the dip (${y0.toFixed(1)} -> ${q.y.toFixed(1)})`);
+    A.pulseCd = 0; R.pulse(A); steps(A, 1.6);
+    ok(ear(A, 'ark').open, `and from where he CLIMBED to, Ark hears him (${pc(ear(A, 'ark'))})`);
+  }
+
   // ...and all three, which is the only thing that opens it.
   const S = con();
   voth(S); ark(S); seven(S);

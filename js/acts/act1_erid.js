@@ -305,6 +305,22 @@
         { op: 'spikes', from: [3, 5, 3], to: [40, 13, 40], amount: 0.10 },
         { op: 'rubble', from: [3, 2, 3], to: [40, 8, 40], amount: 0.11 },
 
+        /* --- ARK'S CLIMB, RE-CUT CLEAN (runs AFTER the roughen, so it repairs the holes it
+         *     punched). PLAYTEST: "I can't get to the shaft — it has a dip I can't overcome;
+         *     Rocky can't climb the ceiling, he falls." He was right: the roughen chewed the
+         *     wall he grips full of gaps (the dip at y8-9) and holed the crawl floor, so he lost
+         *     his hold and fell. Re-cut a continuous grip wall, a clean air chute against it, and
+         *     a floored crawl to the shaft. Ark still cannot be heard from the floor (measured:
+         *     ~0.13 vs 0.42) and opens the moment you reach the crawl mouth. */
+        { op: 'fill', from: [30, 2, 32], to: [30, 13, 32], block: 0 },   // the air chute, floor to crawl
+        { op: 'fill', from: [31, 2, 32], to: [31, 12, 32], block: 1 },   // ONE CONTINUOUS grip wall (fills the y8-9 dip)
+        { op: 'fill', from: [30, 2, 31], to: [30, 13, 31], block: 1 },   // chute side-walls, so the grip never runs out
+        { op: 'fill', from: [30, 2, 33], to: [30, 13, 33], block: 1 },   // (x29 stays OPEN — that is the way in, off the assembly floor)
+        { op: 'fill', from: [31, 13, 32], to: [36, 13, 32], block: 0 },  // the crawl, chute -> shaft
+        { op: 'fill', from: [31, 14, 32], to: [35, 14, 32], block: 0 },  // 2-tall, so he stands up in it
+        { op: 'fill', from: [31, 12, 32], to: [35, 12, 32], block: 1 },  // CONTINUOUS crawl floor (fills the x33-35 holes)
+        { op: 'fill', from: [36, 4, 32], to: [36, 13, 32], block: 0 },   // the shaft, a clean drop down to Ark
+
         /* --- LIFE ON THE STONE (inert) + a listening gallery + a dwelling, all far from every ear --- */
         { op: 'flora', from: [14, 2, 27], to: [30, 10, 39], amount: 0.18, bloom: 0.50 },  // the assembly floor
         { op: 'flora', from: [16, 2, 5], to: [28, 8, 11], amount: 0.14, bloom: 0.40 },     // a garden behind the council door
@@ -330,7 +346,7 @@
        * cure. They are guidance only — rendered in app.js, invisible to the solver/suite. */
       labels: [
         { at: [8, 4, 36],  see: true, color: '#8fd6ff', text: 'VOTH · behind grit' },
-        { at: [36, 8, 32], see: true, color: '#8fd6ff', text: 'ARK · down the shaft' },
+        { at: [30, 8, 32], see: true, color: '#8fd6ff', text: 'ARK · climb here, then over' },
         { at: [30, 5, 19], see: true, color: '#8fd6ff', text: 'SEVEN · under floor' }
       ],
       /* MEASURED, all three, and printed by the suite. From anywhere on the
