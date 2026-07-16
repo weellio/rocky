@@ -1,6 +1,6 @@
 /* ROCKY SAVES THE UNIVERSE — service worker.
  * three.js is VENDORED, not fetched, so this game works on a plane. */
-const CACHE = 'rocky-v59';
+const CACHE = 'rocky-v60';
 const FILES = [
   './',
   'index.html',

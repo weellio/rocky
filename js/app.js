@@ -562,18 +562,27 @@ addEventListener('mousemove', (e) => {
  */
 const gp = { fwd: 0, right: 0, jump: false, down: false };
 let gpPrev = [];
+let gpSeen = false;
 const GP_DEAD = 0.16;
 const gpAxis = (v) => (Math.abs(v) < GP_DEAD ? 0 : (v - Math.sign(v) * GP_DEAD) / (1 - GP_DEAD));
-addEventListener('gamepadconnected', () => {
+/* TELL THE PLAYER THE PAD IS LIVE, and show its controls — once, the first time we actually SEE
+ * one. The `gamepadconnected` event is unreliable (a pad already plugged in when the page loads
+ * often does not fire it until a button is pressed), so the real trigger is the poll below finding
+ * a pad; the event is just a second chance. */
+function gamepadFound() {
+  if (gpSeen) return;
+  gpSeen = true;
   flash('CONTROLLER READY');
   const pk = document.getElementById('padkeys');
   if (pk) pk.style.display = '';
-});
+}
+addEventListener('gamepadconnected', gamepadFound);
 function pollGamepad(dt) {
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   let pad = null;
   for (const p of pads) if (p && p.connected) { pad = p; break; }
   if (!pad) { gp.fwd = gp.right = 0; gp.jump = gp.down = false; gpPrev = []; return; }
+  gamepadFound();
 
   const b = pad.buttons.map((x) => x.pressed);
   const hit = (i) => b[i] && !gpPrev[i];                  // rising edge — fire once
