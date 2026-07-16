@@ -70,10 +70,20 @@
 
         // and the vault, sealed, at the far end
         { op: 'fill', from: [49, 2, 11], to: [49, 4, 13], block: 8 },
-        { op: 'set', at: [30, 2, 12], block: 15 }
+        { op: 'set', at: [30, 2, 12], block: 15 },
+
+        /* --- A WORKING SHOP, LIVED-IN (flora is rock->moss, acoustically identical, skips all stock) --- */
+        { op: 'flora', from: [2, 2, 7], to: [14, 6, 17], amount: 0.15, bloom: 0.45 },   // the workshop
+        { op: 'flora', from: [21, 2, 8], to: [31, 5, 16], amount: 0.11, bloom: 0.4 },   // middle gallery
+        { op: 'flora', from: [38, 2, 8], to: [48, 5, 16], amount: 0.11, bloom: 0.4 },   // far gallery + ear
+        // a green ammonia seep and a girder rib in the workshop
+        { op: 'set', at: [2, 4, 9], block: 4 },
+        { op: 'set', at: [2, 5, 15], block: 3 }
       ],
       sources: [
-        { at: [3, 3, 11], kind: 'vent' }
+        { at: [3, 3, 11], kind: 'vent' },
+        // one small thing in the workshop — well out of range of the vault ear at the far end
+        { at: [6, 3, 9], kind: 'skitter' }
       ],
       gauges: [],
       forges: [
@@ -158,8 +168,13 @@
         { op: 'cave', at: [18, 5, 17], r: 6, ry: 4, wobble: 0.45 },
         { op: 'spikes', from: [3, 5, 3], to: [33, 10, 30], amount: 0.08 },
         { op: 'rubble', from: [3, 2, 3], to: [33, 8, 30], amount: 0.09 },
-        { op: 'set', at: [44, 2, 17], block: 15 }
+        { op: 'set', at: [44, 2, 17], block: 15 },
+
+        /* --- SPARSE DEEP-BORE LICHEN (moss echoes exactly like rock, so the three silent
+         *     holes still read as the ONLY things that give nothing back) --- */
+        { op: 'flora', from: [3, 1, 8], to: [34, 9, 27], amount: 0.05, bloom: 0.3 }
       ],
+      // no fauna in the deep bore: it is the oldest, deadest rock on Erid, and the ear margin is tight
       sources: [
         { at: [5, 3, 19], kind: 'vent' }
       ],
@@ -258,11 +273,22 @@
         { op: 'fill', from: [8, 2, 12], to: [10, 2, 12], block: 9 },
         { op: 'fill', from: [8, 2, 14], to: [10, 2, 14], block: 9 },
         { op: 'set', at: [12, 2, 12], block: 3 },
-        { op: 'fill', from: [8, 2, 16], to: [10, 2, 16], block: 9 }      // and more grit, if he wastes the plug
+        { op: 'fill', from: [8, 2, 16], to: [10, 2, 16], block: 9 },     // and more grit, if he wastes the plug
+
+        /* --- NO FLORA: this is a xenonite ship in a vacuum. Character comes from STEEL. ---
+         *     an aft catwalk (verticality) in the one compartment that still holds air */
+        { op: 'fill', from: [8, 6, 10], to: [16, 6, 10], block: 3 },
+        { op: 'set', at: [12, 7, 10], block: 3 },
+        // cradle struts bracing the hull to the test-chamber wall, out in the vacuum (decorative, unreachable)
+        { op: 'fill', from: [10, 1, 5], to: [10, 7, 5], block: 3 },
+        { op: 'fill', from: [30, 1, 25], to: [30, 7, 25], block: 3 },
+        { op: 'fill', from: [10, 8, 6], to: [10, 8, 7], block: 3 }
       ],
       sources: [
         { at: [6, 3, 11], kind: 'vent' },
-        { at: [10, 3, 19], kind: 'pipe' }
+        { at: [10, 3, 19], kind: 'pipe' },
+        // one small thing, deep in the sealed aft where there is still air to carry it
+        { at: [8, 3, 12], kind: 'skitter' }
       ],
       gauges: [],
       forges: [{ at: [6, 2, 12] }],
@@ -343,8 +369,13 @@
 
         // the door the drive opens, and the way out beyond it
         { op: 'fill', from: [41, 2, 15], to: [41, 4, 15], block: 8 },
-        { op: 'room', from: [42, 1, 12], to: [46, 7, 18], floor: 2 }
+        { op: 'room', from: [42, 1, 12], to: [46, 7, 18], floor: 2 },
+
+        /* --- CEILING-BAND LIFE (y>=6): high over the tuned intakes, so no wall feeds them --- */
+        { op: 'flora', from: [3, 6, 8], to: [40, 9, 22], amount: 0.11, bloom: 0.4 },
+        { op: 'set', at: [3, 6, 10], block: 4 }   // a green seep on the drive-hall wall
       ],
+      // no ambient fauna: the three intakes must hear only the block Rocky sets, never the room
       sources: [
         { at: [6, 3, 11], kind: 'vent' }
       ],
@@ -417,8 +448,15 @@
 
         { op: 'set', at: [7, 2, 10], block: 5 },
         { op: 'fill', from: [20, 2, 6], to: [20, 4, 6], block: 8 },
-        { op: 'room', from: [17, 1, 2], to: [23, 6, 6], floor: 2 }
+        { op: 'room', from: [17, 1, 2], to: [23, 6, 6], floor: 2 },
+
+        /* --- THE GATHERING HALL, worn and lived-in, but solemn (no fauna: the room is holding
+         *     its breath). Flora skips the plinth/astrophage; moss echoes like rock. --- */
+        { op: 'flora', from: [4, 2, 8], to: [35, 8, 30], amount: 0.10, bloom: 0.4 },
+        { op: 'set', at: [4, 4, 12], block: 4 },   // green seeps in the old walls
+        { op: 'set', at: [35, 5, 24], block: 4 }
       ],
+      // no ambient fauna: the volunteers are tuned to astrophage, and the room is meant to be still
       sources: [
         { at: [7, 3, 10], kind: 'vent' }
       ],
