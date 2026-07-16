@@ -1373,12 +1373,12 @@ function sunriseSky() {
   const c = document.createElement('canvas'); c.width = 8; c.height = 512;
   const g = c.getContext('2d');
   const grd = g.createLinearGradient(0, 0, 0, 512);
-  grd.addColorStop(0.00, '#0a0f2e');   // deep indigo, the last of the night
-  grd.addColorStop(0.34, '#3b2450');   // violet
-  grd.addColorStop(0.58, '#7e3a34');   // dusk red
-  grd.addColorStop(0.78, '#e8730f');   // amber — the palette's orange, spent one last time
-  grd.addColorStop(0.92, '#ffc65a');   // gold
-  grd.addColorStop(1.00, '#fff4d2');   // the horizon, almost white
+  grd.addColorStop(0.00, '#25143f');   // a last touch of violet at the very top
+  grd.addColorStop(0.30, '#8a3a2c');   // warm dusk
+  grd.addColorStop(0.55, '#e2641a');   // deep amber
+  grd.addColorStop(0.74, '#ff9a2e');   // orange
+  grd.addColorStop(0.88, '#ffc94f');   // gold
+  grd.addColorStop(1.00, '#fff2c0');   // the horizon, almost white with the sun
   g.fillStyle = grd; g.fillRect(0, 0, 8, 512);
   return new THREE.CanvasTexture(c);
 }
@@ -1393,21 +1393,24 @@ function sunDisc() {
   g.fillStyle = grd; g.fillRect(0, 0, N, N);
   return new THREE.CanvasTexture(c);
 }
+/* Grace, seated — a dark human silhouette (a shape the whole game learned to draw for the
+ * humans) with the flat panel on the front of her head lit warm, so she reads as clearly a
+ * person, and clearly not one of them. */
 function endingBiped(x, y, z) {
   const g = new THREE.Group();
-  const O = 0xd9660c, Od = 0x7a3d08, panel = 0x3a2a18;
+  const dark = 0x0b0910, panel = 0xffb060;
   const box = (w, h, d, bx, by, bz, col) => {
-    const m = new THREE.Mesh(bakedBox(0.96), new THREE.MeshBasicMaterial({ color: col, fog: true }));
+    const m = new THREE.Mesh(bakedBox(0.98), new THREE.MeshBasicMaterial({ color: col, fog: false }));
     m.scale.set(w, h, d); m.position.set(bx, by, bz); g.add(m);
   };
   // seated: knees up in front, torso back, head bowed toward the light
-  box(0.32, 0.30, 0.20, 0, 0.30, 0, O);          // torso
-  box(0.16, 0.16, 0.34, -0.09, 0.10, 0.14, Od);  // left leg, folded forward
-  box(0.16, 0.16, 0.34, 0.09, 0.10, 0.14, Od);   // right leg, folded forward
-  box(0.14, 0.22, 0.12, -0.20, 0.28, 0.08, Od);  // left arm, resting on knee
-  box(0.14, 0.22, 0.12, 0.20, 0.28, 0.08, Od);   // right arm
-  box(0.19, 0.19, 0.19, 0, 0.52, 0.02, O);       // head
-  box(0.19, 0.13, 0.04, 0, 0.53, 0.12, panel);   // the flat panel on the front of her head
+  box(0.34, 0.32, 0.20, 0, 0.32, 0, dark);        // torso
+  box(0.16, 0.16, 0.36, -0.09, 0.10, 0.15, dark); // left leg, folded forward
+  box(0.16, 0.16, 0.36, 0.09, 0.10, 0.15, dark);  // right leg
+  box(0.13, 0.24, 0.12, -0.21, 0.30, 0.10, dark); // left arm, resting on the knee
+  box(0.13, 0.24, 0.12, 0.21, 0.30, 0.10, dark);  // right arm
+  box(0.20, 0.20, 0.20, 0, 0.56, 0.02, dark);     // head
+  box(0.15, 0.10, 0.04, 0, 0.57, 0.13, panel);    // the panel on the front of her head, lit
   g.position.set(x, y, z);
   return g;
 }
@@ -1415,11 +1418,13 @@ function endingBiped(x, y, z) {
 /* A second Eridian, built from Rocky's own baked body — his mate, Adrian. (Grace could never
  * say her real name, so she called her Adrian, after the wife in an old film about winning a
  * fight you were never meant to win. It fit.) Same animal as Rocky, a slightly warmer stone. */
-function buildEridian(tint, crack) {
+/* An Eridian, built from Rocky's baked body, as a near-black SILHOUETTE against the sunrise
+ * with its bioluminescent cracks left glowing — so the shape reads by its outline (not a
+ * melted colour-blob) and the glow tells you who it is: green for Rocky, pink for Adrian. */
+function buildEridian(crack) {
   const g = new THREE.Group();
   const M = window.ROCKY_MODEL;
   if (!M) return g;
-  crack = crack || [0.14, 0.55, 0.32];   // Rocky's cracks glow green; Adrian's, pink
   const [MW, MH, MD] = M.dim;
   const s = 1.15 / Math.max(MW, MH, MD);
   let minY = Infinity;
@@ -1429,15 +1434,15 @@ function buildEridian(tint, crack) {
   for (const part of M.parts) {
     const n = part.cells.length / 3;
     if (!n) continue;
-    const mesh = new THREE.InstancedMesh(bakedBox(0.96), new THREE.MeshBasicMaterial({ vertexColors: true, fog: true }), n);
+    const mesh = new THREE.InstancedMesh(bakedBox(0.98), new THREE.MeshBasicMaterial({ vertexColors: true, fog: false }), n);
     mesh.frustumCulled = false;
     for (let i = 0, k = 0; i < part.cells.length; i += 3, k++) {
       const x = part.cells[i], y = part.cells[i + 1], z = part.cells[i + 2];
       d.position.set((x - MW / 2) * s, (y - minY) * s - 0.36, (z - MD / 2) * s);
       d.scale.setScalar(s); d.updateMatrix(); mesh.setMatrixAt(k, d.matrix);
-      const up = (y - minY) / MH, grain = ((x * 7 + y * 13 + z * 5) % 5) / 5;
-      col.setRGB(tint[0] + up * 0.30 + grain * 0.05, tint[1] + up * 0.14 + grain * 0.03, tint[2] + up * 0.07);
-      if (((x * 5 + z * 3) % 11 === 0) && ((y * 7 + x) % 5 < 2)) col.setRGB(crack[0] + grain * 0.06, crack[1] + grain * 0.08, crack[2] + grain * 0.06);   // the light in their cracks — the same animal, a different glow
+      const grain = ((x * 7 + y * 13 + z * 5) % 5) / 5;
+      col.setRGB(0.03 + grain * 0.02, 0.03 + grain * 0.02, 0.05 + grain * 0.02);   // near-black body: a silhouette
+      if (((x * 5 + z * 3) % 9 === 0) && ((y * 7 + x) % 4 < 2)) col.setRGB(crack[0], crack[1], crack[2]);   // the glow in the cracks
       mesh.setColorAt(k, col);
     }
     g.add(mesh);
@@ -1447,10 +1452,10 @@ function buildEridian(tint, crack) {
 
 function renderEnding(now) {
   const t = (now - endT0) / 1000;
-  // close, and low, and almost still — the two of them big in the frame, the sun between and
-  // beyond them, and just a breath of drift so it does not feel like a screenshot
-  camera.position.set(Math.sin(t * 0.05) * 0.8, 2.05 + Math.sin(t * 0.08) * 0.08, 4.4);
-  camera.lookAt(-0.05, 1.55, -30);
+  // low, and CLOSE — the three of them big in the foreground, backs to us, the whole warm
+  // valley and the sun beyond them; a breath of drift so it is not a screenshot
+  camera.position.set(-0.35 + Math.sin(t * 0.045) * 0.4, 2.1 + Math.sin(t * 0.07) * 0.05, 4.0);
+  camera.lookAt(-0.35, 1.15, -30);
   renderer.render(scene, camera);
 }
 
@@ -1459,39 +1464,67 @@ function startEnding() {
   endT0 = performance.now();
   // the HUD (and the codex button) have nothing left to say
   [].forEach.call(document.querySelectorAll('.hud, #codexbtn, #touch'), (el) => { el.style.opacity = '0'; el.style.display = 'none'; });
-  // the one light
+  // the one light — a whole sky of warm gold
   scene.background = sunriseSky();
-  scene.fog = new THREE.Fog(0xd98a4a, 24, 130);
+  scene.fog = new THREE.Fog(0xf0a24e, 16, 150);   // golden haze the vista fades into
   // the sonar world steps aside
   for (const id in MESH) MESH[id].count = 0;
   labels.clear(); folkGroup.clear(); ringMesh.visible = false; ambRing.visible = false;
 
-  const dark = new THREE.MeshBasicMaterial({ color: 0x0c0a14, fog: true });
-  const mk = (w, h, d, x, y, z) => { const m = new THREE.Mesh(bakedBox(1), dark); m.scale.set(w, h, d); m.position.set(x, y, z); endGroup.add(m); };
-  mk(16, 9, 16, 0, -5.1, 0);                 // the broad peak they are sitting on
-  mk(10, 5, 10, 0, -0.9, -0.5);
-  for (let i = 0; i < 9; i++) { const x = (i - 4) * 10; mk(8, 3 + ((i * 7) % 5), 8, x, -3, -36 - (i % 3) * 9); }   // distant ridgeline
+  const box = (w, h, d, x, y, z, col) => { const m = new THREE.Mesh(bakedBox(1), new THREE.MeshBasicMaterial({ color: col, fog: true })); m.scale.set(w, h, d); m.position.set(x, y, z); endGroup.add(m); return m; };
+  const dark = 0x140d0a;
 
-  const sun = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunDisc(), transparent: true, fog: false, depthWrite: false, blending: THREE.AdditiveBlending }));
-  sun.scale.set(30, 30, 1); sun.position.set(-3, 2.5, -64); endGroup.add(sun);
+  // THE LEDGE they are on — a dark shelf across the foreground, and a drop beyond it
+  box(30, 8, 8, 0, -3.2, 1.2, dark);          // the shelf under them
+  box(30, 6, 4, 0, -2.4, -2.6, 0x1c120b);     // the lip of the drop
 
-  // THE THREE OF THEM, at the crest, all facing the light none of them can see.
-  // ROCKY (his own baked body), his mate ADRIAN beside him (another Eridian), and GRACE.
-  rocky.visible = true;
-  rocky.position.set(-0.35, 1.18, -0.7);
-  rocky.scale.setScalar(1.7);
-  rocky.quaternion.identity();               // his sculpt faces +x; turn him to face the sun (-z)
-  rocky.rotateY(-Math.PI / 2);
+  // THE VALLEY — layered ridges receding into the golden haze (paler + warmer as they go back)
+  const ridge = [0x241611, 0x33201a, 0x492c20, 0x6a4030, 0x8f5a3e];
+  for (let r = 0; r < 5; r++) {
+    const z = -14 - r * 16, y = -4 + r * 0.9, col = ridge[r];
+    for (let i = -4; i <= 4; i++) box(11 + (i % 2) * 3, 5 + ((i * 7 + r) % 4), 10, i * 12 + (r % 2) * 5, y, z, col);
+  }
 
-  const adrian = buildEridian([0.52, 0.36, 0.40], [0.95, 0.52, 0.72]);   // his wife — lighter stone, PINK in her cracks where Rocky is green
-  adrian.position.set(-1.45, 1.18, -0.72);
-  adrian.scale.setScalar(1.62);
-  adrian.rotateY(-Math.PI / 2);
-  adrian.rotateY(0.28);                       // leaned a little toward him
-  endGroup.add(adrian);
+  // THE SUN, blazing low, with a broad soft bloom around a hard bright core
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunDisc(), transparent: true, fog: false, depthWrite: false, blending: THREE.AdditiveBlending }));
+  glow.scale.set(64, 64, 1); glow.position.set(0.5, 5.5, -70); endGroup.add(glow);
+  const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunDisc(), transparent: true, fog: false, depthWrite: false, blending: THREE.AdditiveBlending }));
+  core.scale.set(20, 20, 1); core.position.set(0.5, 4.4, -68); endGroup.add(core);
 
-  const grace = endingBiped(0.85, 1.12, -0.78);      // a long way from her own star, home now
-  grace.scale.setScalar(1.55);
+  // FRAMING — dark voxel trees down each side, close to the camera, the way the references
+  // frame their vista with foliage
+  const tree = (x, z, s) => {
+    box(0.7 * s, 5 * s, 0.7 * s, x, -0.5, z, 0x0c0a08);                       // trunk
+    for (const [ox, oy, oz, w] of [[0, 3.4, 0, 3.2], [0.5, 4.1, 0.3, 2.4], [-0.4, 4.0, -0.3, 2.4], [0, 4.7, 0, 1.7]])
+      box(w * s, w * 0.8 * s, w * s, x + ox * s, oy * s + 0.2, z + oz * s, 0x0e1408);   // blocky canopy
+  };
+  tree(-7.5, -2.5, 1.5);     // framing the left edge
+  tree(7.8, -2.0, 1.6);      // framing the right edge
+  tree(-9.5, -8, 1.2);
+  tree(9.5, -7, 1.3);
+
+  // a low fringe of grass along the tree bases at the sides — foreground texture, kept clear
+  // of the middle so it never crowds the three of them or the words
+  for (const [gx, gz] of [[-6.4, -1.4], [-5.5, -0.9], [6.7, -1.0], [7.5, -1.6]]) box(0.3, 0.7, 0.3, gx, -0.2, gz, 0x14300f);
+
+  // THE THREE OF THEM, at the crest, big and clear and well apart, all facing the light none
+  // of them can see: silhouettes against the sunrise, Rocky and his mate ADRIAN with their
+  // cracks glowing (his green, hers pink), and GRACE with her lit visor. The player's own
+  // body steps aside — everyone here is freshly staged for the frame.
+  rocky.visible = false;
+
+  // face them away, toward the sun (the sculpt faces +x → turn -90° to face -z), each a
+  // little toward the middle so the three lean into one another
+  const stage = (m, x, sc, turn) => { m.position.set(x, 1.02, -1.0); m.scale.setScalar(sc); m.rotateY(-Math.PI / 2 + turn); endGroup.add(m); };
+
+  const adrian = buildEridian([0.95, 0.42, 0.62]);   // PINK glow — his wife
+  stage(adrian, -1.55, 1.42, 0.16);
+
+  const rock = buildEridian([0.22, 0.78, 0.42]);     // GREEN glow — Rocky
+  stage(rock, -0.5, 1.5, 0.05);
+
+  const grace = endingBiped(0, 0, 0);
+  grace.position.set(0.7, 1.0, -1.05); grace.scale.setScalar(1.8); grace.rotateY(-0.12);   // turned a little toward the two of them
   endGroup.add(grace);
 
   scene.add(endGroup);
