@@ -357,6 +357,16 @@
         { id: 'ark',   at: [35, 2, 32], needs: 0.42, opens: 'council', name: 'ARK' },
         { id: 'seven', at: [31, 2, 19], needs: 0.42, opens: 'council', name: 'SEVEN' }
       ],
+      /* AND THEY ARE PEOPLE, not green boxes. PLAYTEST: "why are the characters green squares
+       * and not Eridians like Rocky?" Fair — the resonator is only how each one HEARS; the
+       * engineer himself is a fellow Eridian, sitting in his sealed chamber right by it. Drawn
+       * from Rocky's own body (silent: they must not hum, or a working-engineer would trip his
+       * own resonator open — see sim.stepFolk). You see them the moment you clear the way in. */
+      folk: [
+        { at: [8, 3, 36],  name: 'VOTH',  silent: true, vivid: true },
+        { at: [36, 2, 32], name: 'ARK',   silent: true, vivid: true },
+        { at: [30, 2, 19], name: 'SEVEN', silent: true, vivid: true }
+      ],
       doors: [
         { id: 'council', cells: [[21, 1, 13], [22, 1, 13], [23, 1, 13], [21, 2, 13], [22, 2, 13], [23, 2, 13], [21, 3, 13], [22, 3, 13], [23, 3, 13], [21, 4, 13], [22, 4, 13], [23, 4, 13], [21, 5, 13], [22, 5, 13], [23, 5, 13]] }
       ],

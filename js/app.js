@@ -1301,13 +1301,17 @@ function buildFolk() {
       return;
     }
 
+    /* A NAMED ENGINEER you are meant to SEE (f.vivid) is drawn bright and fog-free, exactly
+     * like Rocky — otherwise a dark-brown Eridian in an unlit sealed chamber is invisible.
+     * The ambient crowd of a warren stays dim and fogged; it is background, not a character. */
+    const vivid = !!f.vivid;
     const tint = [[0.30, 0.13, 0.10], [0.22, 0.17, 0.12], [0.31, 0.19, 0.09]][fi % 3];
     const col = new THREE.Color();
     const d = new THREE.Object3D();
     for (const part of M.parts) {
       const n = part.cells.length / 3;
       if (!n) continue;
-      const mesh = new THREE.InstancedMesh(bakedBox(0.96), new THREE.MeshBasicMaterial({ vertexColors: true, fog: true }), n);
+      const mesh = new THREE.InstancedMesh(bakedBox(0.96), new THREE.MeshBasicMaterial({ vertexColors: true, fog: !vivid }), n);
       mesh.frustumCulled = false;
       for (let i = 0, k = 0; i < part.cells.length; i += 3, k++) {
         const x = part.cells[i], y = part.cells[i + 1], z = part.cells[i + 2];
@@ -1317,7 +1321,9 @@ function buildFolk() {
         mesh.setMatrixAt(k, d.matrix);
         const up = (y - minY) / MH;
         const grain = ((x * 7 + y * 13 + z * 5) % 5) / 5;
-        col.setRGB(tint[0] + up * 0.30 + grain * 0.05, tint[1] + up * 0.14 + grain * 0.03, tint[2] + up * 0.07);
+        // the same burnt-orange carapace as Rocky when vivid; a duller ambient brown otherwise
+        if (vivid) col.setRGB(0.34 + up * 0.34 + grain * 0.06, 0.14 + up * 0.15 + grain * 0.03, 0.09 + up * 0.08 + grain * 0.02);
+        else col.setRGB(tint[0] + up * 0.30 + grain * 0.05, tint[1] + up * 0.14 + grain * 0.03, tint[2] + up * 0.07);
         // and the same green in their cracks. They are the same animal.
         if (((x * 5 + z * 3) % 11 === 0) && ((y * 7 + x) % 5 < 2)) col.setRGB(0.14, 0.55 + grain * 0.1, 0.32);
         mesh.setColorAt(k, col);

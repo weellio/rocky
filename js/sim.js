@@ -1500,6 +1500,9 @@
        * where everybody is, all game, by the noise they make, and one by one the noises
        * stop, and the engine tells you nothing. You just notice a voice is not there. */
       if (f.alive === false) continue;   // === false: only the KILLED are silent; a generated warren's folk have no `alive` set and must still hum
+      // ...and a SILENT engineer is present but does not hum — because he is a RESONATOR you
+      // convince by sound, and his own working-noise would trip his own door open for free.
+      if (f.silent) continue;
       // they are always working, and work makes noise
       f.cd -= dt;
       if (f.cd <= 0) {
