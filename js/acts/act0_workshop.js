@@ -92,7 +92,26 @@
         { op: 'fill', from: [42, 2, 15], to: [42, 4, 15], block: 8 },
 
         // and THE WAY OUT, behind it
-        { op: 'room', from: [43, 1, 12], to: [48, 6, 18], floor: 2 }
+        { op: 'room', from: [43, 1, 12], to: [48, 6, 18], floor: 2 },
+
+        /* --- LIVED-IN WORKSHOP (decoration only; gallery + all walkthrough cells untouched) ---
+         * Room 1 (the dark): a low mossy warmth on the home walls — inert until you pulse it */
+        { op: 'flora', from: [1, 1, 9], to: [12, 8, 21], amount: 0.10, bloom: 0.35 },
+        // Room 3 CEILING ONLY (y5+), high above the forge stock/labels at y2
+        { op: 'flora', from: [30, 5, 10], to: [41, 9, 20], amount: 0.12, bloom: 0.45 },
+        // the way-out arch, framed in bloom (exit block 15 is skipped)
+        { op: 'flora', from: [43, 1, 12], to: [48, 6, 18], amount: 0.14, bloom: 0.5 },
+        // two blooms hung on the gallery's out-of-reach ceiling rock (y9), warms it without touching the row
+        { op: 'set', at: [17, 9, 14], block: 21 },
+        { op: 'set', at: [23, 9, 17], block: 21 },
+        // A REST-NICHE off Room 1's south wall — Rocky's home nook (Room 1 has NO puzzle cell)
+        { op: 'fill', from: [4, 2, 9], to: [5, 3, 9], block: 0 },       // low crawl through the z9 wall
+        { op: 'room', from: [3, 1, 6], to: [6, 4, 8], floor: 2 },       // the carved nook (shell z0-5 intact)
+        { op: 'set', at: [4, 1, 7], block: 7 }, { op: 'set', at: [5, 1, 7], block: 7 },  // worn xenonite rest-pad
+        { op: 'flora', from: [3, 1, 6], to: [6, 5, 9], amount: 0.20, bloom: 0.5 },       // his little garden
+        // COLOUR — a green ammonia seep + a girder rib in Room 1's plain west wall
+        { op: 'set', at: [1, 4, 15], block: 4 },
+        { op: 'set', at: [1, 5, 17], block: 3 }
       ],
       /* THE LABELS. A name in a sentence and a lump of colour in a room are only
        * the same thing if somebody says so. They fade in when you are close enough
@@ -118,7 +137,11 @@
       ],
       sources: [
         { at: [24, 4, 10], kind: 'vent' },
-        { at: [32, 3, 11], kind: 'vent' }
+        { at: [32, 3, 11], kind: 'vent' },
+        // home is inhabited: something small in the rest-nook, a vent-garden hum, a call across the shop
+        { at: [4, 2, 7], kind: 'skitter' },
+        { at: [23, 4, 11], kind: 'drone' },
+        { at: [39, 4, 13], kind: 'warble' }
       ],
       gauges: [
         { id: 'g1', at: [41, 3, 16], name: 'Workshop', nominal: 96, reading: 91 }

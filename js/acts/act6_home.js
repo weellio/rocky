@@ -49,10 +49,24 @@
         { op: 'room', from: [33, 1, 4], to: [38, 8, 9], floor: 2 },
         // GRACE, behind cast xenonite — she found the green; her machine grinds through the hull
         { op: 'fill', from: [10, 1, 11], to: [20, 7, 11], block: 13 },
-        { op: 'room', from: [10, 1, 12], to: [20, 6, 12], floor: 2 }
+        { op: 'room', from: [10, 1, 12], to: [20, 6, 12], floor: 2 },
+
+        /* --- MODEST ERIDIAN SHIP-LIFE (west of the murder; Grace's hull/room left bare) ---
+         * walls + ceiling of the main hall, capped at x26 (clear of life region x29+ and the wall) */
+        { op: 'flora', from: [1, 1, 2], to: [26, 9, 10], amount: 0.15, bloom: 0.45 },
+        { op: 'fill', from: [3, 4, 4], to: [6, 4, 4], block: 3 },   // a girder gallery ledge (verticality)
+        // A CREW ALCOVE carved 2 deep into the NORTH wall (shell z0 intact) — quiet, away from all mechanics
+        { op: 'room', from: [4, 1, 1], to: [7, 4, 2], floor: 2 },
+        { op: 'set', at: [5, 1, 1], block: 7 }, { op: 'set', at: [6, 1, 1], block: 7 },  // xenonite crew-pad
+        { op: 'flora', from: [4, 1, 1], to: [7, 5, 3], amount: 0.20, bloom: 0.5 },
+        { op: 'set', at: [2, 4, 6], block: 4 }     // an ammonia seep in the plain west wall
       ],
       sources: [
-        { at: [15, 3, 12], kind: 'grind' }
+        { at: [15, 3, 12], kind: 'grind' },
+        // ship-life west of the murder wall — nowhere near the eat/clear region at x29+
+        { at: [4, 2, 4], kind: 'skitter' },
+        { at: [24, 4, 5], kind: 'drone' },
+        { at: [5, 2, 1], kind: 'skitter' }
       ],
       folk: [
         { at: [15, 3, 12], name: 'GRACE', kind: 'human', chord: '—',
@@ -108,11 +122,24 @@
         { op: 'fill', from: [27, 2, 6], to: [30, 2, 6], block: 1 },
         // Grace, behind cast xenonite: present, singing, out of reach
         { op: 'fill', from: [34, 1, 3], to: [34, 8, 11], block: 13 },
-        { op: 'room', from: [35, 1, 5], to: [38, 6, 9], floor: 2 }
+        { op: 'room', from: [35, 1, 5], to: [38, 6, 9], floor: 2 },
+
+        /* --- THE INCUBATOR HALL, LIVED-IN (all bays are at y2; flora is y4+ only) --- */
+        { op: 'flora', from: [1, 4, 2], to: [33, 9, 11], amount: 0.14, bloom: 0.45 },
+        { op: 'fill', from: [3, 5, 3], to: [3, 5, 7], block: 3 },   // a girder shelf-gallery (verticality)
+        // A CREW ALCOVE carved 2 deep into the NORTH wall at the quiet west end (shell z0 intact)
+        { op: 'room', from: [4, 1, 1], to: [7, 4, 2], floor: 2 },
+        { op: 'set', at: [5, 1, 1], block: 7 }, { op: 'set', at: [6, 1, 1], block: 7 },  // xenonite crew-pad
+        { op: 'flora', from: [4, 1, 1], to: [7, 5, 3], amount: 0.18, bloom: 0.5 },
+        { op: 'set', at: [2, 5, 6], block: 4 }     // ammonia seep in the plain west wall
       ],
       sources: [
         { at: [36, 3, 7], kind: 'grind' },
-        { at: [20, 3, 10], kind: 'drip' }
+        { at: [20, 3, 10], kind: 'drip' },
+        // life along the hall, none of it near the y2 bays
+        { at: [4, 2, 4], kind: 'skitter' },
+        { at: [13, 5, 3], kind: 'warble' },
+        { at: [5, 2, 1], kind: 'skitter' }
       ],
       folk: [
         { at: [36, 3, 7], name: 'GRACE', kind: 'human', chord: '—',
@@ -180,10 +207,25 @@
         // GRACE, behind her own cast-xenonite hull — it still SINGS her voice through, the
         // very stuff that will not hold the bug (the cruel joke of the whole chapter)
         { op: 'fill', from: [20, 2, 11], to: [22, 5, 11], block: 13 },
-        { op: 'fill', from: [20, 2, 12], to: [22, 4, 12], block: 0 }
+        { op: 'fill', from: [20, 2, 12], to: [22, 4, 12], block: 0 },
+
+        /* --- THE WALKWAY, LIVED-IN (y4+ only; bay/breach region z4-7 and the leak's y2-3 cells
+         *     untouched; no new AIR anywhere, so no leak path can open) --- */
+        { op: 'flora', from: [1, 4, 8], to: [18, 7, 11], amount: 0.13, bloom: 0.4 },    // west of Grace
+        { op: 'flora', from: [24, 4, 8], to: [32, 7, 11], amount: 0.13, bloom: 0.4 },   // east of Grace (x19-23 bare)
+        // A RAISED CREW NOOK east of Grace (all SOLID at y4 — cannot open a leak path)
+        { op: 'fill', from: [24, 4, 9], to: [27, 4, 9], block: 3 },    // girder gallery ledge (verticality)
+        { op: 'fill', from: [25, 4, 10], to: [27, 4, 11], block: 2 },  // a plate shelf-nook
+        { op: 'set', at: [26, 4, 11], block: 7 },                      // xenonite rest-pad on the shelf
+        { op: 'flora', from: [24, 5, 10], to: [28, 7, 11], amount: 0.16, bloom: 0.5 },
+        { op: 'set', at: [2, 4, 9], block: 4 }     // ammonia seep in the plain west wall
       ],
       sources: [
-        { at: [21, 3, 12], kind: 'grind' }
+        { at: [21, 3, 12], kind: 'grind' },
+        // life along the walkway, all clear of the breach and the monitored outside cells
+        { at: [3, 2, 9], kind: 'skitter' },
+        { at: [30, 4, 10], kind: 'warble' },
+        { at: [27, 4, 11], kind: 'drone' }
       ],
       folk: [
         { at: [21, 3, 12], name: 'GRACE', kind: 'human', chord: '—',
@@ -244,10 +286,26 @@
         { op: 'fill', from: [47, 1, 3], to: [47, 8, 9], block: 13 },
         { op: 'room', from: [48, 1, 4], to: [50, 6, 8], floor: 2 },
         // THE CURE, at the stem, at his feet
-        { op: 'set', at: [9, 2, 12], block: 17 }
+        { op: 'set', at: [9, 2, 12], block: 17 },
+
+        /* --- SYMMETRIC SHIP-LIFE (mirror across z=12; both arms decorated IDENTICALLY, so the
+         *     choice stays pure — Grace grinding down the +z arm is the only intended asymmetry) --- */
+        { op: 'flora', from: [3, 4, 9],  to: [26, 9, 15], amount: 0.13, bloom: 0.45 },  // stem (symmetric about z12)
+        { op: 'flora', from: [24, 4, 15], to: [46, 9, 21], amount: 0.13, bloom: 0.45 }, // GRACE arm  (hull x47+ excluded)
+        { op: 'flora', from: [24, 4, 3],  to: [46, 9, 9],  amount: 0.13, bloom: 0.45 }, // MISSION arm (exact mirror)
+        { op: 'fill', from: [10, 4, 10], to: [10, 4, 14], block: 3 },   // mirrored girder gallery on the stem
+        // A CREW ALCOVE at the stem's west wall, centred on z12 (shell x0 intact) — symmetric
+        { op: 'room', from: [1, 1, 11], to: [2, 4, 13], floor: 2 },
+        { op: 'set', at: [1, 1, 12], block: 7 },                        // xenonite crew-pad
+        { op: 'flora', from: [1, 1, 11], to: [2, 5, 13], amount: 0.20, bloom: 0.5 },
+        { op: 'set', at: [3, 5, 11], block: 4 }, { op: 'set', at: [3, 5, 13], block: 4 }  // mirrored ammonia seeps
       ],
       sources: [
-        { at: [49, 3, 17], kind: 'grind' }   // her machine — down the GRACE arm ONLY
+        { at: [49, 3, 17], kind: 'grind' },   // her machine — down the GRACE arm ONLY
+        // ambient life on the STEM ONLY, mirrored about z12, so the two arms stay identical
+        { at: [5, 2, 10], kind: 'skitter' },
+        { at: [5, 2, 14], kind: 'skitter' },
+        { at: [20, 4, 12], kind: 'warble' }
       ],
       folk: [
         { at: [49, 3, 18], name: 'GRACE', kind: 'human', chord: '—',
@@ -293,10 +351,24 @@
         // worn, not built — the same gnawed warren, just no longer cold
         { op: 'roughen', from: [2, 1, 2], to: [25, 8, 17], amount: 0.20, passes: 1 },
         { op: 'rubble', from: [4, 2, 5], to: [23, 5, 14], amount: 0.04 },
-        { op: 'set', at: [22, 2, 9], block: 15 }
+        { op: 'set', at: [22, 2, 9], block: 15 },
+
+        /* --- LIFE RETURNING TO THE WARREN (lush, but small; gauges/arch/vent are non-rock, skipped) --- */
+        { op: 'flora', from: [2, 1, 3], to: [24, 8, 16], amount: 0.22, bloom: 0.5 },   // moss + bloom creeping back
+        { op: 'set', at: [21, 8, 9], block: 21 }, { op: 'set', at: [23, 8, 8], block: 21 },  // a warm bloom-halo over the arch
+        // A RESTORED REST-NOOK carved into the south wall (shell z19 intact), away from the gauges
+        { op: 'room', from: [6, 1, 16], to: [10, 4, 18], floor: 2 },
+        { op: 'set', at: [7, 1, 17], block: 7 }, { op: 'set', at: [8, 1, 17], block: 7 },  // xenonite rest-pad
+        { op: 'flora', from: [6, 1, 16], to: [10, 5, 18], amount: 0.28, bloom: 0.55 },     // his nook, lush again
+        { op: 'set', at: [4, 4, 5], block: 4 }     // a green life-seep in a plain corner wall
       ],
       sources: [
-        { at: [22, 4, 9], kind: 'vent' }
+        { at: [22, 4, 9], kind: 'vent' },
+        // life is back: something small in the grit, a call and an answer, a hum by the vent, and the nook inhabited
+        { at: [5, 2, 6], kind: 'skitter' },
+        { at: [12, 4, 12], kind: 'warble' },
+        { at: [22, 5, 9], kind: 'drone' },
+        { at: [8, 2, 16], kind: 'skitter' }
       ],
       labels: [
         { at: [10, 1, 8], block: 2,  text: 'WORKSHOP — warm again',       color: '#ffb020' },
