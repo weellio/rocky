@@ -1633,7 +1633,7 @@ group('EVERY ROOM HAS A WAY OUT, AND IT CALLS', () => {
      * A NAVIGATION chapter — the generated warren — has no job to be half done. There
      * is nothing to solve there but the walk itself, so its arch calls from the first
      * second, and getting to it IS the game. Two different promises; both kept. */
-    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length || (c.track && c.track.need) || c.seal || c.count || (c.build_target && c.build_target.length) || c.clear;
+    const isPuzzle = (c.walk && c.walk.length) || S.doors.length || S.gauges.length || (c.track && c.track.need) || c.seal || c.count || (c.build_target && c.build_target.length) || c.clear || c.bred || c.contain;
     steps(S, 6);
     if (isPuzzle) {
       ok(!R.solved(S), `${c.name}: the room is not solved at the start`);

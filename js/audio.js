@@ -154,6 +154,9 @@
     /* LIFE. The green eating the red — a soft wet bloom, a note that OPENS where a hole was.
      * The one hopeful sound in a game built out of holes. */
     life: function () { ping(392, 0.5, 'sine', 0.05); setTimeout(function () { ping(588, 0.4, 'sine', 0.04); }, 90); },
+    /* A BREEDING FAILED. A dull, unresolved thud — the forge hands you a corpse. Not a
+     * catastrophe, just a dead end that tells you which way you were wrong. */
+    'craft:fail': function () { ping(147, 0.32, 'sine', 0.07); setTimeout(function () { noise(0.16, 220, 0.05); }, 60); },
     /* THE BURN: a low rolling roar with a body under it, throbbing on the drive's clock.
      * It is the loudest thing in the game and it should sit UNDER everything, felt more
      * than heard — the sound of being carried. */

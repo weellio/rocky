@@ -144,6 +144,33 @@
         needs: [{ block: 7, n: 2 }, { block: 3, n: 1 }],
         gives: 11,
         note: 'Two of xenonite to sing, and a girder to hang it from. Put it down anywhere and it will answer when it hears you.'
+      },
+      /* THE BREEDING RECIPES (Act VI · Breeding). ORDER IS LOAD-BEARING: canMake returns the
+       * FIRST recipe whose needs are all met, so the complete strain must come before the
+       * partials, or a full hopper would settle for a corpse. A strain must do three
+       * impossible things — eat astrophage (14), survive his ammonia, survive her air (19).
+       * Feed the incubator all three living ingredients and it lives; leave one out and it
+       * hands you a dead strain (18) whose absence tells you which sky you forgot. */
+      {
+        id: 'breed_live',
+        name: 'Flight strain',
+        needs: [{ block: 17, n: 1 }, { block: 14, n: 1 }, { block: 19, n: 1 }],
+        gives: 17, live: true,
+        note: 'It ate the red, took my ammonia, took her air — and it is still moving. One bug, two skies. This is the one that rides home.'
+      },
+      {
+        id: 'breed_deadHers',
+        name: 'Dead strain (her air)',
+        needs: [{ block: 17, n: 1 }, { block: 14, n: 1 }],
+        gives: 18, fail: true,
+        note: 'It ate the red and loved my air — and one breath of hers killed it. It cannot ride in her ship. Put her air in the jar.'
+      },
+      {
+        id: 'breed_deadFood',
+        name: 'Dead strain (starved)',
+        needs: [{ block: 17, n: 1 }, { block: 19, n: 1 }],
+        gives: 18, fail: true,
+        note: 'It survives both skies and will not TOUCH the astrophage. A bug that will not eat the murderer is decoration. Feed it the red.'
       }
     ],
 

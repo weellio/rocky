@@ -1312,10 +1312,18 @@
     const slot = freeSlot(S);
     if (slot >= 0) S.slot = slot;
     setHeld(S, r.gives);
-    S.made++;
     f.made.push(r.id);
+    /* A RECIPE CAN FAIL ON PURPOSE. The breeding forge hands you back either a live strain
+     * or a CORPSE — a dead strain whose note tells you which sky killed it. A corpse is not
+     * a win (no S.made++, its own cue), but it is not nothing: it is the instrument talking,
+     * and the failures are what teach you. */
+    if (r.fail) {
+      cue(S, 'craft:fail');
+      return { ok: true, fed: fed, made: r.id, gives: r.gives, fail: true };
+    }
+    S.made++;
     cue(S, 'craft');
-    return { ok: true, fed: fed, made: r.id, gives: r.gives };
+    return { ok: true, fed: fed, made: r.id, gives: r.gives, live: !!r.live };
   }
 
   /* ================================================================
@@ -1568,6 +1576,39 @@
         const b = blockAt(S, p[0], p[1], p[2]);
         return b === 7 || b === 13;
       });
+    }
+
+    /* A BRED chapter is won when the forge has made the ONE strain that does all three
+     * impossible things — eats the red, survives his air, survives hers. Everything before
+     * it is corpses, and the corpses were the lesson. `c.bred` names the winning recipe. */
+    if (c.bred) return S.forges.some((f) => f.made.indexOf(c.bred) >= 0);
+
+    /* A CONTAIN chapter turns on whether the living thing STAYS PUT. Flood outward from the
+     * sample through everything it can cross (air, and — the betrayal — xenonite); if that
+     * flood can reach the world outside the box, it has leaked and you have failed. Wall it
+     * in the one thing it cannot cross (grit, the deaf dead stuff) and the flood is bounded,
+     * and it is held. A pure function of the walls you built, computed like repressurize. */
+    if (c.contain) {
+      const cross = c.contain.cross || [0, 7, 13, 17];   // air + loose/cast xenonite + taumoeba
+      const outside = {};
+      for (const o of c.contain.outside) outside[idx(S, o[0], o[1], o[2])] = 1;
+      const seen = {};
+      const q = [];
+      for (const s of c.contain.sample) { const i = idx(S, s[0], s[1], s[2]); if (!seen[i]) { seen[i] = 1; q.push(i); } }
+      while (q.length) {
+        const i = q.pop();
+        if (outside[i]) return false;                    // it got out
+        const x = i % S.w, z = ((i / S.w) | 0) % S.d, y = (i / (S.w * S.d)) | 0;
+        for (let n = 0; n < FACES; n++) {
+          const nx = x + NB[n][0], ny = y + NB[n][1], nz = z + NB[n][2];
+          if (!inside(S, nx, ny, nz)) continue;
+          const j = idx(S, nx, ny, nz);
+          if (seen[j]) continue;
+          if (cross.indexOf(blockAt(S, nx, ny, nz)) < 0) continue;
+          seen[j] = 1; q.push(j);
+        }
+      }
+      return true;                                       // never reached the outside — held
     }
 
     /* A CLEAR chapter is won when the red is GONE. You set the living green against the
