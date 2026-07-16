@@ -1164,10 +1164,17 @@ function frame(now) {
     }
   }
 
-  /* EVERY EAR'S OWN OPINION, shown honestly: the loudest thing it has ever heard,
-   * against what it needs. Not a hint — it is the engine's own number, the same
-   * one that decides. The player is told the truth and trusted with it. */
-  if (S.ears.length) {
+  /* A COUNTING CHAPTER shows what you have LAID against what she showed you — the same tally
+   * the engine solves by. PLAYTEST: "I put one on the six shelf and two on the ones and it isn't
+   * showing as correct." Placing blind, with a block that lands a cell short and silently does
+   * not count, is unfair; show him the number so he can see it land (or not). */
+  if (S.chapter.count) {
+    const cs = Sim.countState(S);
+    const ok = cs.total === cs.value && cs.ones < 6;
+    el('ear').style.opacity = '1';
+    el('ear').innerHTML = `<span>YOU LAID</span><br><span class="${ok ? 'on' : ''}">` +
+      `${cs.sixes}×6 + ${cs.ones} = ${cs.total}${ok ? '  ✓' : ''}</span>`;
+  } else if (S.ears.length) {
     el('ear').style.opacity = '1';
     el('ear').innerHTML = S.ears.map((e) => {
       const name = e.name || 'RESONATOR';
@@ -1490,7 +1497,7 @@ function load(id) {
   el('objective').textContent = S.chapter.objective;
   // the box holds the gauge count AND the resonator readout: hide it only when a
   // chapter has neither, or the ear goes invisible in every chapter without gauges.
-  el('gbox').style.display = (S.gauges.length || S.ears.length) ? '' : 'none';
+  el('gbox').style.display = (S.gauges.length || S.ears.length || S.chapter.count) ? '' : 'none';
   el('glabel').style.display = S.gauges.length ? '' : 'none';
   el('gcount').style.display = S.gauges.length ? '' : 'none';
   refreshGauges();

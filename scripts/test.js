@@ -2410,6 +2410,34 @@ group('LAUNCH: the one chapter you can see everything — and then you cannot', 
     'and he has a last word to say into it');
 });
 
+group('COUNTING is forgiving, and it shows its work', () => {
+  /* PLAYTEST: "I put one on the six shelf and two on the ones and it isn't showing as correct."
+   * A block lands at the first free cell in front of Rocky, so unless he is flush against the
+   * shelf it drops a cell SHORT and the old exact-cell tally silently ignored it. The count must
+   * accept a block laid ANYWHERE on the shelf, count only the blocks he carried (never the rock
+   * backstop), and report the running total so he is never guessing. */
+  const N = R.create(CFG, { seed: 1, chapter: 'numbers' });
+  eq(N.chapter.count.value, 8, 'she shows eight');
+  ok(!R.solved(N), 'nothing laid yet, nothing solved');
+  eq(R.countState(N).total, 0, 'and the readout says zero — the rock backstop does not count');
+
+  // lay them a cell SHORT of the exact cells, the way a real placement lands
+  R.setBlock(N, 20, 2, 6, 3);                          // one on the sixes shelf (short)
+  R.setBlock(N, 8, 2, 6, 3); R.setBlock(N, 8, 3, 6, 3); // two on the ones shelf (short)
+  R.rebuildSurface(N);
+  const cs = R.countState(N);
+  eq(cs.sixes, 1, 'one on sixes, counted though it landed short');
+  eq(cs.ones, 2, 'two on ones, counted though they landed short');
+  eq(cs.total, 8, 'one six and two — eight');
+  ok(R.solved(N), 'AND IT SOLVES — the answer he actually gave is the answer she was shown');
+
+  // six ones is a six: the base-six lesson still holds
+  const M = R.create(CFG, { seed: 1, chapter: 'numbers' });
+  for (let z = 5; z <= 7; z++) { R.setBlock(M, 8, 2, z, 3); R.setBlock(M, 8, 3, z, 3); R.setBlock(M, 8, 4, z, 3); }
+  R.rebuildSurface(M);
+  ok(R.countState(M).ones >= 6 && !R.solved(M), 'eight ones on the ones shelf is NOT eight — six ones is a six');
+});
+
 group('SLEEP: four shifts, and the ship changes while you are out', () => {
   /* You do your rounds, you sleep, the ship mutates, you do them again. The whole thing
    * has to hold together as a STATE MACHINE the player drives, not a cutscene: the next

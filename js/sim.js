@@ -1568,6 +1568,37 @@
    * the room is solved it is a dead arch and it says nothing — you cannot leave a job
    * half done by wandering into the door.
    * ============================================================== */
+  /* COUNTING, MADE FORGIVING. A block is placed at the first free cell in front of Rocky, so
+   * unless he stands flush against the shelf it lands on the floor a cell SHORT of the count
+   * cells and silently does not count — which reads as "I laid it right and the game is wrong."
+   * So do not demand the exact cells: tally the CARRIED blocks (girder/xenonite/grit — never the
+   * rock backstop or the plate floor) in a small box around the shelf, one cell of slack every
+   * horizontal way. The two shelves sit far apart, so their boxes never touch. */
+  function countTally(S, cells) {
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+    for (const p of cells) {
+      if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0];
+      if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1];
+      if (p[2] < z0) z0 = p[2]; if (p[2] > z1) z1 = p[2];
+    }
+    let n = 0;
+    for (let x = x0 - 1; x <= x1 + 1; x++)
+      for (let y = y0; y <= y1; y++)
+        for (let z = z0 - 1; z <= z1 + 1; z++) {
+          const b = blockAt(S, x, y, z);
+          if (b !== 0 && S.cfg.blocks[b] && S.cfg.blocks[b].carry) n++;
+        }
+    return n;
+  }
+  /* What the counting shelves hold right now, for the HUD — so the player can SEE the number he
+   * has laid out against the one he was shown, instead of placing blind and guessing. */
+  function countState(S) {
+    const c = S.chapter;
+    if (!c || !c.count) return null;
+    const sixes = countTally(S, c.count.sixes), ones = countTally(S, c.count.ones);
+    return { sixes: sixes, ones: ones, total: sixes * 6 + ones, value: c.count.value };
+  }
+
   function solved(S) {
     const c = S.chapter;
     if (c.walk && c.walk.length) {
@@ -1599,8 +1630,7 @@
      * sixes plus the ones equals hers — AND the ones shelf holds fewer than six, because
      * six ones is a six, and knowing that is the whole of what base six IS. */
     if (c.count) {
-      const tally = (cells) => cells.reduce((n, p) => n + (blockAt(S, p[0], p[1], p[2]) !== 0 ? 1 : 0), 0);
-      const sixes = tally(c.count.sixes), ones = tally(c.count.ones);
+      const sixes = countTally(S, c.count.sixes), ones = countTally(S, c.count.ones);
       return sixes * 6 + ones === c.count.value && ones < 6;
     }
 
@@ -2051,7 +2081,7 @@
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
-    stepNow, stepDone, stepWalk, chordOf, solved, stepExit, repressurize, inVacuum,
+    stepNow, stepDone, stepWalk, chordOf, solved, countState, stepExit, repressurize, inVacuum,
     stepFolk, folkClue, sleep, nearBunk, stepQuestions, stepLife,
     feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED
