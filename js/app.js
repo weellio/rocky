@@ -1412,6 +1412,39 @@ function endingBiped(x, y, z) {
   return g;
 }
 
+/* A second Eridian, built from Rocky's own baked body — his mate, Adrian. (Grace could never
+ * say her real name, so she called her Adrian, after the wife in an old film about winning a
+ * fight you were never meant to win. It fit.) Same animal as Rocky, a slightly warmer stone. */
+function buildEridian(tint, crack) {
+  const g = new THREE.Group();
+  const M = window.ROCKY_MODEL;
+  if (!M) return g;
+  crack = crack || [0.14, 0.55, 0.32];   // Rocky's cracks glow green; Adrian's, pink
+  const [MW, MH, MD] = M.dim;
+  const s = 1.15 / Math.max(MW, MH, MD);
+  let minY = Infinity;
+  for (const p of M.parts) for (let i = 1; i < p.cells.length; i += 3) minY = Math.min(minY, p.cells[i]);
+  const col = new THREE.Color();
+  const d = new THREE.Object3D();
+  for (const part of M.parts) {
+    const n = part.cells.length / 3;
+    if (!n) continue;
+    const mesh = new THREE.InstancedMesh(bakedBox(0.96), new THREE.MeshBasicMaterial({ vertexColors: true, fog: true }), n);
+    mesh.frustumCulled = false;
+    for (let i = 0, k = 0; i < part.cells.length; i += 3, k++) {
+      const x = part.cells[i], y = part.cells[i + 1], z = part.cells[i + 2];
+      d.position.set((x - MW / 2) * s, (y - minY) * s - 0.36, (z - MD / 2) * s);
+      d.scale.setScalar(s); d.updateMatrix(); mesh.setMatrixAt(k, d.matrix);
+      const up = (y - minY) / MH, grain = ((x * 7 + y * 13 + z * 5) % 5) / 5;
+      col.setRGB(tint[0] + up * 0.30 + grain * 0.05, tint[1] + up * 0.14 + grain * 0.03, tint[2] + up * 0.07);
+      if (((x * 5 + z * 3) % 11 === 0) && ((y * 7 + x) % 5 < 2)) col.setRGB(crack[0] + grain * 0.06, crack[1] + grain * 0.08, crack[2] + grain * 0.06);   // the light in their cracks — the same animal, a different glow
+      mesh.setColorAt(k, col);
+    }
+    g.add(mesh);
+  }
+  return g;
+}
+
 function renderEnding(now) {
   const t = (now - endT0) / 1000;
   // close, and low, and almost still — the two of them big in the frame, the sun between and
@@ -1442,14 +1475,23 @@ function startEnding() {
   const sun = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunDisc(), transparent: true, fog: false, depthWrite: false, blending: THREE.AdditiveBlending }));
   sun.scale.set(30, 30, 1); sun.position.set(-3, 2.5, -64); endGroup.add(sun);
 
-  // ROCKY (his own baked body) seated at the crest, and Grace beside him, both facing the light
+  // THE THREE OF THEM, at the crest, all facing the light none of them can see.
+  // ROCKY (his own baked body), his mate ADRIAN beside him (another Eridian), and GRACE.
   rocky.visible = true;
-  rocky.position.set(-0.6, 1.18, -0.7);
+  rocky.position.set(-0.35, 1.18, -0.7);
   rocky.scale.setScalar(1.7);
   rocky.quaternion.identity();               // his sculpt faces +x; turn him to face the sun (-z)
   rocky.rotateY(-Math.PI / 2);
-  const grace = endingBiped(0.55, 1.12, -0.75);
-  grace.scale.setScalar(1.6);
+
+  const adrian = buildEridian([0.52, 0.36, 0.40], [0.95, 0.52, 0.72]);   // his wife — lighter stone, PINK in her cracks where Rocky is green
+  adrian.position.set(-1.45, 1.18, -0.72);
+  adrian.scale.setScalar(1.62);
+  adrian.rotateY(-Math.PI / 2);
+  adrian.rotateY(0.28);                       // leaned a little toward him
+  endGroup.add(adrian);
+
+  const grace = endingBiped(0.85, 1.12, -0.78);      // a long way from her own star, home now
+  grace.scale.setScalar(1.55);
   endGroup.add(grace);
 
   scene.add(endGroup);
@@ -1460,9 +1502,9 @@ function startEnding() {
   div.innerHTML = '<p></p><p></p><p></p>';
   document.body.appendChild(div);
   const lines = [
-    'The sun is coming up over a world that is not dying.',
-    'Neither of them can see it. He has no eyes; she is not even looking; it does not matter in the least. It is there, and the warmth of it is on both their backs.',
-    'And they are up there in front of it anyway — an engineer with no eyes and a woman a long way from home — at the top of a warm mountain, together. That is the whole of it. It is enough. It is.'
+    'He made it home. Erid, warm again for the first time in anyone’s life, and him alive to feel it.',
+    'Adrian is beside him — his mate; Grace could never once say her true name, so she called her Adrian, after a film about winning a fight you were never meant to win, and it fit. And Grace is here too, further from her own star than anyone has ever been, home now on the only world that would have her.',
+    'None of the three of them can see the sun coming up over the mountain. It does not matter in the least. It is there, and the warmth of it is on all of them, and they are together, at the top of a world that is not dying. That is the whole of it. It is enough. It is.'
   ];
   const ps = div.querySelectorAll('p');
   lines.forEach((text, i) => {
