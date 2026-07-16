@@ -707,6 +707,9 @@ addEventListener('resize', resize);
 resize();
 
 function frame(now) {
+  /* THE ENDING is not the game — it is the one thing the game was never allowed to draw. So
+   * when it is running, the whole sonar renderer steps aside and we just hold the sunrise. */
+  if (ending) { renderEnding(now); requestAnimationFrame(frame); return; }
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
 
@@ -780,6 +783,8 @@ function frame(now) {
       const parting = (chosen && chosen.line) || S.chapter.lines.find((l) => l.at === 'done');
       if (parting) setTimeout(() => say(parting.chord, parting.text), 700);
       if (next) setTimeout(() => load(next.id), parting ? 6200 : 3400);
+      // THE LAST CHAPTER. When there is no next room, there is a sunrise instead.
+      else setTimeout(() => startEnding(), parting ? 6200 : 3400);
     }
     if (id === 'ear') {
       const line = S.chapter.lines.find((l) => l.at === 'ear');
@@ -1349,6 +1354,134 @@ function load(id) {
   if (open[0]) say(open[0].chord, open[0].text);
   if (open[1]) setTimeout(() => say(open[1].chord, open[1].text), 5600);
 }
+/* ================= THE ENDING =================
+ * A cutscene, and the only light in the entire game.
+ *
+ * Everything until now has been drawn out of echoes — no sun, no sky, no colour that Rocky's
+ * pulse did not put there, because Rocky has no eyes and neither does his whole world. So the
+ * ending breaks the one rule the game has kept for twenty-nine chapters: it shows a SUNRISE.
+ * Not for them — they cannot see it; he never could, and she is not even looking — but for
+ * YOU, who have eyes, so that you can see the thing they saved and they never will. And the
+ * two of them are up there in front of it anyway, on a mountain, at the top of a world that is
+ * not dying, with the warmth of it on their backs, together. That is the whole of it.
+ */
+let ending = false;
+let endT0 = 0;
+const endGroup = new THREE.Group();
+
+function sunriseSky() {
+  const c = document.createElement('canvas'); c.width = 8; c.height = 512;
+  const g = c.getContext('2d');
+  const grd = g.createLinearGradient(0, 0, 0, 512);
+  grd.addColorStop(0.00, '#0a0f2e');   // deep indigo, the last of the night
+  grd.addColorStop(0.34, '#3b2450');   // violet
+  grd.addColorStop(0.58, '#7e3a34');   // dusk red
+  grd.addColorStop(0.78, '#e8730f');   // amber — the palette's orange, spent one last time
+  grd.addColorStop(0.92, '#ffc65a');   // gold
+  grd.addColorStop(1.00, '#fff4d2');   // the horizon, almost white
+  g.fillStyle = grd; g.fillRect(0, 0, 8, 512);
+  return new THREE.CanvasTexture(c);
+}
+function sunDisc() {
+  const N = 128, c = document.createElement('canvas'); c.width = c.height = N;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(N / 2, N / 2, 0, N / 2, N / 2, N / 2);
+  grd.addColorStop(0.0, 'rgba(255,250,235,1)');
+  grd.addColorStop(0.18, 'rgba(255,224,150,0.95)');
+  grd.addColorStop(0.45, 'rgba(255,150,40,0.5)');
+  grd.addColorStop(1.0, 'rgba(255,120,20,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, N, N);
+  return new THREE.CanvasTexture(c);
+}
+function endingBiped(x, y, z) {
+  const g = new THREE.Group();
+  const O = 0xd9660c, Od = 0x7a3d08, panel = 0x3a2a18;
+  const box = (w, h, d, bx, by, bz, col) => {
+    const m = new THREE.Mesh(bakedBox(0.96), new THREE.MeshBasicMaterial({ color: col, fog: true }));
+    m.scale.set(w, h, d); m.position.set(bx, by, bz); g.add(m);
+  };
+  // seated: knees up in front, torso back, head bowed toward the light
+  box(0.32, 0.30, 0.20, 0, 0.30, 0, O);          // torso
+  box(0.16, 0.16, 0.34, -0.09, 0.10, 0.14, Od);  // left leg, folded forward
+  box(0.16, 0.16, 0.34, 0.09, 0.10, 0.14, Od);   // right leg, folded forward
+  box(0.14, 0.22, 0.12, -0.20, 0.28, 0.08, Od);  // left arm, resting on knee
+  box(0.14, 0.22, 0.12, 0.20, 0.28, 0.08, Od);   // right arm
+  box(0.19, 0.19, 0.19, 0, 0.52, 0.02, O);       // head
+  box(0.19, 0.13, 0.04, 0, 0.53, 0.12, panel);   // the flat panel on the front of her head
+  g.position.set(x, y, z);
+  return g;
+}
+
+function renderEnding(now) {
+  const t = (now - endT0) / 1000;
+  // close, and low, and almost still — the two of them big in the frame, the sun between and
+  // beyond them, and just a breath of drift so it does not feel like a screenshot
+  camera.position.set(Math.sin(t * 0.05) * 0.8, 2.05 + Math.sin(t * 0.08) * 0.08, 4.4);
+  camera.lookAt(-0.05, 1.55, -30);
+  renderer.render(scene, camera);
+}
+
+function startEnding() {
+  ending = true;
+  endT0 = performance.now();
+  // the HUD (and the codex button) have nothing left to say
+  [].forEach.call(document.querySelectorAll('.hud, #codexbtn, #touch'), (el) => { el.style.opacity = '0'; el.style.display = 'none'; });
+  // the one light
+  scene.background = sunriseSky();
+  scene.fog = new THREE.Fog(0xd98a4a, 24, 130);
+  // the sonar world steps aside
+  for (const id in MESH) MESH[id].count = 0;
+  labels.clear(); folkGroup.clear(); ringMesh.visible = false; ambRing.visible = false;
+
+  const dark = new THREE.MeshBasicMaterial({ color: 0x0c0a14, fog: true });
+  const mk = (w, h, d, x, y, z) => { const m = new THREE.Mesh(bakedBox(1), dark); m.scale.set(w, h, d); m.position.set(x, y, z); endGroup.add(m); };
+  mk(16, 9, 16, 0, -5.1, 0);                 // the broad peak they are sitting on
+  mk(10, 5, 10, 0, -0.9, -0.5);
+  for (let i = 0; i < 9; i++) { const x = (i - 4) * 10; mk(8, 3 + ((i * 7) % 5), 8, x, -3, -36 - (i % 3) * 9); }   // distant ridgeline
+
+  const sun = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunDisc(), transparent: true, fog: false, depthWrite: false, blending: THREE.AdditiveBlending }));
+  sun.scale.set(30, 30, 1); sun.position.set(-3, 2.5, -64); endGroup.add(sun);
+
+  // ROCKY (his own baked body) seated at the crest, and Grace beside him, both facing the light
+  rocky.visible = true;
+  rocky.position.set(-0.6, 1.18, -0.7);
+  rocky.scale.setScalar(1.7);
+  rocky.quaternion.identity();               // his sculpt faces +x; turn him to face the sun (-z)
+  rocky.rotateY(-Math.PI / 2);
+  const grace = endingBiped(0.55, 1.12, -0.75);
+  grace.scale.setScalar(1.6);
+  endGroup.add(grace);
+
+  scene.add(endGroup);
+
+  // and the last words, for the player who has eyes
+  const div = document.createElement('div');
+  div.id = 'ending';
+  div.innerHTML = '<p></p><p></p><p></p>';
+  document.body.appendChild(div);
+  const lines = [
+    'The sun is coming up over a world that is not dying.',
+    'Neither of them can see it. He has no eyes; she is not even looking; it does not matter in the least. It is there, and the warmth of it is on both their backs.',
+    'And they are up there in front of it anyway — an engineer with no eyes and a woman a long way from home — at the top of a warm mountain, together. That is the whole of it. It is enough. It is.'
+  ];
+  const ps = div.querySelectorAll('p');
+  lines.forEach((text, i) => {
+    setTimeout(() => {
+      ps[i].classList.add('show');
+      if (window.ROCKY_DECODE) {
+        const start = performance.now();
+        const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+        const tick = (n2) => {
+          const tt = Math.min(1, (n2 - start) / 2600);
+          ps[i].innerHTML = ROCKY_DECODE.frame(text, tt).map((q) => q.hot ? '<span class="glx">' + esc(q.c) + '</span>' : esc(q.c)).join('');
+          if (tt < 1) requestAnimationFrame(tick); else ps[i].textContent = text;
+        };
+        requestAnimationFrame(tick);
+      } else ps[i].textContent = text;
+    }, 1800 + i * 4200);
+  });
+}
+
 load(CFG.chapters[0].id);
 requestAnimationFrame(frame);
 
@@ -1380,6 +1513,7 @@ window.__rocky = {
   pulse: doPulse,
   read: doRead,
   sleep: doSleep,
+  ending: startEnding,
   shift: () => S.shift,
   tp: (x, y, z) => { S.player.x = x; S.player.y = y; S.player.z = z; S.player.vy = 0; },
   cam: () => ({

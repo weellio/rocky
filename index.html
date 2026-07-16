@@ -283,6 +283,14 @@
      is painted cyan and split into red/blue ghosts, so a word visibly tears as it turns
      from Rocky's dots into our letters. Settled letters inherit their normal colour. */
   .glx{color:#8fe9ff;text-shadow:1.2px 0 rgba(255,59,107,.9),-1.2px 0 rgba(55,224,255,.9);}
+  /* THE ENDING — the last words, over the one sunrise the game ever draws. */
+  #ending{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:0 6vw 8vh;
+    display:flex;flex-direction:column;align-items:center;gap:18px;pointer-events:none;
+    text-align:center;text-shadow:0 2px 24px #000,0 0 40px rgba(0,0,0,.6)}
+  #ending p{max-width:60ch;font-size:clamp(15px,2.1vw,21px);line-height:1.7;color:#fff6ea;
+    opacity:0;transition:opacity 1.6s ease}
+  #ending p:last-child{color:#ffe6b0;font-size:clamp(16px,2.3vw,23px)}
+  #ending p.show{opacity:1}
   .decoding{animation:decflick .09s steps(2) infinite;}
   @keyframes decflick{50%{opacity:.86;filter:brightness(1.25)}}
   /* THE LANDING GLITCH — a sonar decode on the front-door title. The word tears into
