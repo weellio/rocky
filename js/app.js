@@ -1292,10 +1292,15 @@ function makeLabel(text, color, seeThrough) {
 
 function buildLabels() {
   labels.clear();
-  // the way out labels itself, in every chapter, without anybody remembering to
-  if (S.exit) {
+  /* THE WAY OUT labels itself, in every chapter, without anybody remembering to — UNLESS
+   * the chapter offers a choice of ways out (The Turn), in which case each arch is a real
+   * decision and gets its OWN name from the chapter's labels, and a generic "THE WAY OUT"
+   * stamped on one of them would be a thumb on the scale. */
+  const exits = (S.exits && S.exits.length) ? S.exits : (S.exit ? [{ at: S.exit }] : []);
+  if (exits.length === 1) {
+    const e = exits[0].at;
     const sp = makeLabel('THE WAY OUT', '#4dff9e', true);   // a beacon: seen through the rock
-    sp.position.set(S.exit[0] + 0.5, S.exit[1] + 1.5, S.exit[2] + 0.5);
+    sp.position.set(e[0] + 0.5, e[1] + 1.5, e[2] + 0.5);
     sp.userData.exit = true;
     labels.add(sp);
   }

@@ -343,6 +343,7 @@
       const sp = ground(a), ex = ground(b.at);
       S.player.x = sp[0] + 0.5; S.player.y = sp[1] + 0.5; S.player.z = sp[2] + 0.5;
       S.exit = ex;
+      S.exits = [{ id: 'exit', at: ex, line: null }];   // the generated exit IS the way out — keep the list in sync so its beacon gets placed
       S.warrenWalk = b.d;      // how long the journey actually is, in cells
 
       /* AND PUT PEOPLE IN IT.
@@ -1611,6 +1612,12 @@
       return true;                                       // never reached the outside — held
     }
 
+    /* A HOLD chapter is "won" the moment you are CARRYING the thing — the cure, the one
+     * sample there is. That is all the engine gates on (The Turn): once it is in his arms,
+     * both ways out hum, and where he spends it is not a puzzle with a right answer. It is
+     * a choice, and the game will not make it. */
+    if (c.hold) return S.belt.indexOf(c.hold) >= 0;
+
     /* A CLEAR chapter is won when the red is GONE. You set the living green against the
      * astrophage and let it eat: the hole closes, cell by cell, and the room behind the
      * murder opens up and rings. Solved when no `of`-block is left anywhere in the region. */
@@ -1635,7 +1642,7 @@
   }
 
   function stepExit(S, dt) {
-    if (!S.exit) return;
+    if (!S.exits.length) return;
     const open = solved(S);
     if (open && !S.flags.exitOpen) {
       S.flags.exitOpen = true;
@@ -1643,24 +1650,34 @@
     }
     if (!open) return;
 
-    // it calls, so you can always find it — until you have walked through it, and then
-    // there is nothing left to call you anywhere, which in Launch is the point
+    /* EVERY way out hums, and — this is the whole of The Turn — they hum IDENTICALLY. Same
+     * source, same amplitude, same range, so nothing in the sound tips the scale toward one
+     * choice or the other. The game will not decide for you. It calls, so you can always
+     * find them, until you have walked through one, and then it all goes quiet. */
     if (!S.flags.done) {
       S.exitCd -= dt;
       if (S.exitCd <= 0) {
         const k = S.cfg.sourceKinds.exit;
         S.exitCd += k.period;
-        emit(S, S.exit[0] + 0.5, S.exit[1] + 0.5, S.exit[2] + 0.5, k.amp, 99, k.range);
+        for (const ex of S.exits) emit(S, ex.at[0] + 0.5, ex.at[1] + 0.5, ex.at[2] + 0.5, k.amp, 99, k.range);
         cue(S, 'source:exit');
       }
     }
 
     if (S.flags.done) return;
     const p = S.player;
-    const d = Math.hypot(p.x - (S.exit[0] + 0.5), p.y - (S.exit[1] + 0.5), p.z - (S.exit[2] + 0.5));
-    if (d <= 1.6) {
-      S.flags.done = true;
-      cue(S, 'done');
+    for (const ex of S.exits) {
+      const d = Math.hypot(p.x - (ex.at[0] + 0.5), p.y - (ex.at[1] + 0.5), p.z - (ex.at[2] + 0.5));
+      if (d <= 1.6) {
+        /* THE COMMITMENT. On first arrival at ANY way out it latches — there is no trying
+         * the other one, the way there is no unmaking a goodbye. Which one is remembered
+         * (flags.chose) so the epilogue can know what kind of goodbye this was. */
+        S.flags.done = true;
+        S.flags.chose = ex.id;
+        cue(S, 'done');
+        if (ex.id !== 'exit') cue(S, 'chose:' + ex.id);
+        return;
+      }
     }
   }
 
@@ -1825,7 +1842,13 @@
       builtN: 0,
       stepI: 0,
       stepDoneN: 0,
-      exit: chapter.exit || null,
+      /* THE WAY OUT — usually one, but a chapter can offer a real CHOICE of them (The Turn).
+       * A single `exit` wraps to a one-element list, so every existing chapter is unaffected;
+       * `exits` is the list the engine actually walks, and S.exit stays pointing at the first
+       * so the renderer's beacon and the old tests keep working. */
+      exits: (chapter.exits || (chapter.exit ? [{ id: 'exit', at: chapter.exit }] : []))
+        .map((e) => ({ id: e.id, at: e.at, line: e.line || null })),
+      exit: chapter.exit || (chapter.exits && chapter.exits[0] && chapter.exits[0].at) || null,
       exitCd: 0,
       folk: (chapter.folk || []).map((f) => Object.assign({ met: false, near: false, cd: 0, alive: true }, f)),
       lostN: 0,
@@ -1859,7 +1882,7 @@
     }
     for (const d of S.doors) for (const c of d.cells) setBlock(S, c[0], c[1], c[2], 8);
     for (const f of S.forges) setBlock(S, f.at[0], f.at[1], f.at[2], 12);
-    if (S.exit) setBlock(S, S.exit[0], S.exit[1], S.exit[2], 15);
+    for (const ex of S.exits) setBlock(S, ex.at[0], ex.at[1], ex.at[2], 15);
 
     /* THE PEOPLE A GENERATOR PUTS IN A CAVE.
      * They are not decoration and they do not read from a script: each of them WALKS the
