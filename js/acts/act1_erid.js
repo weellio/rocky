@@ -60,13 +60,36 @@
         { op: 'tunnel', from: [22, 4, 30], to: [22, 4, 17], r: 1.9, wander: 0.8 },
         { op: 'spikes', from: [3, 4, 3], to: [40, 13, 40], amount: 0.13 },
         { op: 'rubble', from: [3, 2, 3], to: [40, 8, 40], amount: 0.13 },
+
+        /* --- LIFE ON THE STONE (rock->flora, acoustically inert) --- */
+        { op: 'flora', from: [16, 2, 27], to: [30, 11, 39], amount: 0.16, bloom: 0.45 },  // the workshop, mossy walls + blooms in the vault
+        { op: 'flora', from: [6, 2, 5], to: [30, 11, 16], amount: 0.20, bloom: 0.50 },     // the warm deep hall, lush
+        { op: 'flora', from: [20, 2, 7], to: [38, 13, 25], amount: 0.11, bloom: 0.35 },    // throat + tall shaft, sparse
+        /* --- VERTICALITY: two wall-anchored galleries in the tall rooms --- */
+        { op: 'fill', from: [34, 7, 8], to: [38, 7, 12], block: 2 },   // mezzanine in the tall shaft-room
+        { op: 'fill', from: [22, 7, 4], to: [27, 7, 8], block: 3 },    // girder gallery high in the deep hall
+        /* --- DWELLINGS: Eridians keep their own rooms, carved into the rock --- */
+        { op: 'room', from: [31, 1, 30], to: [34, 4, 33], floor: 2 },  // a niche off the workshop's east wall
+        { op: 'fill', from: [32, 1, 31], to: [33, 1, 32], block: 7 },  // a worn xenonite rest-pad
+        { op: 'flora', from: [31, 2, 30], to: [34, 4, 33], amount: 0.22, bloom: 0.60 },    // their own little garden
+        { op: 'room', from: [2, 1, 7], to: [5, 4, 11], floor: 2 },     // a second dwelling off the deep hall's west wall
+        { op: 'fill', from: [3, 1, 8], to: [4, 1, 10], block: 7 },
+        { op: 'flora', from: [2, 2, 7], to: [5, 4, 11], amount: 0.22 },
+        /* --- COLOUR: material districts on wall faces --- */
+        { op: 'set', at: [16, 5, 39], block: 4 }, { op: 'set', at: [9, 6, 15], block: 3 }, { op: 'set', at: [33, 9, 8], block: 5 },
+
         { op: 'set', at: [34, 2, 10], block: 15 }
       ],
       sources: [
         { at: [24, 3, 39], kind: 'vent' },
         { at: [12, 4, 4], kind: 'vent' },
         { at: [18, 3, 33], kind: 'pipe' },
-        { at: [28, 4, 39], kind: 'drip' }
+        { at: [28, 4, 39], kind: 'drip' },
+        // the warren is inhabited
+        { at: [23, 4, 38], kind: 'skitter' },
+        { at: [10, 5, 10], kind: 'warble' },
+        { at: [33, 3, 32], kind: 'drone' },
+        { at: [34, 4, 9], kind: 'skitter' }
       ],
       /* The gauges. Each reads a temperature, in base six, and each has
        * drifted DOWN from where it should sit. That drift is the plot. */
@@ -281,10 +304,24 @@
         { op: 'cave', at: [22, 5, 33], r: 5, ry: 3.5, wobble: 0.45 },
         { op: 'spikes', from: [3, 5, 3], to: [40, 13, 40], amount: 0.10 },
         { op: 'rubble', from: [3, 2, 3], to: [40, 8, 40], amount: 0.11 },
+
+        /* --- LIFE ON THE STONE (inert) + a listening gallery + a dwelling, all far from every ear --- */
+        { op: 'flora', from: [14, 2, 27], to: [30, 10, 39], amount: 0.18, bloom: 0.50 },  // the assembly floor
+        { op: 'flora', from: [16, 2, 5], to: [28, 8, 11], amount: 0.14, bloom: 0.40 },     // a garden behind the council door
+        { op: 'fill', from: [20, 6, 38], to: [24, 6, 40], block: 2 },   // a listening gallery over the south wall
+        { op: 'room', from: [16, 1, 41], to: [19, 3, 42], floor: 2 },   // a dwelling off the assembly's south wall
+        { op: 'fill', from: [17, 1, 41], to: [18, 1, 41], block: 7 },   // rest-pad
+        { op: 'flora', from: [16, 2, 41], to: [19, 3, 42], amount: 0.22, bloom: 0.60 },
+        { op: 'set', at: [22, 6, 40], block: 3 },
+
         { op: 'set', at: [22, 2, 6], block: 15 }
       ],
       sources: [
-        { at: [16, 3, 39], kind: 'vent' }
+        { at: [16, 3, 39], kind: 'vent' },
+        // fauna, each placed OUT OF its own range of every ear (verified by the drafter)
+        { at: [18, 3, 39], kind: 'skitter' },
+        { at: [22, 5, 38], kind: 'warble' },
+        { at: [26, 3, 39], kind: 'drone' }
       ],
       gauges: [],
       /* MEASURED, all three, and printed by the suite. From anywhere on the
@@ -366,10 +403,27 @@
         { op: 'fill', from: [52, 3, 12], to: [53, 3, 12], block: 1 },
 
         { op: 'set', at: [4, 2, 10], block: 5 },
+
+        /* --- LIFE ON THE STONE (inert rock->flora; skips bells/doors/xenonite) + a dwelling in the bell-free bore head --- */
+        { op: 'flora', from: [2, 2, 8], to: [10, 6, 16], amount: 0.18, bloom: 0.50 },   // the bore head
+        { op: 'flora', from: [15, 2, 8], to: [23, 6, 16], amount: 0.14, bloom: 0.40 },  // BELL I gallery
+        { op: 'flora', from: [29, 2, 8], to: [37, 6, 16], amount: 0.16, bloom: 0.45 },  // BELL II gallery
+        { op: 'flora', from: [43, 2, 8], to: [51, 6, 16], amount: 0.14, bloom: 0.40 },  // BELL III gallery
+        { op: 'flora', from: [54, 2, 9], to: [58, 6, 15], amount: 0.12, bloom: 0.35 },  // the instrument's chamber
+        { op: 'fill', from: [2, 4, 9], to: [4, 4, 10], block: 2 },      // a small shelf in the bore head
+        { op: 'room', from: [3, 1, 17], to: [6, 3, 19], floor: 2 },     // a dwelling south of the bore head
+        { op: 'fill', from: [4, 1, 18], to: [5, 1, 18], block: 7 },     // rest-pad
+        { op: 'flora', from: [3, 2, 17], to: [6, 3, 19], amount: 0.22, bloom: 0.60 },
+        { op: 'set', at: [2, 5, 9], block: 4 },
+
         { op: 'set', at: [57, 2, 12], block: 15 }
       ],
       sources: [
-        { at: [4, 3, 10], kind: 'vent' }
+        { at: [4, 3, 10], kind: 'vent' },
+        // fauna in the bore head, out of range of BELL I (verified)
+        { at: [3, 3, 10], kind: 'skitter' },
+        { at: [6, 4, 14], kind: 'warble' },
+        { at: [8, 3, 9], kind: 'drone' }
       ],
       gauges: [],
       /* MEASURED. A bell's shout carries 30 cells: far enough to reach the next

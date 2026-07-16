@@ -515,7 +515,10 @@
        * and so far-reaching it lights the ship end to end, on its own clock, until you
        * strap in. */
       sources: [
-        { at: [5, 3, 10], kind: 'burn' }
+        { at: [5, 3, 10], kind: 'burn' },
+        // a breath of shipboard life clinging to the warm aft, near the drive — the burn all but drowns it
+        { at: [6, 3, 10], kind: 'drone' },
+        { at: [4, 2, 6], kind: 'skitter' }
       ],
       /* THE LAUNCH CHECKLIST. Three boards, read on the way forward. Reading them is the
        * only thing that opens the couch — a crossing with a reason, not a corridor. */
