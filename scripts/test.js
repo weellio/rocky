@@ -3152,6 +3152,27 @@ group('BETRAYAL: xenonite is a sieve — only grit holds the living thing', () =
   ok(R.containState(X).contained === false, 'a xenonite wall still reads LEAKING — the betrayal made visible');
   ok(R.containState(G).contained === true, 'and only the grit wall reads HELD');
 
+  /* PLAYTEST (ch28): "I can't replace the taumoeba with grit — as soon as I lift it, another grows
+   * in." The regrow beats lift-then-place. So placing onto the living block SWAPS: grit goes down,
+   * the taumoeba comes up into your arms. Face the breach with grit and drop it — done, no race. */
+  const P = mk();
+  R.setBlock(P, 15, 2, 7, 17); R.setBlock(P, 15, 3, 7, 17); R.rebuildSurface(P);   // it has grown into the breach
+  P.player.x = 15.5; P.player.y = 2.5; P.player.z = 8.5; P.player.yaw = 0;          // on the walkway, facing the breach
+  R.setHeld(P, 9);
+  const s1 = R.placeBlock(P);
+  ok(s1.ok && R.blockAt(P, 15, 2, 7) === 9, 'grit dropped straight onto the living block takes its place');
+  eq(s1.swapped, 17, 'and the taumoeba it displaced comes up into his arms');
+  eq(R.held(P), 17, 'so he is now holding the green');
+  R.setHeld(P, 9);
+  R.placeBlock(P);
+  ok(R.solved(P), 'seal the second cell the same way and the breach is HELD — no lift-vs-regrow race');
+  // and it never swaps the floor out from under a placement, nor a block identical to what you hold
+  const D = R.create(CFG, { seed: 1, chapter: 'deep' });
+  D.player.x = 12.5; D.player.y = 3.5; D.player.z = 30.5; D.player.yaw = Math.PI / 2;
+  R.setHeld(D, 9);
+  const df = R.placeBlock(D);
+  ok(df.ok && !df.swapped, 'a plain placement onto air still just places — the floor is not swapped away');
+
   // a half-built wall is still a leak
   const H = mk();
   R.setBlock(H, 15, 2, 7, 9);

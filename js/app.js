@@ -794,7 +794,10 @@ function doPlace() {
   const r = Sim.placeBlock(S);
   if (!r.ok) { flash(r.why); return; }
   ringFrom({ x: r.at[0] + 0.5, y: r.at[1] + 0.5, z: r.at[2] + 0.5 });   // the bang is a sound like any other
-  if (r.block === 14) buildAstroMarkers();   // a sample set down — mark it where it now sits
+  if (r.swapped) {                            // you dropped a block onto a liftable one; they traded places
+    flash(`${CFG.blocks[r.block].name} down · ${CFG.blocks[r.swapped].name} in hand`);
+  }
+  if (r.block === 14 || r.swapped === 14) buildAstroMarkers();   // a sample moved — refresh its marker
 }
 
 /* ---------- HUD ---------- */

@@ -925,24 +925,37 @@
     const pz0 = Math.floor(p.z - hx), pz1 = Math.floor(p.z + hx);
     // Prefer setting a block on the floor ahead (a step, a plinth) over shoving one at
     // body height right in his face.
+    const b = held(S);
     for (let t = 0.8; t <= 2.6; t += 0.2) {
       for (const dy of [-1, 0, 1]) {
         const x = Math.floor(p.x + dx * t), y = Math.floor(p.y) + dy, z = Math.floor(p.z + dz * t);
-        if (!inside(S, x, y, z) || isSolid(S, x, y, z)) continue;
+        if (!inside(S, x, y, z)) continue;
+        /* PLACING ONTO A PICKUPABLE BLOCK SWAPS. Air and vacuum are open as always; solid rock or
+         * xenonite still blocks a placement. But if you are FACING something you could have LIFTED
+         * — the living taumoeba growing back into a breach — your block goes down and that one comes
+         * up into your arms, the two trading places. It kills the unwinnable lift-then-place race
+         * against the growth: face the breach, drop the grit, done. Two guards keep it sane: only a
+         * block at face height (dy>=0, never the floor at your feet — a girder LEDGE is pickupable
+         * too, and you must be able to build on it), and never one identical to what you hold (so a
+         * second grit does not pop the first straight back out). */
+        const cur = blockAt(S, x, y, z);
+        const solid = S.solidOf[cur];
+        const swap = dy >= 0 && solid && cur !== b && S.cfg.blocks[cur] && S.cfg.blocks[cur].carry;
+        if (solid && !swap) continue;                          // solid and not a swap: cannot build here
         // never place inside — or flush against — the body doing the placing
         if (x >= px0 && x <= px1 && y >= py0 && y <= py1 && z >= pz0 && z <= pz1) continue;
-        const b = held(S);
+        if (cur === 11) removeBell(S, x, y, z);                // a bell you displaced stops listening
         setBlock(S, x, y, z, b);
         repressurize(S);            // ...and seal a breach and it comes straight back
         rebuildSurface(S);
-        setHeld(S, 0);
+        setHeld(S, swap ? cur : 0);                            // SWAP: the block you displaced is now in your arms
         if (b === 11) addBell(S, x, y, z);      // set a bell down and it starts listening
         cue(S, 'place');
         // it lands with a bang, and the bang is a sound like any other
         // the block bangs on its own, IN ITS OWN VOICE — and the astrophage in his vest
         // cannot muffle a noise he did not make with his mouth
         emit(S, x + 0.5, y + 0.5, z + 0.5, S.cfg.sonar.placeAmp, 0, S.cfg.sonar.placeRange, null, S.cfg.blocks[b].note);
-        return { ok: true, block: b, at: [x, y, z] };
+        return { ok: true, block: b, at: [x, y, z], swapped: swap ? cur : 0 };
       }
     }
     return { ok: false, why: 'no room' };
