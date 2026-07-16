@@ -1626,6 +1626,16 @@
     const sixes = countTally(S, c.count.sixes), ones = countTally(S, c.count.ones);
     return { sixes: sixes, ones: ones, total: sixes * 6 + ones, value: c.count.value };
   }
+  /* How much of a breach is sealed, for the HUD — a build_target wants EVERY cell to become
+   * xenonite (7/13), and one open cell still vents the chamber, so "5 of 6" tells the player he
+   * is not done and there is a hole left to find (the breach is more than one cell deep). */
+  function buildState(S) {
+    const c = S.chapter;
+    if (!c || !c.build_target) return null;
+    let done = 0;
+    for (const p of c.build_target) { const b = blockAt(S, p[0], p[1], p[2]); if (b === 7 || b === 13) done++; }
+    return { done: done, total: c.build_target.length };
+  }
 
   function solved(S) {
     const c = S.chapter;
@@ -2109,7 +2119,7 @@
     blockAt, setBlock, isSolid, idx, inside, collides, rebuildSurface,
     readGauge, nearestGauge, toBase6, updateHeat, stepPlayer, applyOp,
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
-    stepNow, stepDone, stepWalk, chordOf, solved, countState, stepExit, repressurize, inVacuum,
+    stepNow, stepDone, stepWalk, chordOf, solved, countState, buildState, stepExit, repressurize, inVacuum,
     stepFolk, folkClue, sleep, nearBunk, stepQuestions, stepLife,
     feedForge, takeFromForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED

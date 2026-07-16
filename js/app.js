@@ -1179,6 +1179,13 @@ function frame(now) {
     el('ear').style.opacity = '1';
     el('ear').innerHTML = `<span>YOU LAID</span><br><span class="${ok ? 'on' : ''}">` +
       `${cs.sixes}×6 + ${cs.ones} = ${cs.total}${ok ? '  ✓' : ''}</span>`;
+  } else if (S.chapter.build_target) {
+    // building a wall into a breach — show how many cells are sealed, so an open one is obvious
+    const bs = Sim.buildState(S);
+    const ok = bs.done === bs.total;
+    el('ear').style.opacity = '1';
+    el('ear').innerHTML = `<span>BREACH SEALED</span><br><span class="${ok ? 'on' : ''}">` +
+      `${bs.done} / ${bs.total}${ok ? '  ✓' : ''}</span>`;
   } else if (S.ears.length) {
     el('ear').style.opacity = '1';
     el('ear').innerHTML = S.ears.map((e) => {
@@ -1502,7 +1509,7 @@ function load(id) {
   el('objective').textContent = S.chapter.objective;
   // the box holds the gauge count AND the resonator readout: hide it only when a
   // chapter has neither, or the ear goes invisible in every chapter without gauges.
-  el('gbox').style.display = (S.gauges.length || S.ears.length || S.chapter.count) ? '' : 'none';
+  el('gbox').style.display = (S.gauges.length || S.ears.length || S.chapter.count || S.chapter.build_target) ? '' : 'none';
   el('glabel').style.display = S.gauges.length ? '' : 'none';
   el('gcount').style.display = S.gauges.length ? '' : 'none';
   refreshGauges();

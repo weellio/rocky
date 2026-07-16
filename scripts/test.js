@@ -2930,6 +2930,12 @@ group('THE WALL: the engineer builds the thing he is best at', () => {
   R.repressurize(H);
   eq(R.blockAt(H, 8, 3, 7), 16, 'one cell still open, and the whole chamber is still vacuum');
   ok(!R.solved(H), 'you cannot leave a hole in it and call it a wall');
+  /* PLAYTEST (ch22): "I have the 8 cubes where I need them but I'm not sure what else to do."
+   * The breach is 6 cells across two depths, and with no readout an open cell is invisible.
+   * buildState feeds the HUD "5 / 6" so the last hole is obvious. */
+  eq(R.buildState(H).done, 5, 'the HUD can say 5 of 6 sealed, so the open cell is not a mystery');
+  eq(R.buildState(H).total, 6, 'out of six');
+  eq(R.buildState(mkw()).done, 0, 'and zero before he starts');
 
   const G = mkw();
   for (let i = 0; i < 5; i++) R.setBlock(G, cells[i][0], cells[i][1], cells[i][2], 7);
