@@ -1091,6 +1091,24 @@ group('THE FORGE: he makes the thing that was not there', () => {
   eq(R.held(S), 11, 'and he is holding it');
   eq(S.made, 3, 'three things made');
 
+  /* AND THE FORGE IS NOT A ONE-WAY TRAP. PLAYTEST (ch22 The Wall): "I put all the xenonite into
+   * the forge and don't think I have enough... once something is in the forge we can't get it
+   * out unless it converts." That can soft-lock a level. A block still sitting in the hopper,
+   * un-forged, must come back out — the one it holds most of first (the mistake). */
+  const T = fg();
+  R.setHeld(T, 0);
+  const tf = T.forges[0];
+  tf.hopper[7] = 3; tf.hopper[9] = 1;                 // fed three xenonite and a grit, no recipe met
+  ok(!R.canMake(T, tf), 'a half-fed hopper that makes nothing would strand those blocks');
+  T.player.x = 4.5; T.player.y = 3; T.player.z = 12.5;
+  const back = R.takeFromForge(T);
+  ok(back.ok && back.block === 7, 'Q pulls the xenonite (the most-fed) back into his arms');
+  eq(tf.hopper[7], 2, 'and the hopper holds one fewer');
+  R.setHeld(T, 0); R.takeFromForge(T); R.setHeld(T, 0); R.takeFromForge(T); R.setHeld(T, 0);
+  eq(tf.hopper[7], 0, 'he can empty the xenonite back out');
+  R.setHeld(T, 3);
+  eq(R.takeFromForge(T).ok, false, 'but not with his hands already full');
+
   /* A BELL HE BUILT IS A BELL LIKE ANY OTHER.
    * The same list, the same rules, the same field. The moment there were two
    * kinds of bell they would begin to disagree, and the one on the screen would

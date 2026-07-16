@@ -706,7 +706,12 @@ if (TOUCH) {
 
 function doTake() {
   const r = Sim.takeBlock(S);
-  if (!r.ok) { flash(r.why); return; }
+  if (!r.ok) {
+    // nothing in front to lift? if you are at a forge, take a block back out of the hopper
+    const fr = Sim.takeFromForge(S);
+    if (fr.ok) { const fb = CFG.blocks[fr.block]; say('♪♩', `${fb.name}, back out of the hopper.`); return; }
+    flash(r.why); return;
+  }
   const b = CFG.blocks[r.block];
   const note = b.key === 'xenonite' ? 'It carries sound almost for free.'
     : b.key === 'sand' ? 'It kills sound stone dead.'
@@ -1212,7 +1217,7 @@ function frame(now) {
         const hot = ready && ready.id === r.id ? ' class="hot"' : '';
         return `<div${hot}>${parts} → ${r.name}</div>`;
       }).join('') +
-      '<i>F — feed it the block in your arms</i>';
+      '<i>F — feed the block in your arms · Q — take one back</i>';
   } else {
     el('forge').style.opacity = '0';
   }

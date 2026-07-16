@@ -1363,6 +1363,28 @@
     return { ok: true, fed: fed, made: r.id, gives: r.gives, live: !!r.live };
   }
 
+  /* AND YOU CAN TAKE IT BACK OUT. The forge used to be a one-way sink: feed the wrong block and
+   * it was gone until some recipe happened to consume it — which can SOFT-LOCK a level (feed the
+   * xenonite you needed to seal the breach into the hopper, and the wall can never be built).
+   * PLAYTEST: "once something is in the forge we can't get it out unless it converts." So a block
+   * that is still sitting in the hopper, un-forged, can be lifted straight back into your arms.
+   * Hand back the block the hopper holds MOST of — that is almost always the one fed by mistake. */
+  function takeFromForge(S) {
+    if (held(S)) return { ok: false, why: 'your hands are full' };
+    const f = nearestForge(S);
+    if (!f) return { ok: false, why: 'no forge in reach' };
+    let pick = 0, most = 0;
+    for (const k in f.hopper) if (f.hopper[k] > most) { most = f.hopper[k]; pick = +k; }
+    if (!pick) return { ok: false, why: 'the hopper is empty' };
+    f.hopper[pick]--;
+    if (S.fed > 0) S.fed--;
+    const slot = freeSlot(S);
+    if (slot >= 0) S.slot = slot;
+    setHeld(S, pick);
+    cue(S, 'feed');
+    return { ok: true, block: pick };
+  }
+
   /* ================================================================
    * THE WALKTHROUGH
    *
@@ -2089,7 +2111,7 @@
     takeBlock, placeBlock, facing, openDoor, tryOpen, settleEars, stepBells,
     stepNow, stepDone, stepWalk, chordOf, solved, countState, stepExit, repressurize, inVacuum,
     stepFolk, folkClue, sleep, nearBunk, stepQuestions, stepLife,
-    feedForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
+    feedForge, takeFromForge, nearestForge, canMake, addBell, removeBell, selectSlot, freeSlot, held, setHeld, voice,
     FIXED
   };
   return api;
