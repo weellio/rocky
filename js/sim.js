@@ -1516,6 +1516,21 @@
     if (!t || S.stepI >= t.length) return;
     if (!S.stepHit) S.stepHit = [];
     for (let i = S.stepI; i < t.length; i++) if (!S.stepHit[i] && stepDone(S, t[i])) S.stepHit[i] = true;
+
+    /* REACHING A LATER STEP PROVES YOU DID THE EARLIER ONES.
+     * PLAYTEST: "if you complete a step, then all the required preceding steps should have
+     * already been completed, and triggered as such." The steps are strictly ordered and each
+     * depends on the last -- you cannot read the gauge without having crossed the gallery and
+     * climbed to the far room, cannot open the door without having pulled the plug. So the
+     * instant ANY step is satisfied, every step before it is a fact, whether or not its own
+     * (often transient) trigger was ever caught at the exact instant it was true. This is what
+     * killed the tutorial: `climbTo` sat a hair above the height the climb actually reaches, so
+     * a player who plainly went on to open the door and read the gauge left the counter frozen
+     * on "now climb". Back-fill to the furthest step ever reached, and it cannot strand you. */
+    let furthest = S.stepI - 1;
+    for (let i = t.length - 1; i >= S.stepI; i--) if (S.stepHit[i]) { furthest = i; break; }
+    for (let i = S.stepI; i <= furthest; i++) S.stepHit[i] = true;
+
     let moved = false;
     while (S.stepI < t.length && S.stepHit[S.stepI]) { S.stepI++; S.stepDoneN++; moved = true; }
     if (!moved) return;
@@ -1792,7 +1807,25 @@
        * step that is not about leaving is done. */
       const leaveAt = c.walk.findIndex((w) => w.done && w.done.exit);
       const need = leaveAt < 0 ? c.walk.length : leaveAt;
-      return S.stepI >= need;
+      if (S.stepI >= need) return true;
+
+      /* THE WALKTHROUGH IS A TEACHER, NOT A LOCK.
+       * PLAYTEST: "i was able to get the door open in the tutorial, but it's not taking me
+       * to the next level." The way out was gated PURELY on the walkthrough reaching its last
+       * step, and a step only latches while its condition is live -- and several are transient.
+       * `climbTo` in particular sat a hair above the height the climb actually reaches, so a
+       * player who ran the room correctly could freeze the counter on "now climb" with the door
+       * already open and the gauge already read. A tutorial you fail by playing it well.
+       * So the way out ALSO opens the moment the room's REAL objective is met -- every door
+       * open, every gauge read -- whether or not each instructional beat happened to catch.
+       * Only when the room has such an objective; a pure-narration walkthrough still waits for
+       * its own steps rather than reporting itself solved at spawn. */
+      const hasGoal = S.doors.length || S.gauges.length;
+      if (hasGoal
+          && (!S.doors.length || S.doors.every((d) => d.open))
+          && (!S.gauges.length || S.gauges.every((g) => g.read)))
+        return true;
+      return false;
     }
     /* A TRACKING chapter is won by plotting the contact's course — enough fixes, spread
      * along its path — not by a door or a gauge. The Blip does not answer to anything else. */

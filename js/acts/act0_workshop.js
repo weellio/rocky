@@ -174,8 +174,16 @@
           done: { reach: [24, 3, 15], within: 3.5 } },
         { say: 'The BLACK one is grit: it swallows sound and shows you almost nothing. The VIOLET one is xenonite: it does not scatter sound, it carries it. Remember those two. They are the whole game.',
           done: { pulse: 4 } },
+        /* climbTo was 6.2 -- a hair ABOVE the height the intended climb actually reaches. The
+         * ledge/crawl you mount tops out around feet y6.0, and grip ends at the crawl mouth, so
+         * a real player crested the climb at ~6.0 and this step never latched, freezing the
+         * walkthrough on "now climb" with the rest of the room already done. 5.5 is above a
+         * standing jump (~1.1 blocks, feet ~4.1 off this floor) so it still takes a genuine
+         * climb, but it is comfortably under the crest, so climbing onto the ledge always
+         * catches it. The real safety net is in sim.solved(): the way out no longer waits on
+         * this step at all. This just keeps the on-screen counter honest. */
         { say: 'The way out is up. Walk INTO a wall and hold forward — Eridians climb, and all five limbs never let go. (SHIFT walks you back down.)',
-          done: { climbTo: 6.2 } },
+          done: { climbTo: 5.5 } },
         { say: 'The way on is a CRAWL, in the east wall, one step up from the ledge you just climbed — it is labelled. Go through it.',
           done: { reach: [34, 3, 15], within: 5 } },
         { say: 'That door is locked, and a locked door here is never a key hunt. It listens. Get a sound to the RESONATOR and it opens — but somebody has packed its channel with GRIT, and grit is deaf.',

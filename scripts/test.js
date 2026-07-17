@@ -1440,6 +1440,43 @@ group('THE WALKTHROUGH: nobody should ever stand in a room wondering what the ga
   ok(F.stepI > 5, `and the walkthrough walks straight past the climb step instead of freezing on it (now at step ${F.stepI + 1})`);
   ok(S.flags.walkthrough, 'and the engine knows it');
   eq(S.stepDoneN, S.chapter.walk.length, `all ${S.chapter.walk.length} steps done`);
+
+  /* ...AND THE WAY OUT OPENS EVEN IF ONE INSTRUCTIONAL STEP NEVER CATCHES AT ALL.
+   * PLAYTEST: "i was able to get the door open in the tutorial, but it's not taking me to the
+   * next level." The way out used to be gated PURELY on the walkthrough reaching its last step,
+   * and `climbTo: 6.2` sat just above the height the intended climb actually reaches -- so the
+   * counter could freeze on "now climb" with the door open and the gauge read, and the exit was
+   * dead forever. The room is now solved by its REAL objective (door open + gauge read), not by
+   * the teacher's checklist. This drives the actual door and gauge, then FORCES the climb step
+   * to have never latched, and proves the way out still calls. */
+  const G = ws();
+  // open the door for real: pull the plug, then let the resonator hear him
+  G.player.x = 36.5; G.player.y = 3.5; G.player.z = 19.6; G.player.yaw = Math.PI;
+  ok(R.takeBlock(G).ok, 'setup: the grit plug comes out');
+  G.player.x = 36; G.player.y = 3; G.player.z = 19;
+  for (let i = 0; i < 6 && !G.ears[0].open; i++) { G.pulseCd = 0; R.pulse(G); steps(G, 1.4); }
+  ok(G.ears[0].open && !R.isSolid(G, 42, 3, 15), 'setup: the door hears him and opens');
+  // read the gauge for real
+  G.player.x = 40; G.player.y = 3; G.player.z = 16; steps(G, 0.2);
+  ok(R.readGauge(G).ok, 'setup: the gauge is read');
+  // NOW guarantee the climb step is not, and can never become, latched
+  if (G.stepHit) G.stepHit[5] = false;
+  steps(G, 0.2);
+  ok(R.solved(G), 'YET THE ROOM IS SOLVED — the door is open and the gauge is read, and that is the room');
+  const calls0 = G.emits; steps(G, 1.0);
+  ok(G.flags.exitOpen && G.emits > calls0, 'and the way out is calling, so he can leave');
+
+  /* REACHING A LATER STEP BACK-FILLS THE EARLIER ONES.
+   * PLAYTEST: "if you complete a step, then all the required preceding steps should have already
+   * been completed, and triggered as such." The steps are strictly ordered, so satisfying a late
+   * one proves the early ones. Here he does NOTHING but arrive in the last room (step 7) -- never
+   * pulses, never trips the climb step -- and the counter must walk right up to it, dragging the
+   * climb along, instead of freezing on step 6. */
+  const H = ws();
+  H.player.x = 34; H.player.y = 3; H.player.z = 15; H.player.vy = 0;   // straight to the far room, no pulse, no climb-trigger
+  steps(H, 0.3);
+  ok(H.stepI >= 7, `the counter jumps to where he actually is (step ${H.stepI + 1}), not stuck on "now climb"`);
+  ok(H.stepHit[5], 'and the climb step reads as done, because getting to the far room required it');
 });
 
 group('every material has a NOTE, and the room answers in its own voice', () => {
