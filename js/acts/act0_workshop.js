@@ -34,7 +34,13 @@
       objective: 'Rocky teaches you how to hear.',
       exit: [47, 3, 15],
       build: [
-        { op: 'fill', from: [0, 0, 0], to: [43, 15, 29], block: 1 },
+        /* FILL THE WHOLE WORLD. This stopped at x43 while the world is 50 wide, leaving 2,844
+         * cells of pure air off the east end — and the way-out room is carved INTO that void, so
+         * it had no north, south or east wall. Open the door at walkthrough step 10, walk through,
+         * drift off the centre line, and you fall out of the level: into a featureless slab with a
+         * silent arch (the chapter is not solved yet, so it never hums) and no restart but F5.
+         * In the tutorial. Every other chapter fills its world exactly; this one now does too. */
+        { op: 'fill', from: [0, 0, 0], to: [49, 15, 29], block: 1 },
 
         // ROOM 1 — the dark. You pulse, and the world exists.
         { op: 'room', from: [2, 1, 10], to: [11, 7, 20], floor: 2 },

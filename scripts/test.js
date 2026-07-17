@@ -2158,6 +2158,22 @@ group('doors', () => {
 /* =====================================================================
  * THE CURRICULUM — a mechanic that is not taught cannot ship
  * =================================================================== */
+group('every world is SOLID before it is carved', () => {
+  /* AUDIT: the workshop's opening fill stopped at x43 while its world is 50 wide — 2,844 cells of
+   * pure air off the east end, with the way-out room carved INTO that void so it had no north,
+   * south or east wall. Walk through the door you just opened, drift off the centre line, and you
+   * fall out of the level: a featureless slab, a silent arch (the chapter is not solved yet, so it
+   * never hums), and no restart but F5. In chapter one. A world must start as solid rock — you
+   * carve rooms OUT of it; anything you did not fill is a hole in the universe. */
+  for (const c of CFG.chapters) {
+    const w = c.world, f = (c.build || [])[0];
+    ok(f && f.op === 'fill' && f.from[0] === 0 && f.from[1] === 0 && f.from[2] === 0,
+      `${c.id}: the world starts with a fill from the origin`);
+    ok(f.to[0] === w.w - 1 && f.to[1] === w.h - 1 && f.to[2] === w.d - 1,
+      `${c.id}: ...and it fills the world to its far corner [${w.w - 1},${w.h - 1},${w.d - 1}] — no unfilled void to fall into`);
+  }
+});
+
 group('curriculum', () => {
   const markers = new Set(CFG.how.map((h) => h.marker));
   for (const rule of Object.keys(CFG.teach)) {
