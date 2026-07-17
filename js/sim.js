@@ -618,9 +618,29 @@
            * the chain RUN, bell after bell, into the dark) never happens.
            * Queue it at its arrival time — one way, because an ear is a listener,
            * not an echo coming home to Rocky. */
+          /* ...BUT A LISTENER IN A VACUUM HEARS NOTHING.
+           * The reflection above is CONTACT: the shape he feels through the hull he is touching,
+           * which is the one thing the vacuum leaves him ("you can only hear what you are
+           * touching"). A RESONATOR is not that. It needs air to carry his voice across the gap to
+           * it, and in a holed ship there is none — which is the entire puzzle of THE HULL, and
+           * what its own label promises ("it cannot hear you in a vacuum").
+           *
+           * The reflection hop is charged only its geometric step, and the wave has paid nothing
+           * to sit in Rocky's OWN cell (d = 0), so a pulse standing in vacuum reached the ear for
+           * a cost of 1 and opened it at 0.874 of the 0.42 it wanted — from the deck cell right in
+           * front of the door, the one you walk to anyway. The breach never had to be found, let
+           * alone sealed, and the chapter's best line never fired.
+           *
+           * So the ear's path pays the MEDIUM, exactly as propagation does: air costs 1 and
+           * nothing changes anywhere else in the game; vacuum costs 240 and the sound simply never
+           * gets there. Seal the breach, let the air roar back, and it can hear you again. */
           const ear = S.earAt[j];
           if (ear !== undefined && ear !== from) {
-            S.pending.push({ id: ear, amp: a, at: S.t + dd / son.speed, note: note || 0 });
+            const ddEar = d + NB[n][3] * S.costOf[b];
+            if (ddEar <= reach) {
+              const aEar = Math.pow(Math.max(0, 1 - ddEar / reach), son.falloff) * (1 - S.absorbOf[S.vox[j]]) * amp0;
+              if (aEar > son.minHeat) S.pending.push({ id: ear, amp: aEar, at: S.t + ddEar / son.speed, note: note || 0 });
+            }
           }
 
           const age = S.t - S.arrive[j];

@@ -1757,6 +1757,29 @@ group('THE HULL: sound needs something to be sound in', () => {
    * whole compartment re-pressurises, instantly, and nobody wrote that. It is just true.
    */
   const hull = () => R.create(CFG, { seed: 1, chapter: 'hull' });
+
+  /* AUDIT: A LISTENER IN A VACUUM MUST HEAR NOTHING, or the whole chapter evaporates.
+   * The reflection hop is charged only its geometric step, and the wave pays nothing to sit in
+   * Rocky's OWN cell — so a pulse standing in vacuum reached the resonator for a cost of 1 and
+   * opened it at 0.874 of the 0.42 it wants, from the deck cell right in front of the door: the
+   * one you walk to anyway. Pull the plug, press E once, and the door opened with the ship still
+   * holed — the breach never found, never sealed, and the chapter's best line never fired. Its own
+   * label promises the opposite: "it cannot hear you in a vacuum". The ear's path now pays the
+   * MEDIUM exactly as propagation does. */
+  {
+    const V = hull();
+    eq(R.blockAt(V, 38, 3, 15), 16, 'the forward deck, where the resonator is, is vacuum — the ship is holed');
+    V.player.x = 38.5; V.player.y = 3.34; V.player.z = 15.5;
+    V.pulseCd = 0; R.pulse(V); steps(V, 2);
+    eq(V.ears[0].open, false, 'ONE pulse point-blank at the resonator, in vacuum: it hears NOTHING');
+    ok(!R.solved(V), '...so the chapter cannot be finished without ever finding the breach');
+    // ...and sealing it gives the air back, and the ear its hearing
+    R.setBlock(V, 36, 4, 22, 7); R.repressurize(V); R.rebuildSurface(V);
+    V.pulseCd = 0; R.pulse(V); steps(V, 2);
+    ok(V.ears[0].open, 'seal the breach, the air roars back, and NOW it hears him — the intended solve survives');
+    ok(R.solved(V), 'and the chapter is done');
+  }
+
   // a clean listen: let the room go quiet, then ONE pulse, then count what came home
   const listen = (S, x, y, z) => {
     S.player.x = x; S.player.y = y; S.player.z = z;
