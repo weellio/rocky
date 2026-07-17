@@ -1905,5 +1905,9 @@ window.__rocky = {
     rockyVisible: rocky.visible
   }),
   look: (y, p) => { yaw = y; if (p != null) pitch = p; },
-  press: (code, on) => { keys[code] = !!on; }
+  press: (code, on) => { keys[code] = !!on; },
+  /* capture helpers — the label sprites are in-scene, so a clean cinematic frame (no floating
+   * name-tags) needs a way to hush them from outside. Harmless to players; nothing reads it. */
+  labels: () => labels,
+  hushLabels: (on) => { labels.visible = !on; }
 };
