@@ -942,12 +942,23 @@ function frame(now) {
       }
     }
     if (id === 'pressure') {
-      /* Air returning is the payoff of a seal/build chapter, so the pressure line gets to
-       * carry its own banner (The Wall's "it is whole — and it sings"); a chapter that just
-       * repressurised in passing still gets the plain "the air came back". */
-      const line = S.chapter.lines.find((l) => l.at === 'pressure');
+      /* Air returning is the payoff of a seal/build chapter, so the pressure line gets to carry
+       * its own banner (The Wall's "it is whole — and it sings"); a chapter that just repressurised
+       * in passing gets the plain "the air came back".
+       *
+       * BUT ONLY IF HE ACTUALLY WON. `repressurize` is material-blind — it re-airs a chamber sealed
+       * with ANYTHING — while solved() correctly demands xenonite. So plugging the breach with GRIT
+       * (the natural thing to try: the previous chapter is the one that teaches grit seals) fired
+       * the full triumphant banner and monologue — "THE WALL IS WHOLE — AND IT SINGS" — while the
+       * HUD read 2/6 and the door never opened. The game asserted the exact opposite of the
+       * chapter's own thesis (grit goes DEAF) and then silently refused to let him leave. The
+       * victory line is only the truth when the room is done; otherwise tell him the honest half:
+       * the air is back, and the wall cannot carry a voice. */
+      const won = Sim.solved(S);
+      const line = won ? S.chapter.lines.find((l) => l.at === 'pressure') : null;
       banner((line && line.banner) || 'THE AIR CAME BACK');
       if (line) setTimeout(() => say(line.chord, line.text), 1200);
+      else if (!won) flash('the air is back — but the wall is DEAF, and the way out is still silent');
     }
     if (id === 'fix') {
       const need = (S.chapter.track && S.chapter.track.need) || 0;

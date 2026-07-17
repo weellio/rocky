@@ -3245,6 +3245,19 @@ group('BETRAYAL: xenonite is a sieve — only grit holds the living thing', () =
   ok(R.containState(X).contained === false, 'a xenonite wall still reads LEAKING — the betrayal made visible');
   ok(R.containState(G).contained === true, 'and only the grit wall reads HELD');
 
+  /* AUDIT: containment asked about the WALLS, not about the bug. The flood seeded the chapter's
+   * declared `sample` cells no matter what was in them — so you could carry the green out through
+   * the breach, set it down on the walkway (one of the chapter's own `outside` cells), wall the
+   * breach behind you, and be handed the chapter with the cure loose in your ship. It floods from
+   * where the green ACTUALLY IS now. */
+  const W = mk();
+  R.setBlock(W, 15, 2, 4, 0); R.setBlock(W, 15, 2, 5, 0);     // lift both samples out of the bay
+  R.setBlock(W, 4, 2, 8, 17);                                  // set one on the walkway — an 'outside' cell
+  R.setBlock(W, 15, 2, 7, 9); R.setBlock(W, 15, 3, 7, 9);      // wall the breach behind you
+  R.rebuildSurface(W);
+  ok(!R.containState(W).contained, 'carrying the green OUT and then sealing the breach does not count as containing it');
+  ok(!R.solved(W), '...and it is not a win — the bug is loose in the ship');
+
   /* PLAYTEST (ch28): "I can't replace the taumoeba with grit — as soon as I lift it, another grows
    * in." The regrow beats lift-then-place. So placing onto the living block SWAPS: grit goes down,
    * the taumoeba comes up into your arms. Face the breach with grit and drop it — done, no race. */

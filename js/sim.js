@@ -1724,18 +1724,28 @@
   /* Is the breach HELD or LEAKING, for the HUD — the taumoeba leaks through xenonite and only grit
    * holds it, so a player who walls it wrong gets no sign the seal failed. Flood from the sample the
    * same way solved() does; if it reaches the walkway, it is loose. */
-  function containState(S) {
+  /* IS THE LIVING THING HELD? Flood from where the taumoeba ACTUALLY IS — every cell of it in the
+   * world — through everything it can cross, and ask whether it can reach the corridor.
+   *
+   * This used to seed from the chapter's declared `sample` cells no matter what was in them, which
+   * quietly made containment a question about the WALLS instead of about the bug. Audited exploit:
+   * lift the sample out through the breach, set it down on the walkway (literally one of the
+   * chapter's own `outside` cells), then wall the breach behind you — and the game called it
+   * CONTAINED and handed you the chapter with the cure loose in your ship. Ask the world where the
+   * green is, not the chapter. (If every cell of it is in his vest there is nothing loose to hold,
+   * and that is honestly contained — but it grows faster than six pockets can carry.) */
+  function containHeld(S) {
     const c = S.chapter;
-    if (!c || !c.contain) return null;
     const cross = c.contain.cross || [0, 7, 13, 17];
     const outside = {};
     for (const o of c.contain.outside) outside[idx(S, o[0], o[1], o[2])] = 1;
     const seen = {};
     const q = [];
-    for (const s of c.contain.sample) { const i = idx(S, s[0], s[1], s[2]); if (!seen[i]) { seen[i] = 1; q.push(i); } }
+    const N = S.w * S.h * S.d;
+    for (let i = 0; i < N; i++) if (S.vox[i] === 17 && !seen[i]) { seen[i] = 1; q.push(i); }
     while (q.length) {
       const i = q.pop();
-      if (outside[i]) return { contained: false };
+      if (outside[i]) return false;                      // it got out — or was carried out
       const x = i % S.w, z = ((i / S.w) | 0) % S.d, y = (i / (S.w * S.d)) | 0;
       for (let n = 0; n < FACES; n++) {
         const nx = x + NB[n][0], ny = y + NB[n][1], nz = z + NB[n][2];
@@ -1746,7 +1756,12 @@
         seen[j] = 1; q.push(j);
       }
     }
-    return { contained: true };
+    return true;                                         // never reached the outside — held
+  }
+  function containState(S) {
+    const c = S.chapter;
+    if (!c || !c.contain) return null;
+    return { contained: containHeld(S) };
   }
 
   function solved(S) {
@@ -1803,33 +1818,14 @@
      * it is corpses, and the corpses were the lesson. `c.bred` names the winning recipe. */
     if (c.bred) return S.forges.some((f) => f.made.indexOf(c.bred) >= 0);
 
-    /* A CONTAIN chapter turns on whether the living thing STAYS PUT. Flood outward from the
-     * sample through everything it can cross (air, and — the betrayal — xenonite); if that
-     * flood can reach the world outside the box, it has leaked and you have failed. Wall it
-     * in the one thing it cannot cross (grit, the deaf dead stuff) and the flood is bounded,
-     * and it is held. A pure function of the walls you built, computed like repressurize. */
-    if (c.contain) {
-      const cross = c.contain.cross || [0, 7, 13, 17];   // air + loose/cast xenonite + taumoeba
-      const outside = {};
-      for (const o of c.contain.outside) outside[idx(S, o[0], o[1], o[2])] = 1;
-      const seen = {};
-      const q = [];
-      for (const s of c.contain.sample) { const i = idx(S, s[0], s[1], s[2]); if (!seen[i]) { seen[i] = 1; q.push(i); } }
-      while (q.length) {
-        const i = q.pop();
-        if (outside[i]) return false;                    // it got out
-        const x = i % S.w, z = ((i / S.w) | 0) % S.d, y = (i / (S.w * S.d)) | 0;
-        for (let n = 0; n < FACES; n++) {
-          const nx = x + NB[n][0], ny = y + NB[n][1], nz = z + NB[n][2];
-          if (!inside(S, nx, ny, nz)) continue;
-          const j = idx(S, nx, ny, nz);
-          if (seen[j]) continue;
-          if (cross.indexOf(blockAt(S, nx, ny, nz)) < 0) continue;
-          seen[j] = 1; q.push(j);
-        }
-      }
-      return true;                                       // never reached the outside — held
-    }
+    /* A CONTAIN chapter turns on whether the living thing STAYS PUT. Flood outward from where the
+     * green actually IS, through everything it can cross (air, and — the betrayal — xenonite); if
+     * that flood can reach the world outside the box, it has leaked and you have failed. Wall it in
+     * the one thing it cannot cross (grit, the deaf dead stuff) and the flood is bounded, and it is
+     * held. Computed like repressurize: a fact about what is connected to what.
+     * ONE truth, shared with the HUD's readout (containHeld) — when the door and the readout each
+     * worked it out for themselves, they disagreed, and the game told the player he had won. */
+    if (c.contain) return containHeld(S);
 
     /* A HOLD chapter is "won" the moment you are CARRYING the thing — the cure, the one
      * sample there is. That is all the engine gates on (The Turn): once it is in his arms,
