@@ -2158,6 +2158,25 @@ group('doors', () => {
 /* =====================================================================
  * THE CURRICULUM — a mechanic that is not taught cannot ship
  * =================================================================== */
+group('a plotted course can always be finished', () => {
+  /* AUDIT: THE BLIP asked for 4 fixes with minSep 9 on a 49-cell contact path. Each fix forbids a
+   * band of (2*minSep - 1) cells, so three legally-spaced fixes forbid up to 51 > 49 — they could
+   * cover the contact's whole course and make the 4th arithmetically impossible. The chapter has no
+   * door, no ear and nothing liftable: a permanently dead run, escapable only by reloading. And the
+   * dead window was exactly the "space them across the deck" strategy the objective teaches.
+   * The invariant: the fixes you have already logged must never be able to forbid the whole path. */
+  for (const c of CFG.chapters) {
+    if (!c.track || !c.track.need) continue;
+    const src = (c.sources || []).find((s) => s.path);
+    ok(src, `${c.id}: a track chapter has a contact with a path`);
+    const span = Math.abs(src.path[1][0] - src.path[0][0]) + Math.abs(src.path[1][2] - src.path[0][2]) + 1;
+    const sep = c.track.minSep || 1;
+    const worst = (c.track.need - 1) * (2 * sep - 1);
+    ok(worst < span,
+      `${c.id}: ${c.track.need - 1} fixes at minSep ${sep} forbid at most ${worst} of ${span} cells — a legal final fix always exists`);
+  }
+});
+
 group('every world is SOLID before it is carved', () => {
   /* AUDIT: the workshop's opening fill stopped at x43 while its world is 50 wide — 2,844 cells of
    * pure air off the east end, with the way-out room carved INTO that void so it had no north,

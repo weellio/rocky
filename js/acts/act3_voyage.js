@@ -380,7 +380,14 @@
       ],
       /* PLOT ITS COURSE. Four fixes, each a fresh stretch of its path — you cannot get them
        * all from one spot; you have to keep up with it. */
-      track: { kind: 'contact', need: 4, range: 14, minSep: 9 },
+      /* minSep MUST leave room for the last fix. Each logged fix forbids a band of (2*minSep - 1)
+       * cells, so the first (need-1) fixes forbid up to (need-1)*(2*minSep-1). At minSep 9 that is
+       * 51 against a 49-cell path — three legally-spaced fixes could cover the contact's ENTIRE
+       * course and the 4th became impossible, with no door, no ear and no block to recover with:
+       * a dead run you could only escape by reloading. Worse, the dead window WAS the strategy the
+       * objective asks for ("catch it at four different points"). At 8: 3*15 = 45 < 49, so a legal
+       * fourth fix always exists somewhere. The suite now checks this arithmetic for every track. */
+      track: { kind: 'contact', need: 4, range: 14, minSep: 8 },
       labels: [
         { at: [27, 3, 11], block: 13, text: 'THE HULL — the blip rings through it', color: '#a9e8bd' },
         { at: [53, 3, 7], block: 15, text: 'THE AIRLOCK', color: '#4dff9e' }
