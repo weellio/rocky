@@ -1,0 +1,159 @@
+{
+  "name": "Rocky Analytics",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## ROCKY analytics receiver\n\nThe game (js/analytics.js) POSTs anonymous events here.\n\n**Setup**\n1. This Webhook's **Production URL** must be\n   `https://automate.bworldtools.com/webhook/rocky-analytics`\n   (Method POST, Path `rocky-analytics`). If your host differs, update ENDPOINT in js/analytics.js to match.\n2. **Log to Sheet** node: attach your Google credential + pick your spreadsheet. Give the sheet a header row (see below).\n3. **Notify me** node: attach your Telegram credential + set your chat id. (Delete this branch if you don't want finish alerts.)\n4. **ACTIVATE** the workflow (top-right). Production webhooks only fire when active.\n\n**Sheet header row (paste into row 1):**\n`when  event  cid  sid  ref  chapter  chapterIndex  name  returning  durationS  furthest  furthestIndex  lang  w  h  dpr  standalone  ua  ver`\n\nEvents: visit / chapter / finished / session_end. No personal data — cid is an anonymous per-browser id.",
+        "height": 420,
+        "width": 420,
+        "color": 4
+      },
+      "id": "note-setup",
+      "name": "README",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-380, -120]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rocky-analytics",
+        "responseMode": "onReceived",
+        "responseData": "noData",
+        "options": {}
+      },
+      "id": "webhook-in",
+      "name": "Rocky beacon",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [120, 0],
+      "webhookId": "rocky-analytics"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Flatten one anonymous beacon into a clean, flat row.\n// sendBeacon delivers JSON under $json.body; be tolerant if it arrives as a raw string.\nconst out = [];\nfor (const item of $input.all()) {\n  let b = item.json.body;\n  if (typeof b === 'string') { try { b = JSON.parse(b); } catch (e) { b = {}; } }\n  if (!b || typeof b !== 'object') b = {};\n  const t = b.t ? new Date(Number(b.t)) : new Date();\n  const iso = isNaN(t.getTime()) ? new Date().toISOString() : t.toISOString();\n  const s = (v) => (v === undefined || v === null) ? '' : v;\n  out.push({ json: {\n    when: iso,\n    event: s(b.event),\n    cid: s(b.cid),\n    sid: s(b.sid),\n    ref: s(b.ref),\n    chapter: s(b.id),\n    chapterIndex: s(b.chapterIndex),\n    name: s(b.name),\n    returning: s(b.returning),\n    durationS: s(b.durationS),\n    furthest: s(b.furthest),\n    furthestIndex: s(b.furthestIndex),\n    lang: s(b.lang),\n    w: s(b.w),\n    h: s(b.h),\n    dpr: s(b.dpr),\n    standalone: s(b.standalone),\n    ua: s(b.ua),\n    ver: s(b.ver)\n  } });\n}\nreturn out;"
+      },
+      "id": "flatten",
+      "name": "Flatten event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [360, 0]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "PASTE_YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Log",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "sheet-append",
+      "name": "Log to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [620, -100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cond-finished",
+              "leftValue": "={{ $json.event }}",
+              "rightValue": "finished",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "if-finished",
+      "name": "Finished?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [620, 140]
+    },
+    {
+      "parameters": {
+        "chatId": "PASTE_YOUR_TELEGRAM_CHAT_ID",
+        "text": "=🎮 Someone just finished ROCKY (reached the sunrise).\ncame from: {{ $json.ref || 'direct link' }}\nbrowser: {{ $json.cid }}",
+        "additionalFields": {}
+      },
+      "id": "telegram-notify",
+      "name": "Notify me",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [860, 140]
+    }
+  ],
+  "connections": {
+    "Rocky beacon": {
+      "main": [
+        [
+          {
+            "node": "Flatten event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten event": {
+      "main": [
+        [
+          {
+            "node": "Log to Sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finished?": {
+      "main": [
+        [
+          {
+            "node": "Notify me",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateId": "rocky-analytics"
+  }
+}
