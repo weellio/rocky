@@ -168,7 +168,7 @@
           done: { reach: [24, 3, 15], within: 3.5 } },
         { say: 'The BLACK one is grit: it swallows sound and shows you almost nothing. The VIOLET one is xenonite: it does not scatter sound, it carries it. Remember those two. They are the whole game.',
           done: { pulse: 4 } },
-        { say: 'The way out is up. Walk INTO a wall and hold forward — Eridians climb, and five legs never let go. (SHIFT walks you back down.)',
+        { say: 'The way out is up. Walk INTO a wall and hold forward — Eridians climb, and all five limbs never let go. (SHIFT walks you back down.)',
           done: { climbTo: 6.2 } },
         { say: 'The way on is a CRAWL, in the east wall, one step up from the ledge you just climbed — it is labelled. Go through it.',
           done: { reach: [34, 3, 15], within: 5 } },

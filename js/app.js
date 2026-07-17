@@ -298,7 +298,7 @@ for (const b of CFG.blocks) {
 const BLOCK_COL = CFG.blocks.map((b) => new THREE.Color(b.color));
 
 /* ---------- Rocky ----------
- * Five legs, a carapace like a rock, and no face at all — he has nothing to look
+ * Five limbs, a carapace like a rock, and no face at all — he has nothing to look
  * at you with. He is the one thing you always know the position of, so he is the
  * one thing always drawn.
  *
@@ -319,7 +319,7 @@ const limbs = [];
    * never touched at runtime. */
   /* ...and he comes APART. The bake hands us a carapace and five limbs, each with
    * the shoulder it turns about, so he is not a statue being slid along the floor:
-   * he WALKS, on five legs, and there is never a moment when he is not touching the
+   * he WALKS, on his three legs, and there is never a moment when he is not touching the
    * ground with something. */
   const M = window.ROCKY_MODEL;
   if (M) {
@@ -1073,7 +1073,7 @@ function frame(now) {
   const p = S.player;
   rocky.position.set(p.x, p.y, p.z);
   /* HE WALKS.
-   * Five legs, and no hurry. They ripple rather than pair off, because five does not
+   * Five limbs, and no hurry. They ripple rather than pair off, because five does not
    * divide into two — and there is never a moment when he is not touching the ground
    * with something, so his body rides ALONG rather than bobbing like a biped's.
    *

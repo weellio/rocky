@@ -803,7 +803,7 @@
   }
 
   /* ---------- carrying ----------
-   * Rocky has five arms and a species-wide contempt for the idea that a wall has
+   * Rocky has five limbs and a species-wide contempt for the idea that a wall has
    * to stay where somebody left it. He can lift the blocks config says he can
    * lift: xenonite, which conducts sound, and grit, which kills it. That is the
    * entire inventory, and it is enough to solve everything. */
@@ -1164,7 +1164,7 @@
   }
 
   /* ---------- Rocky's body ----------
-   * Five legs. Twice Earth's gravity. He jumps badly and climbs perfectly.
+   * Five limbs. Twice Earth's gravity. He jumps badly and climbs perfectly.
    */
   function collides(S, x, y, z) {
     const ph = S.cfg.physics;
@@ -1249,7 +1249,7 @@
     if (hitZ) p.vz = 0;
 
     /* CLIMBING.
-     * There are no ladders on Erid because nobody ever needed one. Five legs and
+     * There are no ladders on Erid because nobody ever needed one. Five limbs and
      * a claw on each: press into a wall and Rocky simply goes up it; let go of
      * the stick and he HOLDS — he does not fall off a cliff for want of an input.
      * To come down, hold the descend key and walk down it like a stair. */
@@ -1265,7 +1265,7 @@
       p.vy = ph.climbSpeed;                  // pushing into stone: go up it
       p.climbing = true;
     } else if (wall && !pressing) {
-      p.vy = 0;                              // five legs. he just holds on.
+      p.vy = 0;                              // five limbs. he just holds on.
       p.climbing = false;
     } else {
       p.climbing = false;
@@ -1299,7 +1299,7 @@
      * A fact you can check is not a flag you should remember. */
     p.onGround = collides(S, p.x, p.y - 0.04, p.z);
 
-    /* FIVE LEGS ON STONE ARE FIVE SMALL SOUNDS.
+    /* THREE LEGS ON STONE ARE THREE SMALL SOUNDS.
      * Every stride, Rocky's own feet pulse the floor beneath him. He cannot help
      * it and he would not want to: it means he always knows the ground he is
      * standing on. Walk and the floor answers. Stand still in a dead corridor
@@ -1315,7 +1315,7 @@
   }
 
   /* ---------- THE FORGE ----------
-   * He carries ONE block. Five arms and no pockets. So he does not carry a recipe
+   * He carries ONE block. Two hands and no pockets. So he does not carry a recipe
    * around with him — he FEEDS the forge, one trip at a time, and the forge
    * remembers. When the hopper holds what a recipe wants, it makes the thing and
    * puts it in his arms.

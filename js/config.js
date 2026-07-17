@@ -133,7 +133,7 @@
     /* ---------------------------------------------------------------
      * THE FORGE
      * Rocky is an engineer, and his people's entire civilisation rests on one
-     * trick: they can make xenonite. He carries ONE block at a time — five arms
+     * trick: they can make xenonite. He carries ONE block at a time — two hands
      * and no pockets — so he does not carry a recipe around, he FEEDS the forge.
      * Drop a block in the hopper, go and get another. When the hopper holds what
      * a recipe wants, the forge makes the thing and puts it in his arms.
@@ -263,7 +263,7 @@
       placeRange: 16,
 
       /* FOOTFALL.
-       * Five legs on stone are five small sounds. Rocky cannot help hearing the
+       * Three legs on stone are three small sounds. Rocky cannot help hearing the
        * ground he is standing on, so he is never a body floating in the dark —
        * the floor beneath him keeps answering as he walks. Move and you can see
        * where you are. Stand perfectly still in a dead corridor and you cannot.
@@ -349,7 +349,7 @@
       title: 'ROCKY SAVES THE UNIVERSE',
       subtitle: 'Chapter One — The Cold',
       prologue: [
-        'I am an engineer. I have five arms, a leather harness I am never not pulling something out of, and **no eyes** — nobody on my world has ever had them, because my world has never had light. Twenty-nine atmospheres of hot ammonia, and under it, the warren, and in the warren, me.',
+        'I am an engineer. I have five limbs — I walk on three of them and work with the other two, and each of those two has **three fingers**, which is the whole reason my people count in **sixes** — a leather harness I am never not pulling something out of, and **no eyes**: nobody on my world has ever had them, because my world has never had light. Twenty-nine atmospheres of hot ammonia, and under it, the warren, and in the warren, me.',
         'I know a room the way you know a song. I **make a sound, and I listen to what comes back**. The wave leaves me at the speed of sound and it has to come *home* again, so the far wall answers late — and that delay is the only ruler I have ever owned.',
         'Everything here has a voice. Basalt is loud. **Grit is deaf** — pack a channel with the stuff and it goes silent. **Xenonite sings**: it does not scatter sound, it carries it, which is why we build our ships out of it and why a wall of it is a doorway. Sound crosses stone badly, but it crosses, so the machines humming on the other side will always show me where the wall ends.',
         'Something is wrong with the heat. Not broken-wrong. **Slow-wrong. Everywhere-wrong.** Every gauge in the warren has fallen and not one of my vents is at fault, and I have checked, and I have checked again.',
@@ -397,22 +397,22 @@
     },
 
     how: [
-      { marker: 'walk', group: 'Moving',     title: 'Move',        body: 'WASD or the ARROW KEYS move Rocky — they do the same thing, so use whichever hand you like. Five legs, no hurry, and he never trips.' },
-      { marker: 'climb', group: 'Moving',    title: 'Climb',       body: 'Walk into a wall and hold forward. Eridians climb, and five legs do not let go — stop pressing and Rocky simply holds on. Hold SHIFT to walk back down.' },
+      { marker: 'walk', group: 'Moving',     title: 'Move',        body: 'WASD or the ARROW KEYS move Rocky — they do the same thing, so use whichever hand you like. He walks on three legs, in no hurry, and he never trips.' },
+      { marker: 'climb', group: 'Moving',    title: 'Climb',       body: 'Walk into a wall and hold forward. Eridians climb, and five limbs do not let go — stop pressing and Rocky simply holds on. Hold SHIFT to walk back down.' },
       { marker: 'jump', group: 'Moving',     title: 'Jump',        body: 'SPACE. Erid pulls twice as hard as Earth, so Rocky jumps badly. Climb instead.' },
       { marker: 'pulse', group: 'Hearing',    title: 'Pulse',       body: 'Rocky has no eyes. Press E to pulse, and listen to what comes back. A ring leaves him at the speed of sound — watch it go.' },
       { marker: 'return', group: 'Hearing',   title: 'Out, and back', body: 'A wall does not appear when the sound reaches it. It appears when the echo gets back to ROCKY. Out and home again — so the far wall answers late, and that delay IS the distance. It is the only ruler he has.' },
-      { marker: 'footfall', group: 'Hearing', title: 'Five legs',   body: 'Five legs on stone are five small sounds. Rocky cannot help hearing the floor he walks on, so while you move you can always see where you are standing. Stand perfectly still in a dead corridor and you cannot.' },
+      { marker: 'footfall', group: 'Hearing', title: 'Three legs',  body: 'Three legs on stone are three small sounds. Rocky cannot help hearing the floor he walks on, so while you move you can always see where you are standing. Stand perfectly still in a dead corridor and you cannot.' },
       { marker: 'decay', group: 'Hearing',    title: 'Memory',      body: 'An echo fades. What you saw a moment ago is memory, and memory dims. Pulse again.' },
       { marker: 'through', group: 'Hearing',  title: 'Through walls', body: 'Sound crosses rock — poorly, but it crosses. A machine humming behind a wall shows up as a faint ghost. That is not a bug in his hearing. That is a doorway.' },
       { marker: 'material', group: 'Hearing', title: 'Materials',   body: 'Every material rings differently, and the colour you see IS that ring. Basalt is dull blue. Girder is orange. Xenonite sings violet. Grit swallows sound and shows almost nothing.' },
       { marker: 'sources', group: 'Hearing',  title: 'The warren breathes', body: 'Machines make their own noise on their own rhythm. Near a vent you are never blind. In a dead corridor you are.' },
-      { marker: 'base6', group: 'Reading',    title: 'Six',         body: 'Eridians count in sixes, because they have five arms and think of the hand itself as the sixth thing. Every number here is base six.' },
+      { marker: 'base6', group: 'Reading',    title: 'Six',         body: 'Eridians count in sixes because of what they count ON. Rocky has five limbs: he walks on three of them, and the other two are HANDS — and each hand has three fingers. Three and three is six. It is the same reason you count in tens: you have five fingers on each hand, so ten is the number your whole species reaches for without being taught. Six is his. Every number in this game is base six.' },
       { marker: 'gauge', group: 'Reading',    title: 'Gauges',      body: 'Stand at a gauge and press F to read it. It gives you a temperature, and what that temperature is supposed to be.' },
       { marker: 'carry', group: 'Making',    title: 'The tool belt', body: 'Rocky wears a leather harness with a satchel on it and strap-bands on his arms, and he is never not pulling something out of it. SIX pockets, because Eridians count in six. Q lifts the block you are facing into a pocket, R puts the selected one down, and 1–6 (or the mouse wheel) choose which pocket your hands are on. A block dropped lands with a BANG — and a bang is a sound like any other.' },
       { marker: 'conduct', group: 'Making',  title: 'What sound costs', body: 'Every material charges the sound a different price to pass through it. Air is free. Basalt is dear. GRIT is very nearly soundproof — pack a channel with grit and it goes deaf. XENONITE is very nearly free: it does not scatter sound, it CARRIES it, which is why Eridians build ships out of it. Bring the right block and you can run a noise through a wall.' },
       { marker: 'ear', group: 'Making',      title: 'Resonators',  body: 'A resonator is a listener, and it opens a door when enough sound REACHES it. So a locked door is never a key hunt — it is a routing problem. Walk over and shout. Clear the grit. Bridge the gap with xenonite. Drop something heavy beside it. Open a vent and let a machine do it for you. Every one of those is a real answer.' },
-      { marker: 'forge', group: 'Making',    title: 'The forge',   body: 'Rocky is an engineer, and his people build everything out of xenonite. Stand at a forge with a block in your arms and press F to FEED it. He carries one block at a time — five arms and no pockets — so he does not carry a recipe about with him. He feeds the hopper, one trip at a time, and the forge remembers.' },
+      { marker: 'forge', group: 'Making',    title: 'The forge',   body: 'Rocky is an engineer, and his people build everything out of xenonite. Stand at a forge with a block in your arms and press F to FEED it. He carries one block at a time — two hands and no pockets — so he does not carry a recipe about with him. He feeds the hopper, one trip at a time, and the forge remembers.' },
       { marker: 'build', group: 'Making',    title: 'Making things', body: 'GRIT x3 makes XENONITE: the deafest stuff on Erid becomes the loudest, which nobody has ever explained to Rocky\'s satisfaction. XENONITE x2 and a GIRDER make a RELAY BELL — and a bell you build is a bell like any other. Stand it anywhere and it listens, and when it hears you it shouts back, further than you can shout yourself. That is the whole trade: you make the thing that was not there.' },
       { marker: 'vacuum',   group: 'Hearing',    title: 'Vacuum',      body: 'SOUND NEEDS SOMETHING TO BE SOUND IN. Erid is twenty-nine atmospheres of hot ammonia and no Eridian has ever been anywhere that was not, so we have no word for this. Where there is no air you are not quiet — you are DEAF. You can still WALK through it. You just cannot hear across it: all you can hear is what you are TOUCHING, because the sound still runs out of your feet into the hull and the hull still rings. And pressure is not a switch. Any space that can reach the hole has already emptied out. Close the hole and the air comes back, all of it, at once.' },
       { marker: 'astro', group: 'Hearing',    title: 'Astrophage',  body: 'It eats light. Of course it eats sound — it eats everything that arrives, which is what it is FOR. So it gives NOTHING back, and Rocky cannot hear it. He can only hear the HOLE where it is: pulse, and a patch of the wall simply does not come home. That is how you find the thing that is killing your star — you look for the part of the room that is not there. And a sample in your vest eats your own voice too: carry three and you are down to a sixth of yourself, whispering in the dark, and you will need to build something that can shout for you.' },

@@ -58,7 +58,7 @@
     },
     jump: function () { ping(180, 0.1, 'triangle', 0.14, 300); },
     land: function () { noise(0.14, 260, 0.22); },
-    /* five legs, so a footfall is a little scatter of clicks, not one thump */
+    /* three legs, so a footfall is a little scatter of clicks, not one thump */
     step: function () {
       noise(0.05, 1600, 0.05);
       setTimeout(function () { noise(0.04, 1200, 0.035); }, 32);
