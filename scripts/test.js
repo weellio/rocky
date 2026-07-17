@@ -2548,6 +2548,25 @@ group('SLEEP: four shifts, and the ship changes while you are out', () => {
   const gotoCell = (x, y, z) => { S.player.x = x + 0.5; S.player.y = y + 0.5; S.player.z = z + 0.5; S.player.vy = 0; step(0.2); };
   const toBunk = () => { S.player.x = 3.5; S.player.y = 3.3; S.player.z = 7.5; S.player.vy = 0; step(0.2); };
 
+  /* AUDIT: the bulkheads are what make this a state machine, and they leaked. The room is hollowed
+   * to y8 but each wall filled only to y7 — a one-cell crawl across the whole z-span of all three.
+   * Rocky CLIMBS by definition, so holding W walked him up and over every one of them: all four
+   * gauges read, chapter done in 12 seconds, never sleeping once. The bunk, the three shifts, the
+   * ship changing while you are out — the entire chapter — skipped by the most obvious input in
+   * the game. A bulkhead has to reach the ceiling. */
+  for (const x of [14, 24, 34]) {
+    let gaps = 0;
+    for (let y = 1; y <= 8; y++) for (let z = 3; z <= 11; z++) if (!R.isSolid(S, x, y, z)) gaps++;
+    eq(gaps, 0, `bulkhead x=${x} is solid to the ceiling — no crawl over the top`);
+  }
+  {
+    const K = R.create(CFG, { seed: 1, chapter: 'sleep' });
+    steps(K, 30, { fwd: 1, yaw: -Math.PI / 2 });      // hold W east for 30 seconds
+    ok(K.player.x < 14, `holding forward cannot walk him over the bulkheads (stopped at x=${K.player.x.toFixed(1)})`);
+    eq(K.readCount, 0, '...so he cannot read the far gauges without doing his rounds');
+    ok(!R.solved(K), '...and the chapter cannot be finished in twelve seconds without sleeping');
+  }
+
   // the four chambers are SEALED to start — every gauge but the first is behind a shut door
   ok(R.isSolid(S, 14, 3, 7) && R.isSolid(S, 24, 3, 7) && R.isSolid(S, 34, 3, 7),
     'the ship ahead is shut: you have not lived those shifts yet');

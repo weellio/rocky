@@ -47,9 +47,9 @@
 
         // three bulkheads between the four shift-chambers; the door cells are carved back
         // to doors by the doors array, and each opens only when you sleep into that shift
-        { op: 'fill', from: [14, 1, 3], to: [14, 7, 11], block: 1 },
-        { op: 'fill', from: [24, 1, 3], to: [24, 7, 11], block: 1 },
-        { op: 'fill', from: [34, 1, 3], to: [34, 7, 11], block: 1 },
+        { op: 'fill', from: [14, 1, 3], to: [14, 8, 11], block: 1 },
+        { op: 'fill', from: [24, 1, 3], to: [24, 8, 11], block: 1 },
+        { op: 'fill', from: [34, 1, 3], to: [34, 8, 11], block: 1 },
 
         // THE BUNK, aft: a pad of xenonite (green — life, rest) against the back wall
         { op: 'fill', from: [3, 1, 6], to: [3, 1, 8], block: 7 },
