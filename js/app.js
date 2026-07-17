@@ -1649,6 +1649,8 @@ function load(id) {
   const open = S.chapter.lines.filter((l) => l.at === 'start');
   if (open[0]) say(open[0].chord, open[0].text);
   if (open[1]) setTimeout(() => say(open[1].chord, open[1].text), 5600);
+  // a step in the funnel: which room they reached, and how deep (anonymous — see js/analytics.js)
+  if (window.RockyTrack) RockyTrack('chapter', { id: id, chapterIndex: n, name: (S.chapter.name || '').split('  ')[0] });
 }
 /* ================= THE ENDING =================
  * A cutscene, and the only light in the entire game.
@@ -1770,6 +1772,8 @@ function renderEnding(now) {
 function startEnding() {
   ending = true;
   endT0 = performance.now();
+  // they saw it through to the sunrise — the one event worth more than any pageview
+  if (window.RockyTrack) RockyTrack('finished', {});
   // the HUD (and the codex button) have nothing left to say
   [].forEach.call(document.querySelectorAll('.hud, #codexbtn, #touch'), (el) => { el.style.opacity = '0'; el.style.display = 'none'; });
   // the one light — a whole sky of warm gold
