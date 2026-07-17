@@ -358,13 +358,22 @@
         // the stock: a girder, xenonite, and the grit to make more of it
         { op: 'set', at: [6, 2, 12], block: 12 },
         { op: 'set', at: [6, 2, 11], block: 5 },
-        { op: 'fill', from: [8, 2, 18], to: [10, 2, 18], block: 9 },
+        /* A PILE of everything, not one of each. The intakes want a GIRDER and a XENONITE dropped
+         * on them, but the forge also eats both into a (useless) bell — and a BELL IS THE ONE
+         * IRREVERSIBLE SINK IN THE GAME: Q pulls un-forged blocks back out of a hopper, but a bell
+         * that has been made can never be broken down again. The girders got a pile when this bit
+         * once; the xenonite did not, and the audit found the same soft-lock one variable over:
+         * budget was exactly 4 (2 loose + 2 forged from 6 grit), two bells burned all four, and
+         * INTAKE II (tuned 659 — xenonite is the only block that rings it) could never be fed.
+         * And the two chapters before this one teach exactly one lesson: "an ear cannot hear you?
+         * build a bell." The player is TRAINED into the fatal move. So: enough that a wrong turn
+         * at the forge is a lesson, not a dead end. */
+        { op: 'fill', from: [8, 2, 18], to: [10, 2, 18], block: 9 },    // grit
         { op: 'fill', from: [8, 2, 20], to: [10, 2, 20], block: 9 },
-        /* A PILE of girders and xenonite, not one of each — the intake wants a GIRDER dropped on
-         * it, but the forge will also eat a girder into a (useless) bell, and one girder made that
-         * a soft-lock. Give enough that a wrong turn at the forge is a lesson, not a dead end. */
+        { op: 'fill', from: [8, 2, 16], to: [10, 2, 16], block: 9 },    // ...and more of it (9 grit = 3 more xenonite)
         { op: 'fill', from: [13, 2, 20], to: [15, 2, 20], block: 3 },   // girders
-        { op: 'fill', from: [17, 2, 20], to: [18, 2, 20], block: 7 },   // xenonite (and 6 grit forges more)
+        { op: 'fill', from: [17, 2, 20], to: [18, 2, 20], block: 7 },   // xenonite
+        { op: 'fill', from: [17, 2, 18], to: [18, 2, 18], block: 7 },   // ...and more (4 loose + 3 forged = 7)
 
         // and the astrophage, in its own cell, behind cast xenonite so it cannot eat
         // the rest of the ship's hearing

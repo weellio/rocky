@@ -1844,6 +1844,20 @@ group('THE DRIVE: a tuned resonator is a question, not a lock', () => {
     return r;
   };
 
+  /* AUDIT (critical): a BELL IS THE ONE IRREVERSIBLE SINK IN THE GAME — Q pulls un-forged blocks
+   * back out of a hopper, but a bell that has been made can never be broken down. The xenonite
+   * budget here was exactly 4 (2 loose + 2 forged from 6 grit), so building two bells burned all
+   * of it and INTAKE II — tuned to 659, which xenonite alone rings — could never be fed again.
+   * And the two chapters before this one teach exactly one lesson: "an ear cannot hear you? build
+   * a bell." The player is trained into the fatal move. The girders got a pile when this bit once;
+   * the xenonite needed the same headroom. */
+  {
+    const stock = (b) => { let n = 0; const c = CFG.chapters.find((x) => x.id === 'drive'); for (const op of c.build) { if (op.op === 'fill' && op.block === b) n += (Math.abs(op.to[0] - op.from[0]) + 1) * (Math.abs(op.to[1] - op.from[1]) + 1) * (Math.abs(op.to[2] - op.from[2]) + 1); if (op.op === 'set' && op.block === b) n++; } return n; };
+    const xen = stock(7) + Math.floor(stock(9) / 3);      // loose + everything the grit can forge
+    ok(xen >= 5, `xenonite budget is ${xen} — two bells (4) can be built and INTAKE II still fed`);
+    ok(stock(3) >= 3, `and ${stock(3)} girders — a bell eats one of those too`);
+  }
+
   const B = drv();
   eq(B.ears.length, 3, 'three intakes');
   eq(B.ears[0].tuned, CFG.blocks[3].note, 'the first is tuned to the note a GIRDER rings at');
@@ -3169,6 +3183,30 @@ group('BREEDING: one bug, two skies, and the corpses teach you', () => {
   eq(live.made, 'breed_live', 'taumoeba added LAST, both airs loaded: the FLIGHT STRAIN');
   ok(live.live && live.gives === 17, 'and it is alive');
   ok(R.solved(S), 'the room is SOLVED — a strain that does all three exists');
+
+  /* AUDIT (critical): the culture is in ALL THREE recipes and nothing restocks it, so it was the
+   * strict bottleneck — and loading the green FIRST was accepted in SILENCE (a lone culture matches
+   * no recipe, so nothing was said). Stack the dish in the jar that way and every ingredient added
+   * afterwards brews a corpse and burns a sample: the 6th ended the chapter for good, with no signal
+   * and no restart. The incubator now refuses a culture with nothing to breed it with, and the bays
+   * are twelve deep. Both lessons must survive: a partial still brews the corpse that teaches. */
+  const G = mk();
+  let stockpiled = 0;
+  for (let i = 0; i < 12; i++) if (feed(G, 17).ok) stockpiled++;
+  eq(stockpiled, 0, 'the green can never be silently stockpiled — the incubator refuses it with nothing to breed with');
+  ok(/dead things go in FIRST/.test(feed(G, 17).why), '...and it says WHY, instead of eating the dish in silence');
+  eq(G.forges[0].hopper[17] || 0, 0, 'so not one sample is burned by the mistake');
+
+  const P = mk();
+  feed(P, 14);
+  const corpse = feed(P, 17);
+  eq(corpse.made, 'breed_deadHers', 'but a partial load STILL brews the corpse — the lesson is intact');
+  ok(corpse.fail, 'and it is a failure you can read');
+
+  // and the bays are deep enough that the corpses you learn from cannot exhaust them
+  const stock = (id, b) => { let n = 0; const c = CFG.chapters.find((x) => x.id === id); for (const op of c.build) { if (op.op === 'fill' && op.block === b) n += (Math.abs(op.to[0] - op.from[0]) + 1) * (Math.abs(op.to[1] - op.from[1]) + 1) * (Math.abs(op.to[2] - op.from[2]) + 1); if (op.op === 'set' && op.block === b) n++; } return n; };
+  ok(stock('breeding', 17) >= 12, `the culture bay is deep (${stock('breeding', 17)}) — a corpse costs a walk, not the chapter`);
+  ok(stock('breeding', 14) >= 12 && stock('breeding', 19) >= 12, 'and so are the red and his air');
 
   const C = mk();
   feed(C, 14);

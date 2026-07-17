@@ -116,10 +116,22 @@
       build: [
         { op: 'fill', from: [0, 0, 0], to: [41, 11, 13], block: 1 },
         { op: 'room', from: [2, 1, 3], to: [33, 8, 11], floor: 2 },
-        // the three bays — generous (6 each), re-fetchable, so a corpse costs a walk
+        /* THE THREE BAYS — and they must be DEEP, because every corpse eats its ingredients and
+         * nothing here restocks. Audited soft-lock: the taumoeba is in ALL THREE recipes, so it is
+         * the strict bottleneck — with 6 samples the SIXTH corpse ended the chapter for good (5
+         * survivable, the 6th fatal), with no signal at all. And the trap is one honest mistake,
+         * not six: load the green FIRST (the forge takes all six silently, matching no recipe) and
+         * then follow the labels, and every single feed brews a corpse and burns a sample. The
+         * lesson here IS the corpses — "read the corpse, fetch what it asks for, try again" — so
+         * the player has to be able to afford to learn it. Twelve of each: you cannot plausibly
+         * run out, and the failures still cost you the walk. */
         { op: 'fill', from: [8, 2, 4], to: [10, 2, 5], block: 14 },    // ASTROPHAGE (the red)
+        { op: 'fill', from: [8, 2, 2], to: [10, 2, 3], block: 14 },
         { op: 'fill', from: [8, 2, 9], to: [10, 2, 10], block: 19 },   // HIS AIR (orange)
+        { op: 'fill', from: [8, 2, 11], to: [10, 2, 11], block: 19 },
+        { op: 'fill', from: [12, 2, 11], to: [14, 2, 11], block: 19 },
         { op: 'fill', from: [15, 2, 6], to: [16, 2, 8], block: 17 },   // TAUMOEBA (the culture — add LAST)
+        { op: 'fill', from: [17, 2, 6], to: [18, 2, 8], block: 17 },
         // the shelf where the dead ones pile
         { op: 'fill', from: [27, 2, 6], to: [30, 2, 6], block: 1 },
         // Grace, behind cast xenonite: present, singing, out of reach

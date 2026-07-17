@@ -1370,6 +1370,24 @@
     const has = held(S);
     if (!has) return { ok: false, why: 'that pocket is empty' };
 
+    /* THE INCUBATOR TAKES THE CULTURE LAST — and now it insists.
+     * Feeding the living green into a jar with nothing to breed it with used to be accepted in
+     * SILENCE (a lone culture matches no recipe, so `made` came back null and nothing was said).
+     * You could stack the whole dish in there that way — and then every ingredient you added
+     * afterwards brewed a corpse and burned a sample. The audit measured it: the sixth corpse
+     * ended the chapter for good, with no signal, no restart, and the arch never humming again.
+     * A lone culture was never anything but a trap, so refuse it and SAY so. Both lessons survive
+     * intact: green + one partner still brews the corpse that tells you which sky you forgot, and
+     * green + both still lives. The rule the chapter teaches is now enforced by the machine that
+     * teaches it. (Derived from the recipe tree, not hard-coded: the culture is the block a `live`
+     * recipe both eats and gives back.) */
+    const liveR = S.cfg.recipes.find((r) => r.live && r.needs.some((n) => n.block === r.gives));
+    if (liveR && has === liveR.gives) {
+      const partners = liveR.needs.filter((n) => n.block !== has).map((n) => n.block);
+      if (partners.length && !partners.some((pb) => (f.hopper[pb] || 0) > 0))
+        return { ok: false, why: 'nothing in the jar for it to breed with — the dead things go in FIRST' };
+    }
+
     f.hopper[has] = (f.hopper[has] || 0) + 1;
     const fed = has;
     setHeld(S, 0);
