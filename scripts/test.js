@@ -3186,12 +3186,21 @@ group('BETRAYAL: xenonite is a sieve — only grit holds the living thing', () =
   R.setHeld(P, 9);
   R.placeBlock(P);
   ok(R.solved(P), 'seal the second cell the same way and the breach is HELD — no lift-vs-regrow race');
-  // and it never swaps the floor out from under a placement, nor a block identical to what you hold
-  const D = R.create(CFG, { seed: 1, chapter: 'deep' });
-  D.player.x = 12.5; D.player.y = 3.5; D.player.z = 30.5; D.player.yaw = Math.PI / 2;
+  // a plain placement into open air still just places — nothing swapped, no floor stolen
+  const D = R.create(CFG, { seed: 1, chapter: 'workshop' });
+  D.player.x = 5.5; D.player.y = 2.34; D.player.z = 15.5; D.player.yaw = -Math.PI / 2;   // face +x, open room
   R.setHeld(D, 9);
   const df = R.placeBlock(D);
-  ok(df.ok && !df.swapped, 'a plain placement onto air still just places — the floor is not swapped away');
+  ok(df.ok && !df.swapped, 'a plain placement into open air still just places — nothing is swapped');
+
+  /* AND A BLOCK CANNOT BE THROWN THROUGH A WALL. The ray used to skip solid cells and keep going,
+   * landing in the first free cell BEYOND them — through a hull, into a room you can never walk to.
+   * In the deep hall the player faces four cells of grit plug with the ear's sealed alcove behind
+   * it: the block used to sail straight through into the alcove and was gone for good. */
+  const T = R.create(CFG, { seed: 1, chapter: 'deep' });
+  T.player.x = 12.5; T.player.y = 3.5; T.player.z = 30.5; T.player.yaw = Math.PI / 2;    // facing the grit plug
+  R.setHeld(T, 9);
+  eq(R.placeBlock(T).ok, false, 'a block cannot be thrown THROUGH the grit plug into the sealed alcove behind it');
 
   // a half-built wall is still a leak
   const H = mk();

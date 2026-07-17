@@ -848,6 +848,14 @@
     S.ears = S.ears.filter((e) => e.id !== id);
     S.pending = S.pending.filter((p) => p.id !== id);
   }
+  /* IS THIS A BELL HE BUILT, or one the LEVEL put there? A level bell is part of the level —
+   * takeBlock has always refused to lift one ("only your own come up again"), and placeBlock's
+   * swap has to refuse it for the same reason, or the astronomers' relay chain can simply be
+   * pocketed and the forge chapter solved without forging anything. */
+  function builtBellAt(S, x, y, z) {
+    const e = S.ears.find((q) => q.id === S.earAt[idx(S, x, y, z)]);
+    return !!(e && e.built);
+  }
 
   /* ---------- THE VEST ----------
    * WHAT IS IN HIS HANDS IS THE SELECTED POCKET. There is no second field holding
@@ -926,24 +934,38 @@
     // Prefer setting a block on the floor ahead (a step, a plinth) over shoving one at
     // body height right in his face.
     const b = held(S);
-    for (let t = 0.8; t <= 2.6; t += 0.2) {
-      for (const dy of [-1, 0, 1]) {
+    /* A BLOCK CANNOT BE THROWN THROUGH A WALL.
+     * This ray used to `continue` past a solid cell and keep marching, so a placement landed in the
+     * first FREE cell up to 2.6 away — happily on the far side of a two-cell hull, in a room the
+     * player can never walk to. (Audited: six panes fired clean through the hull in THE WALL with
+     * the readout still reading 0/6; the single xenonite in ATMOSPHERES lost the same way; grit
+     * posted through two door cells in ASTRONOMERS.) So each height marches until it MEETS
+     * something, and a wall ENDS that ray. The reach is also capped to takeBlock's 2.4 — anything
+     * he can put down, he can always pick back up. */
+    const DYS = [-1, 0, 1];
+    const blocked = [false, false, false];
+    for (let t = 0.8; t <= 2.4; t += 0.2) {
+      for (let k = 0; k < DYS.length; k++) {
+        if (blocked[k]) continue;                              // this height already hit a wall
+        const dy = DYS[k];
         const x = Math.floor(p.x + dx * t), y = Math.floor(p.y) + dy, z = Math.floor(p.z + dz * t);
-        if (!inside(S, x, y, z)) continue;
-        /* PLACING ONTO A PICKUPABLE BLOCK SWAPS. Air and vacuum are open as always; solid rock or
-         * xenonite still blocks a placement. But if you are FACING something you could have LIFTED
-         * — the living taumoeba growing back into a breach — your block goes down and that one comes
-         * up into your arms, the two trading places. It kills the unwinnable lift-then-place race
-         * against the growth: face the breach, drop the grit, done. Two guards keep it sane: only a
-         * block at face height (dy>=0, never the floor at your feet — a girder LEDGE is pickupable
-         * too, and you must be able to build on it), and never one identical to what you hold (so a
-         * second grit does not pop the first straight back out). */
+        if (!inside(S, x, y, z)) { blocked[k] = true; continue; }
         const cur = blockAt(S, x, y, z);
-        const solid = S.solidOf[cur];
-        const swap = dy >= 0 && solid && cur !== b && S.cfg.blocks[cur] && S.cfg.blocks[cur].carry;
-        if (solid && !swap) continue;                          // solid and not a swap: cannot build here
-        // never place inside — or flush against — the body doing the placing
+        if (S.solidOf[cur]) {
+          /* PLACING ONTO A PICKUPABLE BLOCK SWAPS: your block goes down and that one comes up into
+           * your arms. It kills the unwinnable lift-then-place race against the growing taumoeba —
+           * face the breach, drop the grit, done. Three guards keep it sane: only at face height
+           * (never the girder LEDGE at your feet — you must be able to build on it); never a block
+           * identical to what you hold (so a second grit does not pop the first back out); and only
+           * something you could actually LIFT — a bell the LEVEL placed is part of the level, and
+           * takeBlock refuses it, so this must refuse it too. */
+          const liftable = S.carryOf[cur] && !(cur === 11 && !builtBellAt(S, x, y, z));
+          if (!(dy >= 0 && cur !== b && liftable)) { blocked[k] = true; continue; }   // a wall: ray ends
+        }
+        // never place inside the body doing the placing — but his own body is not a wall, so the
+        // ray carries on past it
         if (x >= px0 && x <= px1 && y >= py0 && y <= py1 && z >= pz0 && z <= pz1) continue;
+        const swap = S.solidOf[cur];                           // (only a swappable solid gets this far)
         if (cur === 11) removeBell(S, x, y, z);                // a bell you displaced stops listening
         setBlock(S, x, y, z, b);
         repressurize(S);            // ...and seal a breach and it comes straight back
