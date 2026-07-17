@@ -6,10 +6,13 @@
  * lives in localStorage so a returning player is not counted as a new one; that is
  * the extent of it, and it never leaves this browser except as that opaque string.
  *
- * WHERE IT GOES: an n8n Webhook on the same host the game is served from, so the
- * POST is same-origin (no CORS, no preflight). To receive it, build a workflow with
- * a Webhook node -- HTTP Method POST, Path `rocky-analytics` -- and ACTIVATE it.
- * The production URL n8n gives that node must match ENDPOINT below.
+ * WHERE IT GOES: an n8n Webhook. The game is served from automate.bworldtools.com but
+ * n8n lives on n8n.bworldtools.com, so this POST is CROSS-ORIGIN. To dodge a CORS
+ * preflight (which sendBeacon cannot perform), the body goes as text/plain -- a
+ * CORS-"simple" request that the browser sends cross-origin without asking permission.
+ * The payload is still JSON, just carried as text; the n8n side JSON-parses it (the
+ * Flatten node already handles a string body). Build a Webhook node -- HTTP Method
+ * POST, Path `rocky-analytics` -- ACTIVATE it, and match its production URL to ENDPOINT.
  *
  * WHAT IT SENDS (JSON body):
  *   event   'visit' | 'chapter' | 'finished' | 'session_end'
@@ -29,8 +32,8 @@
 (function () {
   'use strict';
 
-  var ENDPOINT = 'https://automate.bworldtools.com/webhook/rocky-analytics';
-  var VER = 'rocky-v71';
+  var ENDPOINT = 'https://n8n.bworldtools.com/webhook/rocky-analytics';
+  var VER = 'rocky-v72';
 
   var dnt = navigator.doNotTrack === '1' || window.doNotTrack === '1' ||
             navigator.msDoNotTrack === '1' || navigator.globalPrivacyControl === true;
@@ -58,15 +61,18 @@
     if (props) for (var k in props) if (Object.prototype.hasOwnProperty.call(props, k)) body[k] = props[k];
     var json = '';
     try { json = JSON.stringify(body); } catch (e) { return; }
-    // sendBeacon survives the page being closed (the whole reason session_end can fire on leave)
+    // sendBeacon survives the page being closed (the whole reason session_end can fire on
+    // leave). text/plain keeps it a CORS-"simple" request, so it crosses to n8n.* without a
+    // preflight the beacon could not answer; the body is JSON text, parsed on the n8n side.
     try {
-      var blob = new Blob([json], { type: 'application/json' });
+      var blob = new Blob([json], { type: 'text/plain;charset=UTF-8' });
       if (navigator.sendBeacon && navigator.sendBeacon(ENDPOINT, blob)) return;
     } catch (e) {}
-    // fallback for browsers without sendBeacon: keepalive fetch, no-cors so a bare
-    // webhook (no CORS headers) still accepts it; we never read the response anyway.
+    // fallback for browsers without sendBeacon: keepalive fetch, no-cors + text/plain so the
+    // cross-origin POST is delivered even though a bare webhook sends no CORS headers back
+    // (no-cors makes the response opaque, which is fine -- we never read it).
     try {
-      fetch(ENDPOINT, { method: 'POST', body: json, headers: { 'Content-Type': 'application/json' }, keepalive: true, mode: 'no-cors' });
+      fetch(ENDPOINT, { method: 'POST', body: json, headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, keepalive: true, mode: 'no-cors' });
     } catch (e) {}
   }
 
