@@ -1435,12 +1435,30 @@
     return false;
   }
 
+  /* STICKY STEPS — THE WALKTHROUGH FOLLOWS THE PLAYER, NOT THE OTHER WAY ROUND.
+   *
+   * PLAYTEST: "if I go through the tutorial too fast it doesn't let me complete... it still says
+   * get grit even after I did it all."  Dead right, and it was this: a step's `done` is a LIVE
+   * fact, and several of them are TRANSIENT. `climbTo` is only true while he is still up there;
+   * `reach` only while he is still standing on the spot; `rang` only while the bell he rang is
+   * still on the floor; `lift` only while the block is still in the vest (lift the grit, forge it
+   * into xenonite, and it is gone). So a player who runs ahead — climbs the ledge, crawls through,
+   * pulls the plug, forges a bell — and then comes back DOWN arrives at "now climb" with the
+   * condition already false again, and the whole thing FREEZES there with every later step
+   * long since done. The tutorial became unfinishable for playing it well.
+   *
+   * So: remember every step that has EVER been true, and walk the pointer past all of them at
+   * once. Nothing is skipped that was not actually done — for a counter (`pulse`, `move`,
+   * `gauges`) sticky and live are the same thing; it only ever CREDITS a moment that really
+   * happened and then passed. */
   function stepWalk(S) {
-    const w = stepNow(S);
-    if (!w) return;
-    if (!stepDone(S, w)) return;
-    S.stepI++;
-    S.stepDoneN++;
+    const t = S.chapter.walk;
+    if (!t || S.stepI >= t.length) return;
+    if (!S.stepHit) S.stepHit = [];
+    for (let i = S.stepI; i < t.length; i++) if (!S.stepHit[i] && stepDone(S, t[i])) S.stepHit[i] = true;
+    let moved = false;
+    while (S.stepI < t.length && S.stepHit[S.stepI]) { S.stepI++; S.stepDoneN++; moved = true; }
+    if (!moved) return;
     cue(S, 'step:done');
     if (!stepNow(S)) { S.flags.walkthrough = true; cue(S, 'chapter'); }
   }

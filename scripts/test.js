@@ -1418,6 +1418,26 @@ group('THE WALKTHROUGH: nobody should ever stand in a room wondering what the ga
   ok(S.flags.done, 'he walks into it, and he is through');
 
   eq(R.stepNow(S), null, 'THE WALKTHROUGH IS FINISHED — every step, played to the end');
+
+  /* ...AND IT SURVIVES A PLAYER WHO RUNS AHEAD OF IT.
+   * PLAYTEST: "if I go through the tutorial too fast it doesn't let me complete... it still says
+   * get grit even after I did it all." A step's `done` is a LIVE fact and several are TRANSIENT —
+   * `climbTo` is only true while he is still up there. Do it early, come back down, and the old
+   * code arrived at that step with the condition false again and froze there forever. Steps are
+   * sticky now: anything that has EVER been true stays done. */
+  const F = ws();
+  F.player.x = 5.5; F.player.y = 8.0; F.player.z = 15.5; F.player.vy = 0;   // he climbs FIRST, unasked
+  steps(F, 0.2);
+  F.player.x = 5.5; F.player.y = 3.0; F.player.z = 15.5; F.player.vy = 0;   // ...and comes straight back down
+  steps(F, 0.3);
+  ok(F.stepHit && F.stepHit[5], 'the climb he did early is remembered, even though he is back on the floor');
+  // now do the earlier steps he skipped past
+  F.pulseCd = 0; R.pulse(F); steps(F, 1.4);
+  F.player.dist = 0; steps(F, 2.0, { fwd: 1, yaw: 0 });
+  F.player.x = 16; F.player.y = 3; F.player.z = 15; steps(F, 0.3);
+  F.player.x = 24; F.player.y = 3; F.player.z = 15; steps(F, 0.3);
+  for (let i = 0; i < 4; i++) { F.pulseCd = 0; R.pulse(F); steps(F, 1.4); }
+  ok(F.stepI > 5, `and the walkthrough walks straight past the climb step instead of freezing on it (now at step ${F.stepI + 1})`);
   ok(S.flags.walkthrough, 'and the engine knows it');
   eq(S.stepDoneN, S.chapter.walk.length, `all ${S.chapter.walk.length} steps done`);
 });
