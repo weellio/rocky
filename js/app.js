@@ -1426,6 +1426,15 @@ function buildAstroMarkers() {
         }
 }
 
+/* GRACE'S COLOURS, in one place, because he is drawn twice — once as a folk in the levels and
+ * once seated at the ending — and the player has to recognise the second one as the first. Every
+ * Eridian is drawn from Rocky's baked body and told apart by a tint; Grace has no sculpt, so his
+ * ORANGE is the whole of his identity. It is the colour this palette has been holding in reserve
+ * since the first room, and it does not get spent anywhere else. */
+const GRACE_O = 0xe8730f;      // torso, head — the orange itself
+const GRACE_OD = 0xa34a06;     // limbs — the same orange, in its own shadow
+const GRACE_PANEL = 0xffd9a0;  // the flat panel on the front of his head, lit and silent
+
 function buildFolk() {
   folkGroup.clear();
   const M = window.ROCKY_MODEL;
@@ -1445,7 +1454,7 @@ function buildFolk() {
      * is ORANGE — the colour this whole palette has been holding in reserve since the first
      * room for exactly this moment: the first thing here that is not Erid. */
     if (f.kind === 'human') {
-      const O = 0xe8730f, Od = 0xa34a06, panel = 0xffd9a0;
+      const O = GRACE_O, Od = GRACE_OD, panel = GRACE_PANEL;
       /* fog:false — the human is the thing the whole palette has been saving orange for, and
        * he stands across a window a dozen cells off; let the fog swallow him and the one
        * moment the game turns orange is a dark smudge. He stays vivid, like Rocky himself. */
@@ -1680,31 +1689,36 @@ function sunDisc() {
   g.fillStyle = grd; g.fillRect(0, 0, N, N);
   return new THREE.CanvasTexture(c);
 }
-/* Grace, seated — a dark human silhouette (a shape the whole game learned to draw for the
- * humans) with the flat panel on the front of his head lit warm, so he reads as clearly a
- * person, and clearly not one of them. */
+/* Grace, seated — the SAME MAN the player met at the airlock, in the same orange, so the figure
+ * on the ledge is recognisably the one who talked to them through a window for six acts. He was
+ * a near-black silhouette here once and it was a mistake: Rocky and Adrian can go to silhouette
+ * because their cracks still glow, and the glow is who they are — green for him, pink for her.
+ * Grace has no cracks. Take his orange away and he is an anonymous shape sitting in the dark.
+ * So he keeps it, and it is the last thing the palette spends: the orange man, at last, under an
+ * orange sun. The pose is the only thing that changes — he is sitting down, because it is over. */
 function endingBiped(x, y, z) {
   const g = new THREE.Group();
-  const dark = 0x0b0910, panel = 0xffb060;
+  const O = GRACE_O, Od = GRACE_OD, panel = GRACE_PANEL;
   const box = (w, h, d, bx, by, bz, col) => {
     const m = new THREE.Mesh(bakedBox(0.98), new THREE.MeshBasicMaterial({ color: col, fog: false }));
     m.scale.set(w, h, d); m.position.set(bx, by, bz); g.add(m);
   };
   // A SEATED HUMAN, built out of enough small parts to read as a person and not a robot:
   // legs folded up, a tapered torso with shoulders and a neck, arms resting on the knees.
-  box(0.13, 0.13, 0.28, -0.08, 0.12, 0.15, dark); box(0.13, 0.13, 0.28, 0.08, 0.12, 0.15, dark);   // thighs, forward
-  box(0.12, 0.20, 0.12, -0.08, 0.05, 0.29, dark); box(0.12, 0.20, 0.12, 0.08, 0.05, 0.29, dark);   // shins, down
-  box(0.13, 0.06, 0.17, -0.08, -0.01, 0.33, dark); box(0.13, 0.06, 0.17, 0.08, -0.01, 0.33, dark); // feet
-  box(0.27, 0.12, 0.18, 0, 0.20, 0.02, dark);     // hips
-  box(0.24, 0.13, 0.16, 0, 0.32, 0.00, dark);     // lower torso, tucked
-  box(0.30, 0.13, 0.17, 0, 0.44, -0.01, dark);    // chest, wider
-  box(0.37, 0.08, 0.16, 0, 0.52, -0.01, dark);    // shoulders, widest
-  box(0.09, 0.17, 0.10, -0.21, 0.44, 0.03, dark); box(0.09, 0.17, 0.10, 0.21, 0.44, 0.03, dark);   // upper arms
-  box(0.09, 0.10, 0.18, -0.21, 0.34, 0.12, dark); box(0.09, 0.10, 0.18, 0.21, 0.34, 0.12, dark);   // forearms, to the knees
-  box(0.10, 0.08, 0.10, -0.20, 0.28, 0.21, dark); box(0.10, 0.08, 0.10, 0.20, 0.28, 0.21, dark);   // hands on the knees
-  box(0.09, 0.07, 0.09, 0, 0.58, -0.01, dark);    // neck
-  box(0.17, 0.17, 0.17, 0, 0.68, -0.01, dark);    // head, smaller
-  box(0.13, 0.09, 0.04, 0, 0.69, 0.09, panel);    // the panel on the front of his head, lit
+  // Lit exactly as the folk version is — body and head in the orange, limbs in its shadow.
+  box(0.13, 0.13, 0.28, -0.08, 0.12, 0.15, Od); box(0.13, 0.13, 0.28, 0.08, 0.12, 0.15, Od);   // thighs, forward
+  box(0.12, 0.20, 0.12, -0.08, 0.05, 0.29, Od); box(0.12, 0.20, 0.12, 0.08, 0.05, 0.29, Od);   // shins, down
+  box(0.13, 0.06, 0.17, -0.08, -0.01, 0.33, Od); box(0.13, 0.06, 0.17, 0.08, -0.01, 0.33, Od); // feet
+  box(0.27, 0.12, 0.18, 0, 0.20, 0.02, O);      // hips
+  box(0.24, 0.13, 0.16, 0, 0.32, 0.00, O);      // lower torso, tucked
+  box(0.30, 0.13, 0.17, 0, 0.44, -0.01, O);     // chest, wider
+  box(0.37, 0.08, 0.16, 0, 0.52, -0.01, O);     // shoulders, widest
+  box(0.09, 0.17, 0.10, -0.21, 0.44, 0.03, Od); box(0.09, 0.17, 0.10, 0.21, 0.44, 0.03, Od);   // upper arms
+  box(0.09, 0.10, 0.18, -0.21, 0.34, 0.12, Od); box(0.09, 0.10, 0.18, 0.21, 0.34, 0.12, Od);   // forearms, to the knees
+  box(0.10, 0.08, 0.10, -0.20, 0.28, 0.21, Od); box(0.10, 0.08, 0.10, 0.20, 0.28, 0.21, Od);   // hands on the knees
+  box(0.09, 0.07, 0.09, 0, 0.58, -0.01, Od);    // neck — the dark band under the head, as in the levels
+  box(0.17, 0.17, 0.17, 0, 0.68, -0.01, O);     // head, smaller
+  box(0.17, 0.12, 0.04, 0, 0.69, 0.09, panel);  // THE FLAT PANEL, full head width — how you know him
   g.position.set(x, y, z);
   return g;
 }

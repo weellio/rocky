@@ -3500,6 +3500,53 @@ group('the model', () => {
   ok(SRC.html.includes('js/model.js'), 'the game loads the baked model');
 });
 
+group('GRACE IS THE SAME MAN TWICE', () => {
+  /* PLAYTEST: "can you make grace at the end look more like grace in the other levels?"
+   * He is drawn twice and never from the same code: a standing folk at the airlock windows,
+   * and a seated figure on the ledge at the end. The ending one was a near-black silhouette,
+   * which is right for Rocky and Adrian — they are drawn from Rocky's own sculpt and their
+   * bioluminescent CRACKS still glow, so the outline reads and the glow says which of them it
+   * is. Grace has no sculpt and no cracks. His orange IS his identity, the one colour this
+   * palette holds in reserve from the first room. Painting him black at the end spent six acts
+   * of recognition to gain nothing: an anonymous shape sitting in the dark.
+   *
+   * So the palette lives in ONE place and both figures read from it. This is the guard: a
+   * literal orange in either drawing means someone has started a second Grace. */
+  ok(/const GRACE_O = 0x[0-9a-f]{6}/.test(SRC.app), 'his orange is declared once, by name');
+  ok(/const GRACE_OD = 0x[0-9a-f]{6}/.test(SRC.app), 'and the shadow of it, for his limbs');
+  ok(/const GRACE_PANEL = 0x[0-9a-f]{6}/.test(SRC.app), 'and the panel on the front of his head');
+
+  /* Both drawings must name the constants... */
+  const folk = SRC.app.slice(SRC.app.indexOf("f.kind === 'human'"), SRC.app.indexOf('function endingBiped'));
+  const end = SRC.app.slice(SRC.app.indexOf('function endingBiped'));
+  for (const [where, src] of [['at the airlock', folk], ['on the ledge', end]]) {
+    ok(/GRACE_O\b/.test(src), `${where}: his body is the one orange`);
+    ok(/GRACE_OD\b/.test(src), `${where}: his limbs are its shadow`);
+    ok(/GRACE_PANEL\b/.test(src), `${where}: the panel is lit the same`);
+  }
+
+  /* ...and neither may hard-code a colour of its own, which is exactly how they drifted.
+   * Strip the comments first: this is a guard on what the renderer DOES, and prose about a
+   * dark band under his chin is not a colour. A guard you have to write around is a guard
+   * that has stopped describing the thing it guards. */
+  const endBody = end.slice(0, end.indexOf('\n}'));
+  const endCode = endBody.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  ok(!/0x[0-9a-f]{6}/.test(endCode), 'the seated Grace invents no colour of his own — that is how he went black');
+  ok(!/\bdark\b/.test(endCode), 'and there is no "dark" left in him at all');
+
+  /* The panel is what the player actually recognises: a flat lit face on a man who cannot
+   * make a sound with it. It spans the whole head in the levels; it does at the end too. */
+  const headW = /box\(([\d.]+),[^)]*\);\s*\/\/ head/.exec(endBody);
+  const panelW = /box\(([\d.]+),[^)]*\bpanel\);/.exec(endBody);
+  ok(headW && panelW, 'the seated Grace has a head, and a panel on the front of it');
+  if (headW && panelW)
+    eq(panelW[1], headW[1], `the panel is the full width of his head (${panelW[1]}), as it is in every level`);
+
+  /* And the other two must NOT follow him into colour: their silhouette is load-bearing. */
+  ok(/near-black body: a silhouette/.test(SRC.app), 'Rocky and Adrian stay silhouettes');
+  ok(/the glow in the cracks/.test(SRC.app), 'because their cracks are what say who they are');
+});
+
 group('it has to be playable on a phone', () => {
   /* PLAYTEST: "i'd like this to be played on the computer, tablet, and phone."
    * A thumb is not a mouse. There is no pointer lock on a phone and there never
