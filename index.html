@@ -25,6 +25,13 @@
 <meta name="twitter:image" content="https://automate.bworldtools.com/rocky/og.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg">
+<!-- iOS does not read the manifest for "Add to Home Screen": it needs these tags and a PNG
+     apple-touch-icon, or the install is a blank icon in a Safari chrome instead of the game. -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ROCKY">
+<link rel="apple-touch-icon" href="icon-180.png">
 <style>
   /* LIFE is green, DEATH is red, HEAT is amber — and ORANGE belongs to the humans,
      so we do not spend it before we meet them. */
@@ -227,6 +234,13 @@
     font:inherit;font-size:15px;letter-spacing:.24em;padding:13px 40px;border-radius:2px;cursor:pointer;
     text-transform:uppercase;transition:.2s}
   #go:hover{background:var(--amber);color:#100600;box-shadow:0 0 40px rgba(255,154,60,.5)}
+  /* INSTALL — a quiet second option, shown only when the device can actually install (app.js
+     reveals it). Cyan not amber, so "Listen" stays the one thing the eye goes to. */
+  #install{background:transparent;border:1px solid rgba(127,224,160,.5);color:var(--cyan);
+    font:inherit;font-size:11px;letter-spacing:.2em;padding:8px 20px;border-radius:2px;cursor:pointer;
+    text-transform:uppercase;transition:.2s}
+  #install:hover{background:rgba(127,224,160,.14)}
+  #install[hidden]{display:none}
   .fold{font-size:10px;letter-spacing:.24em;color:#3d4d61;text-transform:uppercase}
 
   /* ================= TOUCH =================
@@ -417,6 +431,7 @@
   <div id="prologue"></div>
   <div id="chapters"></div>
   <button id="go">Listen</button>
+  <button id="install" hidden>Install on this device</button>
   <div class="fold">the codex holds the rest · C at any time</div>
   <div class="fold" style="opacity:.62;font-size:11px;max-width:64ch;line-height:1.55;margin-top:6px">
     An unaffiliated fan homage to <em style="font-style:italic;color:inherit">Project&nbsp;Hail&nbsp;Mary</em> by Andy&nbsp;Weir.
@@ -538,6 +553,36 @@
       const coarse = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
       if (!coarse && c.requestPointerLock) c.requestPointerLock();
     });
+
+    /* INSTALL TO THE DEVICE. It is already a PWA (manifest + service worker + offline cache);
+       this just surfaces the option instead of hiding it in a browser menu. Chromium fires
+       beforeinstallprompt when the app qualifies -- stash it, reveal the button, prompt on tap.
+       iOS/Safari never fires it and has no programmatic prompt, so there we show the button with
+       the manual Share-sheet steps. If it is already installed (standalone), we offer nothing. */
+    (function () {
+      const btn = document.getElementById('install');
+      if (!btn) return;
+      const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+      if (standalone) return;
+      let deferred = null;
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault(); deferred = e; btn.hidden = false;
+      });
+      btn.addEventListener('click', function () {
+        if (deferred) {
+          deferred.prompt();
+          Promise.resolve(deferred.userChoice).then(function () { deferred = null; btn.hidden = true; });
+        } else {
+          btn.textContent = 'Tap  Share  →  Add to Home Screen';
+        }
+      });
+      window.addEventListener('appinstalled', function () { btn.hidden = true; });
+      // iOS/iPadOS Safari can install via the Share sheet but never fires the event above.
+      const iOS = /iP(hone|ad|od)/.test(navigator.platform) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const safari = /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(navigator.userAgent);
+      if (iOS && safari) { btn.textContent = 'Install: Share → Add to Home Screen'; btn.hidden = false; }
+    })();
   })();
 </script>
 <script type="module" src="js/app.js"></script>
