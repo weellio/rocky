@@ -749,15 +749,22 @@ if (TOUCH) {
   stick.addEventListener('pointerup', dropStick);
   stick.addEventListener('pointercancel', dropStick);
 
-  // the right half of the screen is where you look
+  /* WHERE YOU LOOK. Everything that is not the stick and not a button is a place you can
+     drag to turn. PLAYTEST: "on mobile it is very difficult to rotate rocky." Two reasons,
+     both fixed here: the zone used to begin at 42% of the width, so the whole middle-left of
+     the screen did nothing but the buttons crowded the right — now it begins just past the
+     stick (the verbs/belt/codex are their own elements and swallow their own touches, so only
+     the stick corner needs excluding). And the turn was slow: a short thumb-drag barely moved
+     the view. Faster now, so a flick of the free thumb spins him round. */
   canvas.addEventListener('pointerdown', (e) => {
-    if (e.clientX < innerWidth * 0.42) return;
+    if (stickId !== null) return;                    // the other thumb is already steering
+    if (e.clientX < innerWidth * 0.18) return;       // leave the stick's corner to the stick
     lookId = e.pointerId; lookX = e.clientX; lookY = e.clientY;
   });
   canvas.addEventListener('pointermove', (e) => {
     if (e.pointerId !== lookId) return;
-    yaw -= (e.clientX - lookX) * 0.006;
-    pitch = Math.max(-0.9, Math.min(1.1, pitch + (e.clientY - lookY) * 0.005));
+    yaw -= (e.clientX - lookX) * 0.010;
+    pitch = Math.max(-0.9, Math.min(1.1, pitch + (e.clientY - lookY) * 0.008));
     lookX = e.clientX; lookY = e.clientY;
   });
   const dropLook = (e) => { if (e.pointerId === lookId) lookId = null; };
@@ -855,6 +862,7 @@ function decodeInto(node, text, dur) {
   }
   requestAnimationFrame(tick);
 }
+let talkTimer = 0;
 function say(chord, text) {
   el('chord').textContent = chord;
   const box = el('talk');
@@ -862,6 +870,9 @@ function say(chord, text) {
   void box.offsetWidth;
   box.classList.add('go');
   decodeInto(el('speech'), text, 1150);
+  /* On a phone the screen is tiny and his voice, left up, sits over the room the whole time.
+     Fade it once you have had time to read it (it stays put on desktop, where there is room). */
+  if (TOUCH) { clearTimeout(talkTimer); talkTimer = setTimeout(() => box.classList.remove('go'), 7000); }
 }
 function banner(text) {
   const b = el('banner');
